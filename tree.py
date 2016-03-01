@@ -25,7 +25,7 @@ def _marshal_mapannotation(conn, row):
     project_id, name, owner_id, permissions, child_count = row
     project = dict()
     project['id'] = unwrap(project_id)
-    project['name'] = unwrap(name)
+    project['value'] = unwrap(name)
     project['ownerId'] = unwrap(owner_id)
     project['childCount'] = unwrap(child_count)
     project['permsCss'] = \
@@ -74,7 +74,7 @@ def marshal_mapannotations(conn, group_id=-1, experimenter_id=-1,
 
     q = """
         select new map(a.id as id,
-               mv.value as name,
+               mv.value as value,
                a.details.owner.id as ownerId,
                a as a_details_permissions,
                count(s.id) as childCount)
@@ -89,7 +89,7 @@ def marshal_mapannotations(conn, group_id=-1, experimenter_id=-1,
 
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
-        e = [e[0]["id"], e[0]["name"], e[0]["ownerId"],
+        e = [e[0]["id"], e[0]["value"], e[0]["ownerId"],
              e[0]["a_details_permissions"], e[0]["childCount"]]
         mapannotations.append(_marshal_mapannotation(conn, e[0:5]))
     return mapannotations

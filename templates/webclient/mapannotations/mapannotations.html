@@ -1,4 +1,4 @@
-{% extends "webclient/base/base_container.html" %}
+{% extends "webclient/data/containers.html" %}
 {% load i18n %}
 
 {% comment %}
@@ -20,46 +20,15 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 {% endcomment %}
-{% block link %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% static "webgateway/css/ome.jstree_theme.css" %}" type="text/css" />
-{% endblock %}
 
 {% block script %}
     {{ block.super }}
 
-<script src="{% static "3rdparty/jquery.jstree-3.0.8/jstree.js" %}"></script>
-<script src="{% static "webclient/javascript/jquery.jstree.locate_plugin.js" %}"></script>
-<script src="{% static "webclient/javascript/jquery.jstree.conditionalselect_plugin.js" %}"></script>
-<script src="{% static "webclient/javascript/jquery.jstree.pagination_plugin.js" %}"></script>
-<script src="{% static "webclient/javascript/jquery.jstree.fields_plugin.js" %}"></script>
-<script src="{% static "webclient/javascript/jquery.jstree.omecut_plugin.js" %}"></script>
-<script src="{% static "webclient/javascript/jquery.jstree.ometools_plugin.js" %}"></script>
-<script src="{% static "webclient/javascript/jquery.jstree.childcount_plugin.js" %}"></script>
-<script src="{% static "webclient/javascript/jquery.jstree.truncatetext_plugin.js" %}"></script>
-<script src="{% static 'webclient/javascript/ome.chgrp.js'|add:url_suffix %}"></script>
-
-<script>
-// global variables in a JSTREEDEMO namespace, available to other scripts.
-var JSTREEDEMO = {};
-JSTREEDEMO.WEBINDEX = "{% url 'webindex' %}";
-JSTREEDEMO.MAPINDEX = "{% url 'mapindex' %}";
-// this is provided by the @render_response views decorator
-JSTREEDEMO.WEBCLIENT_STATIC = "{% static 'webclient/' %}";
-</script>
-
-<script src="{% static "mapannotations/js/mapannotations.js" %}"></script>
-
+    <script type="text/javascript">
+        WEBCLIENT.URLS.api_tags_and_tagged = "{% url 'api_mapannotations' %}";
+        WEBCLIENT.URLS.tree_top_level = WEBCLIENT.URLS.api_tags_and_tagged;
+    </script>
 
 {% endblock %}
 
 
-{% block left %}
-
-  <div id="left_panel_tabs" class="absolute_fill ui-tabs">
-    <div id="tree_details" class="left_panel_inner">
-      <div class="dataTree" id="dataTree"></div>
-    </div>
-  </div>
-
-{% endblock %}

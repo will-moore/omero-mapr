@@ -41,6 +41,7 @@ def api_mapannotation_list(request, conn=None, **kwargs):
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'id', -1)
+        tag_id = get_long_or_default(request, 'id', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -50,9 +51,18 @@ def api_mapannotation_list(request, conn=None, **kwargs):
     # parents), screens and plates (without parents). This is fine for
     # the first page, but the second page may not be what is expected.
 
+    mapannotations=[]
+    screens=[]
     try:
         # Get all genes from map annotation
-        mapannotations = tree.marshal_mapannotations(conn=conn,
+        if tag_id is not None and tag_id > 0:
+            screens = tree.marshal_screens(conn=conn,
+                                         node_id=tag_id,
+                                         group_id=group_id,
+                                         page=page,
+                                         limit=limit)
+        else:
+            mapannotations = tree.marshal_mapannotations(conn=conn,
                                      group_id=group_id,
                                      experimenter_id=experimenter_id,
                                      page=page,
@@ -65,39 +75,4 @@ def api_mapannotation_list(request, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'mapannotations': mapannotations})
-
-@login_required()
-def api_screens_list(request, conn=None, **kwargs):
-    # Get parameters
-    try:
-        page = get_long_or_default(request, 'page', 1)
-        limit = get_long_or_default(request, 'limit', settings.PAGE)
-        group_id = get_long_or_default(request, 'group', -1)
-        node_id = get_long_or_default(request, 'id', None)
-    except ValueError:
-        return HttpResponseBadRequest('Invalid parameter value')
-
-    # While this interface does support paging, it does so in a
-    # very odd way. The results per page is enforced per query so this
-    # will actually get the limit for projects, datasets (without
-    # parents), screens and plates (without parents). This is fine for
-    # the first page, but the second page may not be what is expected.
-
-    try:
-        # Get all genes from map annotation
-        screens = tree.marshal_screens(conn=conn,
-                                     node_id=node_id,
-                                     group_id=group_id,
-                                     page=page,
-                                     limit=limit)
-
-    except ApiUsageException as e:
-        return HttpResponseBadRequest(e.serverStackTrace)
-    except ServerError as e:
-        return HttpResponseServerError(e.serverStackTrace)
-    except IceException as e:
-        return HttpResponseServerError(e.message)
-
-    return HttpJsonResponse({'screens': screens})
-
+    return HttpJsonResponse({'tags': mapannotations, 'screens': screens })
