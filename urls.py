@@ -16,13 +16,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from jstreedemo import views
+
+from mapannotations import views
 from django.conf.urls import url, patterns
 
 urlpatterns = patterns(
+    '',
+    url(r'^$', views.index, name="mapindex"),
+    # Generic container list. This is necessary as an experimenter may have
+    # datasets/etc which do not belong to any project
+    url(r'^api/mapannotations/$', views.api_mapannotation_list, name='api_mapannotations'),
+    url(r'^api/screens/$', views.api_screens_list, name='api_screens'),
 
-    'django.views.generic.simple',
-
-    # index 'home page' of the jstreedemo app
-    url(r'^$', views.index, name='jstreedemo_index'),
 )

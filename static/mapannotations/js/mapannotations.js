@@ -20,7 +20,8 @@ $(function() {
     // 
     var WEBSTATIC = JSTREEDEMO.WEBCLIENT_STATIC,
         WEBINDEX = JSTREEDEMO.WEBINDEX,
-        EXPID = JSTREEDEMO.EXPID;
+        MAPINDEX = JSTREEDEMO.MAPINDEX,
+        EXPID = activeUserId();
 
     // Select jstree and then cascade handle events and setup the tree.
     var jstree = $("#dataTree")
@@ -31,6 +32,28 @@ $(function() {
         // Expand on click (not select because of key navigation)
         if (datatree.is_parent(this)) {
             datatree.open_node(this);
+        }
+    })
+
+    // Support ?show=tag-123
+    // NB: we only support a single level of tree traversal (not recursive as on containers.html)
+    .on('loaded.jstree', function(e, data) {
+        var inst = data.instance;
+        var param = OME.getURLParameter('show');
+        if (!param) {
+            // If not found, just select root node
+            inst.select_node('ul > li:first');
+        } else {
+            // Tree root may be experimenter or 'All members' (this supports both)
+            var root = inst.get_node('ul > li:first');
+            inst.open_node(root, function() {
+                var node = inst.locate_node(param, root)[0];
+                if (!node) return;
+                inst.select_node(node);
+                inst.open_node(node);
+                // we also focus the node, to scroll to it and setup hotkey events
+                $("#" + node.id).children('.jstree-anchor').focus();
+            });
         }
     })
 
@@ -68,24 +91,38 @@ $(function() {
                 // Request the list of children from that url, adding any relevant filters
                 var url;
                 if (node.type === 'experimenter') {
-                    url = WEBINDEX + 'api/containers/';
-                } else if (node.type === 'project') {
-                    url = WEBINDEX + 'api/datasets/';
-                } else if (node.type === 'dataset') {
-                    url = WEBINDEX + 'api/images/';
+                    url = MAPINDEX + 'api/mapannotations/';
+                } else if (node.type === 'mapannotation') {
+                    url = MAPINDEX + 'api/screens/';
                 } else if (node.type === 'screen') {
                     url = WEBINDEX + 'api/plates/';
                 } else if (node.type === 'plate') {
                     url = WEBINDEX + 'api/plate_acquisitions/';
-                } else if (node.type === 'orphaned') {
-                    url = WEBINDEX + 'api/images/';
                 } else if (node.id === '#') {
                     // root of tree
-                    url = WEBINDEX + 'api/experimenters/' + EXPID + '/';
+                    if (EXPID && EXPID != -1) {
+                        url = WEBINDEX + 'api/experimenters/' + EXPID + '/';
+                    } else {
+                        // ...or multiple experimenters
+                        node = {
+                            'data': {'id': -1, 'obj': {'id': -1}},
+                            'text': 'Genes',
+                            'children': true,
+                            'type': 'experimenter',
+                            'state': {
+                                'opened': true
+                            },
+                            'li_attr': {
+                                'data-id': -1
+                            }
+                        };
+
+                        callback.call(this, [node]);
+                        return;
+                    }
                 } else {
                     return;
                 }
-
 
                 // Load the data via AJAX...
                 $.ajax({
@@ -124,46 +161,14 @@ $(function() {
                                 jstree_data.push(node);
                             }
 
-                            // Add projects to the jstree data structure
-                            if (data.hasOwnProperty('projects')) {
-                                $.each(data.projects, function(index, value) {
+                            // Add nodes to the jstree data structure
+                            if (data.hasOwnProperty('mapannotations')) {
+                                $.each(data.mapannotations, function(index, value) {
                                     var node = {
                                         'data': {'id': value.id, 'obj': value},
                                         'text': value.name,
                                         'children': value.childCount > 0 ? true : false,
-                                        'type': 'project',
-                                        'li_attr': {
-                                            'data-id': value.id
-                                        }
-                                    };
-                                    jstree_data.push(node);
-                                });
-                            }
-
-                            // Add datasets to the jstree data structure
-                            if (data.hasOwnProperty('datasets')) {
-                                $.each(data.datasets, function(index, value) {
-                                    var node = {
-                                        'data': {'id': value.id, 'obj': value},
-                                        'text': value.name,
-                                        'children': value.childCount > 0 ? true : false,
-                                        'type': 'dataset',
-                                        'li_attr': {
-                                            'data-id': value.id
-                                        }
-                                    };
-                                    jstree_data.push(node);
-                                });
-                            }
-
-                            // Add images to the jstree data structure
-                            if (data.hasOwnProperty('images')) {
-                                $.each(data.images, function(index, value) {
-                                    var node = {
-                                        'data': {'id': value.id, 'obj': value},
-                                        'text': value.name,
-                                        'children': false,
-                                        'type': 'image',
+                                        'type': 'mapannotation',
                                         'li_attr': {
                                             'data-id': value.id
                                         }
@@ -220,16 +225,6 @@ $(function() {
                                 });
                             }
 
-                            if (data.hasOwnProperty('orphaned')) {
-                                node = {
-                                    'data': {'obj': data.orphaned},
-                                    'text': 'Orphaned Images',
-                                    'children': data.orphaned.childCount > 0 ? true : false,
-                                    'type': 'orphaned'
-                                };
-                                jstree_data.push(node);
-                            }
-
                             return jstree_data;
                         }
                     }
@@ -246,20 +241,11 @@ $(function() {
             },
             'experimenter': {
                 'icon' : WEBSTATIC + 'image/icon_user.png',
-                'valid_children': ['project','dataset','screen','plate']
+                'valid_children': ['mapannotation']
             },
-            'project': {
-                'icon': WEBSTATIC + 'image/folder16.png',
-                'valid_children': ['dataset']
-            },
-            'dataset': {
-                'icon': WEBSTATIC + 'image/folder_image16.png',
-                'valid_children': ['image'],
-                'draggable': true
-            },
-            'image': {
-                'icon': WEBSTATIC + 'image/image16.png',
-                'draggable': true
+            'mapannotation': {
+                'icon': WEBSTATIC + 'image/left_sidebar_icon_tag.png',
+                'valid_children': ['screen']
             },
             'screen': {
                 'icon': WEBSTATIC + 'image/folder_screen16.png',
@@ -267,15 +253,10 @@ $(function() {
             },
             'plate': {
                 'icon': WEBSTATIC + 'image/folder_plate16.png',
-                'valid_children': ['acquisition'],
-                'draggable': true
+                'valid_children': ['acquisition']
             },
             'acquisition': {
                 'icon': WEBSTATIC + 'image/image16.png',
-            },
-            'orphaned': {
-                'icon': WEBSTATIC + 'image/folder_yellow16.png',
-                'valid_children': ['image']
             }
         }
     });

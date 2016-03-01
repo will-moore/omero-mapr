@@ -16,19 +16,88 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# from django.shortcuts import render
+from Ice import Exception as IceException
+from omero import ApiUsageException, ServerError
 
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseServerError, HttpResponseBadRequest
+
+from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
+from omeroweb.webclient.views import get_long_or_default
 
+import tree
 
 @login_required()
 @render_response()
-def index(request, fileId=None, conn=None, **kwargs):
-    """
-    Single page 'app' for creating a Figure, allowing you to choose images
-    and lay them out in canvas by dragging & resizing etc
-    """
+def index(request, **kwargs):
+    return HttpResponse()
 
-    template = "jstreedemo/index.html"
-    context = {"template": template}
-    return context
+@login_required()
+def api_mapannotation_list(request, conn=None, **kwargs):
+    # Get parameters
+    try:
+        page = get_long_or_default(request, 'page', 1)
+        limit = get_long_or_default(request, 'limit', settings.PAGE)
+        group_id = get_long_or_default(request, 'group', -1)
+        experimenter_id = get_long_or_default(request, 'id', -1)
+    except ValueError:
+        return HttpResponseBadRequest('Invalid parameter value')
+
+    # While this interface does support paging, it does so in a
+    # very odd way. The results per page is enforced per query so this
+    # will actually get the limit for projects, datasets (without
+    # parents), screens and plates (without parents). This is fine for
+    # the first page, but the second page may not be what is expected.
+
+    try:
+        # Get all genes from map annotation
+        mapannotations = tree.marshal_mapannotations(conn=conn,
+                                     group_id=group_id,
+                                     experimenter_id=experimenter_id,
+                                     page=page,
+                                     limit=limit)
+
+    except ApiUsageException as e:
+        return HttpResponseBadRequest(e.serverStackTrace)
+    except ServerError as e:
+        return HttpResponseServerError(e.serverStackTrace)
+    except IceException as e:
+        return HttpResponseServerError(e.message)
+
+    return HttpJsonResponse({'mapannotations': mapannotations})
+
+@login_required()
+def api_screens_list(request, conn=None, **kwargs):
+    # Get parameters
+    try:
+        page = get_long_or_default(request, 'page', 1)
+        limit = get_long_or_default(request, 'limit', settings.PAGE)
+        group_id = get_long_or_default(request, 'group', -1)
+        node_id = get_long_or_default(request, 'id', None)
+    except ValueError:
+        return HttpResponseBadRequest('Invalid parameter value')
+
+    # While this interface does support paging, it does so in a
+    # very odd way. The results per page is enforced per query so this
+    # will actually get the limit for projects, datasets (without
+    # parents), screens and plates (without parents). This is fine for
+    # the first page, but the second page may not be what is expected.
+
+    try:
+        # Get all genes from map annotation
+        screens = tree.marshal_screens(conn=conn,
+                                     node_id=node_id,
+                                     group_id=group_id,
+                                     page=page,
+                                     limit=limit)
+
+    except ApiUsageException as e:
+        return HttpResponseBadRequest(e.serverStackTrace)
+    except ServerError as e:
+        return HttpResponseServerError(e.serverStackTrace)
+    except IceException as e:
+        return HttpResponseServerError(e.message)
+
+    return HttpJsonResponse({'screens': screens})
+
