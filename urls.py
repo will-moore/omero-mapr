@@ -25,6 +25,7 @@ urlpatterns = patterns(
     url(r'^$', views.index, name="mapindex"),
     # Generic container list. This is necessary as an experimenter may have
     # datasets/etc which do not belong to any project
-    url(r'^api/mapannotations/$', views.api_mapannotation_list, name='api_mapannotations'),
+    url(r'^api/mapannotations/$', views.api_mapannotation_list, name='mapannotations_api_mapannotations'),
+    url(r'^api/images/$', views.api_image_list, name='mapannotations_api_images'),
 
 )
