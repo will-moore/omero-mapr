@@ -46,6 +46,16 @@ def get_str_or_default(request, name, default):
         val = str(val_raw)
     return val
 
+def get_list_or_default(request, name, default):
+    """
+    Retrieves a list of parameters from the request. If list is not present
+    the default is returned
+
+    This does not catch exceptions as it makes sense to throw exceptions if
+    the arguments provided do not pass basic type validation
+    """
+    return request.GET.getlist(name, default)
+
 @login_required()
 @render_response()
 def index(request, **kwargs):
@@ -59,7 +69,9 @@ def api_mapannotation_list(request, conn=None, **kwargs):
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
-        ann_name = get_str_or_default(request, 'id', None)
+        mapann_value = get_str_or_default(request, 'id', None)
+        mapann_names = get_list_or_default(request, 'f',
+                                           ["Gene symbol", "Gene identifier"])
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -70,17 +82,18 @@ def api_mapannotation_list(request, conn=None, **kwargs):
     # the first page, but the second page may not be what is expected.
 
     mapannotations=[]
-    screen=[]
+    screens=[]
     try:
         # Get all genes from map annotation
-        if ann_name is not None:
-            screen = tree.marshal_screens(conn=conn,
-                                         ann_name=ann_name,
+        if mapann_value is not None:
+            screens = tree.marshal_screens(conn=conn,
+                                         mapann_value=mapann_value,
                                          group_id=group_id,
                                          page=page,
                                          limit=limit)
         else:
             mapannotations = tree.marshal_mapannotations(conn=conn,
+                                     mapann_names=mapann_names,
                                      group_id=group_id,
                                      experimenter_id=experimenter_id,
                                      page=page,
@@ -93,7 +106,7 @@ def api_mapannotation_list(request, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'tags': mapannotations, 'screens': screen })
+    return HttpJsonResponse({'tags': mapannotations, 'screens': screens })
 
 
 @login_required()
@@ -117,14 +130,14 @@ def api_image_list(request, conn=None, **kwargs):
         date = get_bool_or_default(request, 'date', False)
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
-        ann_name = get_str_or_default(request, 'id', None)
+        mapann_value = get_str_or_default(request, 'id', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
     try:
         # Get the images
         images = tree.marshal_images(conn=conn,
-                                     ann_name=ann_name,
+                                     mapann_value=mapann_value,
                                      load_pixels=load_pixels,
                                      group_id=group_id,
                                      experimenter_id=experimenter_id,

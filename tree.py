@@ -13,12 +13,15 @@ from omeroweb.webclient.tree import _marshal_screen
 from omeroweb.webclient.tree import _marshal_image
 
 
-def marshal_mapannotations(conn, group_id=-1, experimenter_id=-1,
-                  page=1, limit=settings.PAGE):
+def marshal_mapannotations(conn, mapann_names=None,
+                           group_id=-1, experimenter_id=-1,
+                           page=1, limit=settings.PAGE):
     ''' Marshals genes
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_names The Map annotation name to filter by.
+        @type mapann_names L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1
         @type group_id L{long}
@@ -36,7 +39,10 @@ def marshal_mapannotations(conn, group_id=-1, experimenter_id=-1,
     params = omero.sys.ParametersI()
     params.addString("ns", "openmicroscopy.org/omero/bulk_annotations")
 
-    params.add("filter", rlist([rstring("Gene Symbol"), rstring("Gene Identifier")]))
+    manlist = list()
+    for n in mapann_names:
+        manlist.append(rstring(str(n).lower()))
+    params.add("filter", rlist(manlist))
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
 
@@ -67,7 +73,7 @@ def marshal_mapannotations(conn, group_id=-1, experimenter_id=-1,
              join w.plate p join p.screenLinks sl join sl.parent s 
         where a.ns = :ns
         %s
-        and mv.name in (:filter)
+        and lower(mv.name) in (:filter)
         group by mv.value, a.ns
         order by lower(mv.value)
         """ % (where_clause)
@@ -85,7 +91,7 @@ def marshal_mapannotations(conn, group_id=-1, experimenter_id=-1,
     return mapannotations
 
 
-def marshal_screens(conn, ann_name=None, group_id=-1, experimenter_id=-1,
+def marshal_screens(conn, mapann_value=None, group_id=-1, experimenter_id=-1,
                     page=1, limit=settings.PAGE):
 
     ''' Marshals screens
@@ -108,7 +114,7 @@ def marshal_screens(conn, ann_name=None, group_id=-1, experimenter_id=-1,
     screens = []
     params = omero.sys.ParametersI()
     params.addString("ns", "openmicroscopy.org/omero/bulk_annotations")
-    params.addString("value", ann_name)
+    params.addString("value", mapann_value)
     service_opts = deepcopy(conn.SERVICE_OPTS)
 
     # Set the desired group context
@@ -144,7 +150,7 @@ def marshal_screens(conn, ann_name=None, group_id=-1, experimenter_id=-1,
         
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
-        e = [ann_name,
+        e = [mapann_value,
              e[0]["name"],
              e[0]["ownerId"],
              e[0]["screen_details_permissions"],
@@ -154,7 +160,7 @@ def marshal_screens(conn, ann_name=None, group_id=-1, experimenter_id=-1,
     return screens
 
 
-def marshal_images(conn, ann_name, load_pixels=False,
+def marshal_images(conn, mapann_value, load_pixels=False,
                    group_id=-1, experimenter_id=-1,
                    page=1, date=False, thumb_version=False,
                    limit=settings.PAGE):
@@ -163,8 +169,8 @@ def marshal_images(conn, ann_name, load_pixels=False,
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
-        @param ann_name The Map annotation value to filter by.
-        @type ann_name L{string}
+        @param mapann_value The Map annotation value to filter by.
+        @type mapann_value L{string}
         @param load_pixels Whether to load the X,Y,Z dimensions
         @type load_pixels Boolean
         @param group_id The Group ID to filter by or -1 for all groups,
@@ -203,8 +209,8 @@ def marshal_images(conn, ann_name, load_pixels=False,
     if experimenter_id is not None and experimenter_id != -1:
         params.addId(experimenter_id)
         where_clause.append('image.details.owner.id = :id')
-    if ann_name is not None:
-        params.addString("value", ann_name)
+    if mapann_value is not None:
+        params.addString("value", mapann_value)
         where_clause.append('mv.value  = :value')
 
     qs = conn.getQueryService()
