@@ -130,13 +130,15 @@ def api_image_list(request, conn=None, **kwargs):
         date = get_bool_or_default(request, 'date', False)
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
-        mapann_value = get_str_or_default(request, 'id', None)
+        screen_id = get_str_or_default(request, 'id', None)
+        mapann_value = get_str_or_default(request, 'value', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
     try:
         # Get the images
         images = tree.marshal_images(conn=conn,
+                                     screen_id=screen_id,
                                      mapann_value=mapann_value,
                                      load_pixels=load_pixels,
                                      group_id=group_id,

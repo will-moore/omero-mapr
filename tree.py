@@ -67,10 +67,10 @@ def marshal_mapannotations(conn, mapann_names=None,
     q = """
         select new map(mv.value as value,
                a.ns as ns,
-               count(i.id) as childCount)
+               count(s.id) as childCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
-             join w.plate p join p.screenLinks sl join sl.parent s 
+             join w.plate p join p.screenLinks sl join sl.parent s
         where a.ns = :ns
         %s
         and lower(mv.name) in (:filter)
@@ -136,8 +136,7 @@ def marshal_screens(conn, mapann_value=None, group_id=-1, experimenter_id=-1,
                screen.name as name,
                screen.details.owner.id as ownerId,
                screen as screen_details_permissions,
-               (select count(spl.id) from ScreenPlateLink spl
-                where spl.parent=screen.id) as childCount)
+               count(i.id) as childCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
              join w.plate p join p.screenLinks sl join sl.parent screen 
@@ -150,17 +149,19 @@ def marshal_screens(conn, mapann_value=None, group_id=-1, experimenter_id=-1,
         
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
-        e = [mapann_value,
+        e = [e[0]["id"],
              e[0]["name"],
              e[0]["ownerId"],
              e[0]["screen_details_permissions"],
-             e[0]["childCount"]]
-        screens.append(_marshal_screen(conn, e[0:5]))
+             e[0]["childCount"],]
+        ms = _marshal_screen(conn, e[0:5])
+        ms.update({'extra': {'value': mapann_value}})
+        screens.append(ms)
 
     return screens
 
 
-def marshal_images(conn, mapann_value, load_pixels=False,
+def marshal_images(conn, screen_id, mapann_value, load_pixels=False,
                    group_id=-1, experimenter_id=-1,
                    page=1, date=False, thumb_version=False,
                    limit=settings.PAGE):
@@ -205,6 +206,8 @@ def marshal_images(conn, mapann_value, load_pixels=False,
 
     params.addString("ns", "openmicroscopy.org/omero/bulk_annotations")
     where_clause.append('a.ns = :ns')
+    params.addLong("sid", screen_id)
+    where_clause.append('screen.id = :sid')
 
     if experimenter_id is not None and experimenter_id != -1:
         params.addId(experimenter_id)
@@ -243,6 +246,8 @@ def marshal_images(conn, mapann_value, load_pixels=False,
         join ial.child a 
         join a.mapValue mv 
         join ial.parent image
+        join image.wellSamples ws join ws.well w 
+        join w.plate p join p.screenLinks sl join sl.parent screen
     """)
 
     if load_pixels:
