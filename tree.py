@@ -82,7 +82,7 @@ def marshal_mapannotations(conn, mapann_names=None,
         e = unwrap(e)
         e = [e[0]["value"],
              e[0]["value"],
-             e[0]["value"],
+             None,
              experimenter_id, #e[0]["ownerId"],
              {}, #e[0]["tag_details_permissions"],
              e[0]["ns"],
