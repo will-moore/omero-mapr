@@ -84,7 +84,16 @@ def marshal_mapannotations(conn, mapann_names=None,
     q = """
         select new map(mv.value as value,
                a.ns as ns,
-               count(s.id) as childCount)
+               (select count(distinct s2.id) from Screen s2
+                    join s2.plateLinks spl2
+                    join spl2.child p2
+                    join p2.wells w2
+                    join w2.wellSamples ws2 join ws2.image i2
+                    join i2.annotationLinks ial2
+                    join ial2.child a2
+                    join a2.mapValue mv2
+                where lower(mv2.name) in (:filter)
+                    and mv2.value=mv.value) as childCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
              join w.plate p join p.screenLinks sl join sl.parent s
