@@ -1,4 +1,4 @@
-# jstreedemo
+# mapannotations tree
 An OMERO.web app adding custom map annotation tree
 
 

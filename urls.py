@@ -1,6 +1,5 @@
-
 #
-# Copyright (c) 2015 University of Dundee.
+# Copyright (c) 2016 University of Dundee.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -20,12 +19,17 @@
 from mapannotations import views
 from django.conf.urls import url, patterns
 
+from omeroweb.webclient import views as webclient_views
+
 urlpatterns = patterns(
     '',
-    url(r'^$', views.index, name="mapindex"),
-    # Generic container list. This is necessary as an experimenter may have
-    # datasets/etc which do not belong to any project
-    url(r'^api/mapannotations/$', views.api_mapannotation_list, name='mapannotations_api_mapannotations'),
-    url(r'^api/images/$', views.api_image_list, name='mapannotations_api_images'),
+    url(r'^$', webclient_views.load_template,
+        {'menu' : 'mapannotations'},
+        name="mapindex"),
+
+    url(r'^api/mapannotations/$', views.api_mapannotation_list,
+        name='mapannotations_api_mapannotations'),
+    url(r'^api/images/$', views.api_image_list,
+        name='mapannotations_api_images'),
 
 )
