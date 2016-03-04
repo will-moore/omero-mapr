@@ -30,7 +30,7 @@ from omeroweb.webclient.tree import _marshal_screen
 from omeroweb.webclient.tree import _marshal_image
 
 
-def marshal_mapannotations(conn, mapann_names=None,
+def count_mapannotations(conn, mapann_names=None,
                            group_id=-1, experimenter_id=-1,
                            page=1, limit=settings.PAGE):
     ''' Marshals genes
@@ -82,24 +82,91 @@ def marshal_mapannotations(conn, mapann_names=None,
     # a.details.owner.id as ownerId,
     # a as tag_details_permissions,
     q = """
+        select count(mv.value) as childCount
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+             join ial.parent i join i.wellSamples ws join ws.well w
+             join w.plate p join p.screenLinks sl join sl.parent s
+        where a.ns = :ns
+            and lower(mv.name) in (:filter)
+            %s
+        group by mv.value, a.ns
+        """ % (where_clause)
+
+    return len(unwrap(qs.projection(q, params, service_opts)))
+
+
+def marshal_mapannotations(conn, mapann_names=None,
+                           group_id=-1, experimenter_id=-1,
+                           page=1, limit=settings.PAGE):
+    ''' Marshals genes
+
+        @param conn OMERO gateway.
+        @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_names The Map annotation name to filter by.
+        @type mapann_names L{string}
+        @param group_id The Group ID to filter by or -1 for all groups,
+        defaults to -1
+        @type group_id L{long}
+        @param experimenter_id The Experimenter (user) ID to filter by
+        or -1 for all experimenters
+        @type experimenter_id L{long}
+        @param page Page number of results to get. `None` or 0 for no paging
+        defaults to 1
+        @type page L{long}
+        @param limit The limit of results per page to get
+        defaults to the value set in settings.PAGE
+        @type page L{long}
+    '''
+    mapannotations = []
+    params = omero.sys.ParametersI()
+    params.addString("ns", "openmicroscopy.org/omero/bulk_annotations")
+
+    manlist = list()
+    for n in mapann_names:
+        manlist.append(rstring(str(n).lower()))
+    params.add("filter", rlist(manlist))
+
+    service_opts = deepcopy(conn.SERVICE_OPTS)
+
+    # Set the desired group context
+    if group_id is None:
+        group_id = -1
+    service_opts.setOmeroGroup(group_id)
+
+    # Paging
+    if page is not None and page > 0:
+        params.page((page-1) * limit, limit)
+
+    where_clause = ''
+    if experimenter_id is not None and experimenter_id != -1:
+        params.addId(experimenter_id)
+        where_clause = 'and a.details.owner.id = :id'
+    qs = conn.getQueryService()
+
+    # TODO:
+    # a.details.owner.id as ownerId,
+    # a as tag_details_permissions,
+    # screen count:
+    # (select count(distinct s2.id) from Screen s2
+    #     join s2.plateLinks spl2
+    #     join spl2.child p2
+    #     join p2.wells w2
+    #     join w2.wellSamples ws2 join ws2.image i2
+    #     join i2.annotationLinks ial2
+    #     join ial2.child a2
+    #     join a2.mapValue mv2
+    # where mv2.value=mv.value)
+
+    q = """
         select new map(mv.value as value,
                a.ns as ns,
-               (select count(distinct s2.id) from Screen s2
-                    join s2.plateLinks spl2
-                    join spl2.child p2
-                    join p2.wells w2
-                    join w2.wellSamples ws2 join ws2.image i2
-                    join i2.annotationLinks ial2
-                    join ial2.child a2
-                    join a2.mapValue mv2
-                where lower(mv2.name) in (:filter)
-                    and mv2.value=mv.value) as childCount)
+               count(i.id) as childCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
              join w.plate p join p.screenLinks sl join sl.parent s
         where a.ns = :ns
-        %s
-        and lower(mv.name) in (:filter)
+            and lower(mv.name) in (:filter)
+            %s
         group by mv.value, a.ns
         order by lower(mv.value)
         """ % (where_clause)

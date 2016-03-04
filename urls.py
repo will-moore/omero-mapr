@@ -27,6 +27,9 @@ urlpatterns = patterns(
         {'menu' : 'mapannotations'},
         name="mapindex"),
 
+    url(r'^api/experimenters/(?P<experimenter_id>[0-9]+)/$',
+        views.api_experimenter_detail,
+        name='mapannotations_api_experimenter'),
     url(r'^api/mapannotations/$', views.api_mapannotation_list,
         name='mapannotations_api_mapannotations'),
     url(r'^api/images/$', views.api_image_list,

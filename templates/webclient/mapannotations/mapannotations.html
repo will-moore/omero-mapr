@@ -29,6 +29,11 @@
         WEBCLIENT.URLS.tree_top_level = WEBCLIENT.URLS.api_tags_and_tagged;
         WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_images' %}";
         WEBCLIENT.LABELS = {'all_members':'Genes'};
+
+        {% if active_user %}
+        WEBCLIENT.active_user = {'id': {{ active_user.id }} };
+        WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' active_user.id %}";
+        {% endif %}
     </script>
 
 {% endblock %}

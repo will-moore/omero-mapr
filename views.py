@@ -29,6 +29,8 @@ from omeroweb.webclient.views import get_long_or_default, get_bool_or_default
 
 import tree
 
+from omeroweb.webclient import tree as webclient_tree
+
 logger = logging.getLogger(__name__)
 
 def get_str_or_default(request, name, default):
@@ -59,6 +61,36 @@ def get_list_or_default(request, name, default):
 @render_response()
 def index(request, **kwargs):
     return HttpResponse()
+
+@login_required()
+def api_experimenter_detail(request, experimenter_id, conn=None, **kwargs):
+    # Validate parameter
+    try:
+        experimenter_id = long(experimenter_id)
+    except ValueError:
+        return HttpResponseBadRequest('Invalid experimenter id')
+
+    try:
+        # Get the experimenter
+        experimenter = webclient_tree.marshal_experimenter(
+            conn=conn, experimenter_id=experimenter_id)
+        mapann_names = get_list_or_default(request, 'f',
+                                               ["Gene symbol", "Gene identifier"])
+        experimenter['childCount'] = tree.count_mapannotations(conn=conn,
+                                 mapann_names=mapann_names,
+                                 group_id=None,
+                                 experimenter_id=experimenter_id,
+                                 page=None,
+                                 limit=None)
+
+    except ApiUsageException as e:
+        return HttpResponseBadRequest(e.serverStackTrace)
+    except ServerError as e:
+        return HttpResponseServerError(e.serverStackTrace)
+    except IceException as e:
+        return HttpResponseServerError(e.message)
+
+    return HttpJsonResponse({'experimenter': experimenter})
 
 @login_required()
 def api_mapannotation_list(request, conn=None, **kwargs):
