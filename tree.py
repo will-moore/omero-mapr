@@ -168,7 +168,7 @@ def marshal_mapannotations(conn, mapann_names=None,
             and lower(mv.name) in (:filter)
             %s
         group by mv.value, a.ns
-        order by lower(mv.value)
+        order by count(i.id) DESC
         """ % (where_clause)
 
     for e in qs.projection(q, params, service_opts):
