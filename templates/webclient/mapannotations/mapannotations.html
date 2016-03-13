@@ -21,6 +21,11 @@
 -->
 {% endcomment %}
 
+{% block link %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static "mapannotations/css/jquery.autocomplete-1.2.24.css" %}" type="text/css" />
+{% endblock %}
+
 {% block script %}
     {{ block.super }}
 
@@ -38,6 +43,72 @@
 
     <script src="{% static 'mapannotations/javascript/mapannotations.tree.js'|add:url_suffix %}"></script>
 
+    <script src="{% static 'mapannotations/javascript/jquery.autocomplete-1.2.24.js'%}"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            var oldData = $.jstree.reference('#dataTree').settings.core.data;
+            var inst = $.jstree.reference('#dataTree');
+            $('#autocomplete').devbridgeAutocomplete({
+                serviceUrl: '{% url 'mapannotations_autocomplete' %}',
+                params: {
+                    "experimenter_id": {{ active_user.id }} ,
+                    "group": {{ active_group.id }}
+                },
+                onSelect: function (suggestion) {
+                    $.jstree.reference('#dataTree').settings.core.data = function(node, callback, payload) {
+                        oldData.apply(inst, [node, callback, {'query': suggestion.value}]);
+                    };
+                    $.jstree.reference('#dataTree').refresh();
+                }
+            });
+
+        });
+    </script>
 {% endblock %}
 
 
+{% block left %}
+
+    <div id="left_panel_tabs" class="absolute_fill ui-tabs">
+
+        <ul id="left_panel_tab_list" class="ui-tabs-nav">
+
+			<!-- Remember to update this in public/public.html as well. We should change this, but for the meantime, you need to manually update the menu there too -->
+
+	        <li id="explore_tab" class="ui-state-default">
+                <a href="{% url 'load_template' 'userdata' %}" class="ui-tabs-anchor" title="Explore">{% trans "Explore" %}</a>
+            </li>
+            <li id="public_tab" class="ui-state-default{% ifequal menu 'mapannotations' %} ui-tabs-active{% endifequal %}"><a href="{% url 'load_template' 'mapannotations' %}" class="ui-tabs-anchor">{% trans "Genes" %}</a></li>
+	        <li id="tags_tab" class="ui-state-default">
+                <a href="{% url 'load_template' 'usertags' %}" class="ui-tabs-anchor">{% trans "Tags" %}</a>
+            </li>
+	        <li id="public_tab" class="ui-state-default">
+                <a href="{% url 'load_template' 'public' %}" class="ui-tabs-anchor">{% trans "Shares" %}</a>
+            </li>
+
+	    </ul>
+
+        <!-- toolbar above tree -->
+        <div>
+
+            <!-- Show Tags toolbar for tag page... -->
+            <ul class="toolbar">
+
+                <li><input id="refreshButton" class="button" type="image" src="{% static "webclient/image/icon_toolbar_refresh.png" %}" alt="Refresh" title="Refresh" /></li>
+
+                <li class="seperator"></li>
+
+                <li><input type="text" name="mapannotation" id="autocomplete"/></li>
+
+            </ul>
+
+            <div class="clear"></div>
+
+            <div id="tree_details" class="left_panel_inner">
+                <div class="dataTree" id="dataTree"></div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

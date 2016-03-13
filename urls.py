@@ -35,4 +35,7 @@ urlpatterns = patterns(
     url(r'^api/images/$', views.api_image_list,
         name='mapannotations_api_images'),
 
+    url(r'^autocomplete/$', views.mapannotations_autocomplete,
+        name='mapannotations_autocomplete'),
+
 )

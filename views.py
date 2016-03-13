@@ -67,6 +67,7 @@ def api_experimenter_detail(request, experimenter_id, conn=None, **kwargs):
     # Validate parameter
     try:
         experimenter_id = long(experimenter_id)
+        group_id = get_long_or_default(request, 'group', -1)
     except ValueError:
         return HttpResponseBadRequest('Invalid experimenter id')
 
@@ -76,12 +77,16 @@ def api_experimenter_detail(request, experimenter_id, conn=None, **kwargs):
             conn=conn, experimenter_id=experimenter_id)
         mapann_names = get_list_or_default(request, 'f',
                                                ["Gene symbol", "Gene identifier"])
-        experimenter['childCount'] = tree.count_mapannotations(conn=conn,
-                                 mapann_names=mapann_names,
-                                 group_id=None,
-                                 experimenter_id=experimenter_id,
-                                 page=None,
-                                 limit=None)
+        mapann_query = get_str_or_default(request, 'query', None)
+        if mapann_query:
+            experimenter['extra'] = {'query': mapann_query}
+
+        experimenter['childCount'] = tree.count_mapannotations(
+            conn=conn,
+            mapann_names=mapann_names,
+            mapann_query=mapann_query,
+            group_id=group_id,
+            experimenter_id=experimenter_id)
 
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
@@ -103,6 +108,7 @@ def api_mapannotation_list(request, conn=None, **kwargs):
         mapann_value = get_str_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'f',
                                            ["Gene symbol", "Gene identifier"])
+        mapann_query = get_str_or_default(request, 'query', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -119,12 +125,14 @@ def api_mapannotation_list(request, conn=None, **kwargs):
         if mapann_value is not None:
             screens = tree.marshal_screens(conn=conn,
                                          mapann_value=mapann_value,
+                                         mapann_names=mapann_names,
                                          group_id=group_id,
                                          page=page,
                                          limit=limit)
         else:
             mapannotations = tree.marshal_mapannotations(conn=conn,
                                      mapann_names=mapann_names,
+                                     mapann_query=mapann_query,
                                      group_id=group_id,
                                      experimenter_id=experimenter_id,
                                      page=page,
@@ -186,3 +194,43 @@ def api_image_list(request, conn=None, **kwargs):
         return HttpResponseServerError(e.message)
 
     return HttpJsonResponse({'images': images})
+
+@login_required()
+def mapannotations_autocomplete(request, conn=None, **kwargs):
+
+    # Get parameters
+    try:
+        page = get_long_or_default(request, 'page', 1)
+        limit = get_long_or_default(request, 'limit', settings.PAGE)
+        group_id = get_long_or_default(request, 'group', -1)
+        experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
+        query = get_str_or_default(request, 'query', None)
+        mapann_names = get_list_or_default(request, 'f',
+                                           ["Gene symbol", "Gene identifier"])
+    except ValueError:
+        return HttpResponseBadRequest('Invalid parameter value')
+
+    # While this interface does support paging, it does so in a
+    # very odd way. The results per page is enforced per query so this
+    # will actually get the limit for projects, datasets (without
+    # parents), screens and plates (without parents). This is fine for
+    # the first page, but the second page may not be what is expected.
+
+    autocomplete=[]
+    try:
+        autocomplete = tree.marshal_autocomplete(
+            conn=conn,
+            query=query,
+            mapann_names=mapann_names,
+            group_id=group_id,
+            experimenter_id=experimenter_id,
+            page=page,
+            limit=limit)
+    except ApiUsageException as e:
+        return HttpResponseBadRequest(e.serverStackTrace)
+    except ServerError as e:
+        return HttpResponseServerError(e.serverStackTrace)
+    except IceException as e:
+        return HttpResponseServerError(e.message)
+
+    return HttpJsonResponse({"suggestions": autocomplete})
