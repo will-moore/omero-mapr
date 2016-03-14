@@ -75,8 +75,8 @@ def api_experimenter_detail(request, experimenter_id, conn=None, **kwargs):
         # Get the experimenter
         experimenter = webclient_tree.marshal_experimenter(
             conn=conn, experimenter_id=experimenter_id)
-        mapann_names = get_list_or_default(request, 'f',
-                                               ["Gene symbol", "Gene identifier"])
+        mapann_names = get_list_or_default(request, 'name',
+                                               ["Gene Symbol"])
         mapann_query = get_str_or_default(request, 'query', None)
         if mapann_query:
             experimenter['extra'] = {'query': mapann_query}
@@ -106,8 +106,8 @@ def api_mapannotation_list(request, conn=None, **kwargs):
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
         mapann_value = get_str_or_default(request, 'id', None)
-        mapann_names = get_list_or_default(request, 'f',
-                                           ["Gene symbol", "Gene identifier"])
+        mapann_names = get_list_or_default(request, 'name',
+                                           ["Gene Symbol"])
         mapann_query = get_str_or_default(request, 'query', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
@@ -245,8 +245,8 @@ def mapannotations_autocomplete(request, conn=None, **kwargs):
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
         query = get_str_or_default(request, 'query', None)
-        mapann_names = get_list_or_default(request, 'f',
-                                           ["Gene symbol", "Gene identifier"])
+        mapann_names = get_list_or_default(request, 'name',
+                                           ["Gene Symbol"])
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 

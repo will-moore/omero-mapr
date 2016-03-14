@@ -45,9 +45,9 @@ def _set_parameters(mapann_names=[], params=None,
     where_clause = []
 
     if mapann_names is not None and len(mapann_names) > 0:
-        manlist = [rstring(str(n).lower()) for n in mapann_names]
+        manlist = [rstring(str(n)) for n in mapann_names]
         params.add("filter", rlist(manlist))
-        where_clause.append('lower(mv.name) in (:filter)')
+        where_clause.append('mv.name in (:filter)')
 
     params.addString("ns", "openmicroscopy.org/omero/bulk_annotations")
     where_clause.append('a.ns = :ns')
@@ -100,7 +100,7 @@ def count_mapannotations(conn,
     qs = conn.getQueryService()
 
     q = """
-        select count(mv.value) as childCount
+        select count( distinct mv.value) as childCount
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv
              join ial.parent i join i.wellSamples ws join ws.well w
              join w.plate p join p.screenLinks sl join sl.parent s
@@ -152,22 +152,12 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
     # TODO:
     # a.details.owner.id as ownerId,
     # a as tag_details_permissions,
-    # screen count:
-    # (select count(distinct s2.id) from Screen s2
-    #     join s2.plateLinks spl2
-    #     join spl2.child p2
-    #     join p2.wells w2
-    #     join w2.wellSamples ws2 join ws2.image i2
-    #     join i2.annotationLinks ial2
-    #     join ial2.child a2
-    #     join a2.mapValue mv2
-    # where mv2.value=mv.value)
 
     q = """
         select new map(mv.value as value,
                a.ns as ns,
                count(distinct s.id) as childCount,
-               count(i.id) as imgCount)
+               count(distinct i.id) as imgCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
              join w.plate p join p.screenLinks sl join sl.parent s
@@ -231,7 +221,7 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
                screen.details.owner.id as ownerId,
                screen as screen_details_permissions,
                count(distinct p.id) as childCount,
-               count(i.id) as imgCount)
+               count(distinct i.id) as imgCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
              join w.plate p join p.screenLinks sl join sl.parent screen 
@@ -307,7 +297,7 @@ def marshal_plates(conn, screen_id,
                plate.name as name,
                plate.details.owner.id as ownerId,
                plate as plate_details_permissions,
-               count(i.id) as childCount)
+               count(distinct i.id) as childCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
              join w.plate plate join plate.screenLinks sl join sl.parent screen 
