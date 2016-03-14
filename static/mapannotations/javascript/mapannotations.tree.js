@@ -56,10 +56,10 @@ $(function () {
 
     $.jstree.reference('#dataTree').settings.types['experimenter'] = {
         'icon' : WEBCLIENT.URLS.static_webclient + 'image/icon_user.png',
-        'valid_children': ['project','dataset','screen','plate', 'tag', 'tagset']
+        'valid_children': ['tag']
     };
-    $.jstree.reference('#dataTree').settings.types['screen'] = {
-        'icon': WEBCLIENT.URLS.static_webclient + 'image/folder_screen16.png',
-        'valid_children': ['plate', 'image']
+    $.jstree.reference('#dataTree').settings.types['plate'] = {
+        'icon': WEBCLIENT.URLS.static_webclient + 'image/folder_plate16.png',
+        'valid_children': ['image']
     };
 });

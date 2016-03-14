@@ -149,6 +149,45 @@ def api_mapannotation_list(request, conn=None, **kwargs):
 
 
 @login_required()
+def api_plate_list(request, conn=None, **kwargs):
+    ''' Get a list of plates
+    '''
+    # Get parameters
+    try:
+        page = get_long_or_default(request, 'page', 1)
+        limit = get_long_or_default(request, 'limit', settings.PAGE)
+        group_id = get_long_or_default(request, 'group', -1)
+        load_pixels = get_bool_or_default(request, 'sizeXYZ', False)
+        thumb_version = get_bool_or_default(request, 'thumbVersion', False)
+        date = get_bool_or_default(request, 'date', False)
+        experimenter_id = get_long_or_default(request,
+                                              'experimenter_id', -1)
+        screen_id = get_str_or_default(request, 'id', None)
+        mapann_value = get_str_or_default(request, 'value', None)
+    except ValueError:
+        return HttpResponseBadRequest('Invalid parameter value')
+
+    plates = []
+    try:
+        # Get the images
+        plates = tree.marshal_plates(conn=conn,
+                                     screen_id=screen_id,
+                                     mapann_value=mapann_value,
+                                     group_id=group_id,
+                                     experimenter_id=experimenter_id,
+                                     page=page,
+                                     limit=limit)
+    except ApiUsageException as e:
+        return HttpResponseBadRequest(e.serverStackTrace)
+    except ServerError as e:
+        return HttpResponseServerError(e.serverStackTrace)
+    except IceException as e:
+        return HttpResponseServerError(e.message)
+
+    return HttpJsonResponse({'plates': plates})
+
+
+@login_required()
 def api_image_list(request, conn=None, **kwargs):
     ''' Get a list of images
         Specifiying dataset_id will return only images in that dataset
@@ -169,15 +208,16 @@ def api_image_list(request, conn=None, **kwargs):
         date = get_bool_or_default(request, 'date', False)
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
-        screen_id = get_str_or_default(request, 'id', None)
+        plate_id = get_str_or_default(request, 'id', None)
         mapann_value = get_str_or_default(request, 'value', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
+    images = []
     try:
         # Get the images
         images = tree.marshal_images(conn=conn,
-                                     screen_id=screen_id,
+                                     plate_id=plate_id,
                                      mapann_value=mapann_value,
                                      load_pixels=load_pixels,
                                      group_id=group_id,

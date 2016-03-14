@@ -27,7 +27,9 @@ from copy import deepcopy
 from omeroweb.webclient.tree import parse_permissions_css, build_clause
 from omeroweb.webclient.tree import _marshal_tag
 from omeroweb.webclient.tree import _marshal_screen
+from omeroweb.webclient.tree import _marshal_plate
 from omeroweb.webclient.tree import _marshal_image
+
 
 def _set_parameters(mapann_names=[], params=None,
                 experimenter_id=-1,
@@ -227,7 +229,7 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
                screen.name as name,
                screen.details.owner.id as ownerId,
                screen as screen_details_permissions,
-               count(i.id) as childCount)
+               count(p.id) as childCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
              join w.plate p join p.screenLinks sl join sl.parent screen 
@@ -250,7 +252,83 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
     return screens
 
 
-def marshal_images(conn, screen_id, mapann_value,
+def marshal_plates(conn, screen_id, 
+                   mapann_value, mapann_names=[], 
+                   group_id=-1, experimenter_id=-1,
+                   page=1, limit=settings.PAGE):
+
+    ''' Marshals plates
+
+        @param conn OMERO gateway.
+        @type conn L{omero.gateway.BlitzGateway}
+        @param screen_id The Screen ID to filter by or `None` to
+        not filter by a specific screen.
+        defaults to `None`
+        @type screen_id L{long}
+        @param orphaned If this is to filter by orphaned data. Overridden
+        by dataset_id.
+        defaults to False
+        @type orphaned Boolean
+        @param group_id The Group ID to filter by or -1 for all groups,
+        defaults to -1
+        @type group_id L{long}
+        @param experimenter_id The Experimenter (user) ID to filter by
+        or -1 for all experimenters
+        @type experimenter_id L{long}
+        @param page Page number of results to get. `None` or 0 for no paging
+        defaults to 1
+        @type page L{long}
+        @param limit The limit of results per page to get
+        defaults to the value set in settings.PAGE
+        @type page L{long}
+    '''
+    plates = []
+    params, where_clause = _set_parameters(
+        mapann_names=mapann_names, params=None,
+        experimenter_id=experimenter_id,
+        mapann_query=None, mapann_value=mapann_value,
+        page=page, limit=limit)
+
+    params.addLong("sid", screen_id)
+    where_clause.append('screen.id = :sid')
+
+    service_opts = deepcopy(conn.SERVICE_OPTS)
+
+    # Set the desired group context
+    if group_id is None:
+        group_id = -1
+    service_opts.setOmeroGroup(group_id)
+
+    qs = conn.getQueryService()
+    q = """
+        select new map(plate.id as id,
+               plate.name as name,
+               plate.details.owner.id as ownerId,
+               plate as plate_details_permissions,
+               count(i.id) as childCount)
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
+             join ial.parent i join i.wellSamples ws join ws.well w 
+             join w.plate plate join plate.screenLinks sl join sl.parent screen 
+        where %s
+        group by plate.id, plate.name
+        order by lower(plate.name), plate.id
+        """ % (" and ".join(where_clause))
+
+    for e in qs.projection(q, params, service_opts):
+        e = unwrap(e)
+        e = [e[0]["id"],
+             e[0]["name"],
+             e[0]["ownerId"],
+             e[0]["plate_details_permissions"],
+             e[0]["childCount"]]
+        mp = _marshal_plate(conn, e[0:5])
+        mp.update({'extra': {'value': mapann_value}})
+        plates.append(mp)
+
+    return plates
+
+
+def marshal_images(conn, plate_id, mapann_value,
                    mapann_names=[], load_pixels=False,
                    group_id=-1, experimenter_id=-1,
                    page=1, date=False, thumb_version=False,
@@ -294,8 +372,8 @@ def marshal_images(conn, screen_id, mapann_value,
 
     from_join_clauses = []
 
-    params.addLong("sid", screen_id)
-    where_clause.append('screen.id = :sid')
+    params.addLong("pid", plate_id)
+    where_clause.append('plate.id = :pid')
 
     qs = conn.getQueryService()
 
@@ -327,8 +405,8 @@ def marshal_images(conn, screen_id, mapann_value,
         join ial.child a 
         join a.mapValue mv 
         join ial.parent image
-        join image.wellSamples ws join ws.well w 
-        join w.plate p join p.screenLinks sl join sl.parent screen
+        join image.wellSamples ws join ws.well well
+        join well.plate plate join plate.screenLinks sl join sl.parent screen
     """)
 
     if load_pixels:
@@ -337,7 +415,7 @@ def marshal_images(conn, screen_id, mapann_value,
 
     q += """
         %s %s
-        order by lower(image.name), image.id
+        order by lower(image.name), well.id
         """ % (' from ' + ' '.join(from_join_clauses),
                build_clause(where_clause, 'where', 'and'))
 

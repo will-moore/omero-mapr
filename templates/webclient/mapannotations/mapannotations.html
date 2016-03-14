@@ -32,7 +32,8 @@
     <script type="text/javascript">
         WEBCLIENT.URLS.api_tags_and_tagged = "{% url 'mapannotations_api_mapannotations' %}";
         WEBCLIENT.URLS.tree_top_level = WEBCLIENT.URLS.api_tags_and_tagged;
-        WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_images' %}";
+        WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_plates' %}";
+        WEBCLIENT.URLS.api_plate_acquisitions = "{% url 'mapannotations_api_images' %}";
         WEBCLIENT.LABELS = {'all_members':'Genes'};
 
         {% if active_user %}

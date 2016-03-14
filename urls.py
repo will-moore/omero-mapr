@@ -32,6 +32,8 @@ urlpatterns = patterns(
         name='mapannotations_api_experimenter'),
     url(r'^api/mapannotations/$', views.api_mapannotation_list,
         name='mapannotations_api_mapannotations'),
+    url(r'^api/plates/$', views.api_plate_list,
+        name='mapannotations_api_plates'),
     url(r'^api/images/$', views.api_image_list,
         name='mapannotations_api_images'),
 
