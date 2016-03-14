@@ -166,7 +166,8 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
     q = """
         select new map(mv.value as value,
                a.ns as ns,
-               count(i.id) as childCount)
+               count(distinct s.id) as childCount,
+               count(i.id) as imgCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
              join w.plate p join p.screenLinks sl join sl.parent s
@@ -178,7 +179,7 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         e = [e[0]["value"],
-             e[0]["value"],
+             "%s (%d)" % (e[0]["value"], e[0]["imgCount"]),
              None,
              experimenter_id, #e[0]["ownerId"],
              {}, #e[0]["tag_details_permissions"],
@@ -229,7 +230,8 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
                screen.name as name,
                screen.details.owner.id as ownerId,
                screen as screen_details_permissions,
-               count(p.id) as childCount)
+               count(distinct p.id) as childCount,
+               count(i.id) as imgCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
              join ial.parent i join i.wellSamples ws join ws.well w 
              join w.plate p join p.screenLinks sl join sl.parent screen 
@@ -241,7 +243,7 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         e = [e[0]["id"],
-             e[0]["name"],
+             "%s (%d)" % (e[0]["name"], e[0]["imgCount"]),
              e[0]["ownerId"],
              e[0]["screen_details_permissions"],
              e[0]["childCount"],]
