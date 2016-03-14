@@ -40,6 +40,10 @@
         WEBCLIENT.active_user = {'id': {{ active_user.id }} };
         WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' active_user.id %}";
         {% endif %}
+
+        var MAPANNOTATIONS = {}
+        MAPANNOTATIONS.URLS = {'static_webclient': "{% static 'mapannotations' %}/"};
+
     </script>
 
     <script src="{% static 'mapannotations/javascript/mapannotations.tree.js'|add:url_suffix %}"></script>
