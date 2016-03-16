@@ -61,7 +61,7 @@
             $('#autocomplete').devbridgeAutocomplete({
                 serviceUrl: '{% url 'mapannotations_autocomplete' %}',
                 params: {
-                    "experimenter_id": {{ active_user.id }} ,
+                    "experimenter_id": {% if active_user %}{{ active_user.id }}{% else %}-1{% endif %} ,
                     "group": {{ active_group.id }}
                 },
                 onSelect: function (suggestion) {
