@@ -89,7 +89,7 @@ def count_mapannotations(conn,
     '''
     params, where_clause = _set_parameters(
         mapann_names=mapann_names, params=None,
-        experimenter_id=-1,
+        experimenter_id=experimenter_id,
         mapann_query=mapann_query, mapann_value=None,
         page=0, limit=settings.PAGE)
 
