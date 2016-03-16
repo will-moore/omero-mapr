@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2016 University of Dundee.
 #
@@ -14,6 +16,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+# Author: Aleksandra Tarkowska <A(dot)Tarkowska(at)dundee(dot)ac(dot)uk>,
+#
+# Version: 1.0
 
 
 from mapannotations import views
@@ -21,10 +26,11 @@ from django.conf.urls import url, patterns
 
 from omeroweb.webclient import views as webclient_views
 
+
 urlpatterns = patterns(
     '',
     url(r'^$', webclient_views.load_template,
-        {'menu' : 'mapannotations'},
+        {'menu': 'mapannotations'},
         name="mapindex"),
 
     url(r'^api/experimenters/(?P<experimenter_id>[0-9]+)/$',

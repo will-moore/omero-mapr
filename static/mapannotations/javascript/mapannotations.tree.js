@@ -1,5 +1,4 @@
-
-//   Copyright (C) 2015 University of Dundee & Open Microscopy Environment.
+//   Copyright (C) 2016 University of Dundee & Open Microscopy Environment.
 //   All rights reserved.
 
 //   This program is free software: you can redistribute it and/or modify
@@ -15,6 +14,9 @@
 //   You should have received a copy of the GNU Affero General Public License
 //   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+//   Author: Aleksandra Tarkowska <A(dot)Tarkowska(at)dundee(dot)ac(dot)uk>,
+
+//   Version: 1.0
 
 //   Here we override jstree setup and configure
 

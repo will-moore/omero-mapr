@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2016 University of Dundee.
 #
@@ -14,17 +16,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+# Author: Aleksandra Tarkowska <A(dot)Tarkowska(at)dundee(dot)ac(dot)uk>,
+#
+# Version: 1.0
 
-import time
 import omero
 
-from omero.rtypes import rlong, rstring, rlist, unwrap, wrap
+from omero.rtypes import rstring, rlist, unwrap, wrap
 from django.conf import settings
-from django.http import Http404
-from datetime import datetime
 from copy import deepcopy
 
-from omeroweb.webclient.tree import parse_permissions_css, build_clause
+from omeroweb.webclient.tree import build_clause
 from omeroweb.webclient.tree import _marshal_tag
 from omeroweb.webclient.tree import _marshal_screen
 from omeroweb.webclient.tree import _marshal_plate
@@ -32,9 +34,9 @@ from omeroweb.webclient.tree import _marshal_image
 
 
 def _set_parameters(mapann_names=[], params=None,
-                experimenter_id=-1,
-                mapann_query=None, mapann_value=None,
-                page=1, limit=settings.PAGE):
+                    experimenter_id=-1,
+                    mapann_query=None, mapann_value=None,
+                    page=1, limit=settings.PAGE):
     if params is None:
         params = omero.sys.ParametersI()
 
@@ -65,6 +67,7 @@ def _set_parameters(mapann_names=[], params=None,
         where_clause.append('mv.value  = :value')
 
     return params, where_clause
+
 
 def count_mapannotations(conn,
                          mapann_names=[], mapann_query=None,
@@ -158,8 +161,8 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
                a.ns as ns,
                count(distinct s.id) as childCount,
                count(distinct i.id) as imgCount)
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
-             join ial.parent i join i.wellSamples ws join ws.well w 
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+             join ial.parent i join i.wellSamples ws join ws.well w
              join w.plate p join p.screenLinks sl join sl.parent s
         where %s
         group by mv.value, a.ns
@@ -171,8 +174,8 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
         e = [e[0]["value"],
              "%s (%d)" % (e[0]["value"], e[0]["imgCount"]),
              None,
-             experimenter_id, #e[0]["ownerId"],
-             {}, #e[0]["tag_details_permissions"],
+             experimenter_id,  # e[0]["ownerId"],
+             {},  # e[0]["tag_details_permissions"],
              e[0]["ns"],
              e[0]["childCount"]]
         mapannotations.append(_marshal_tag(conn, e[0:7]))
@@ -222,21 +225,21 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
                screen as screen_details_permissions,
                count(distinct p.id) as childCount,
                count(distinct i.id) as imgCount)
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
-             join ial.parent i join i.wellSamples ws join ws.well w 
-             join w.plate p join p.screenLinks sl join sl.parent screen 
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+             join ial.parent i join i.wellSamples ws join ws.well w
+             join w.plate p join p.screenLinks sl join sl.parent screen
         where %s
         group by screen.id, screen.name
         order by lower(screen.name), screen.id
         """ % (" and ".join(where_clause))
-        
+
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         e = [e[0]["id"],
              "%s (%d)" % (e[0]["name"], e[0]["imgCount"]),
              e[0]["ownerId"],
              e[0]["screen_details_permissions"],
-             e[0]["childCount"],]
+             e[0]["childCount"]]
         ms = _marshal_screen(conn, e[0:5])
         ms.update({'extra': {'value': mapann_value}})
         screens.append(ms)
@@ -244,8 +247,8 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
     return screens
 
 
-def marshal_plates(conn, screen_id, 
-                   mapann_value, mapann_names=[], 
+def marshal_plates(conn, screen_id,
+                   mapann_value, mapann_names=[],
                    group_id=-1, experimenter_id=-1,
                    page=1, limit=settings.PAGE):
 
@@ -298,9 +301,9 @@ def marshal_plates(conn, screen_id,
                plate.details.owner.id as ownerId,
                plate as plate_details_permissions,
                count(distinct i.id) as childCount)
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
-             join ial.parent i join i.wellSamples ws join ws.well w 
-             join w.plate plate join plate.screenLinks sl join sl.parent screen 
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+             join ial.parent i join i.wellSamples ws join ws.well w
+             join w.plate plate join plate.screenLinks sl join sl.parent screen
         where %s
         group by plate.id, plate.name
         order by lower(plate.name), plate.id
@@ -393,9 +396,9 @@ def marshal_images(conn, plate_id, mapann_value,
         """ % extraValues
 
     from_join_clauses.append("""
-        ImageAnnotationLink ial 
-        join ial.child a 
-        join a.mapValue mv 
+        ImageAnnotationLink ial
+        join ial.child a
+        join a.mapValue mv
         join ial.parent image
         join image.wellSamples ws join ws.well well
         join well.plate plate join plate.screenLinks sl join sl.parent screen
@@ -457,9 +460,10 @@ def marshal_images(conn, plate_id, mapann_value,
 
     return images
 
+
 def marshal_autocomplete(conn, query=None, mapann_names=None,
-                           group_id=-1, experimenter_id=-1,
-                           page=1, limit=settings.PAGE):
+                         group_id=-1, experimenter_id=-1,
+                         page=1, limit=settings.PAGE):
     ''' Marshals genes
 
         @param conn OMERO gateway.
@@ -498,7 +502,7 @@ def marshal_autocomplete(conn, query=None, mapann_names=None,
 
     q = """
         select new map(mv.value as value)
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv 
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
         where %s
         group by mv.value
         order by lower(mv.value)

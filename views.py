@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2016 University of Dundee.
 #
@@ -14,14 +16,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+# Author: Aleksandra Tarkowska <A(dot)Tarkowska(at)dundee(dot)ac(dot)uk>,
+#
+# Version: 1.0
+
 
 import logging
-import traceback
+
 from Ice import Exception as IceException
 from omero import ApiUsageException, ServerError
 
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseServerError, HttpResponseBadRequest
+from django.http import HttpResponse
+from django.http import HttpResponseServerError, HttpResponseBadRequest
 
 from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
@@ -32,6 +39,7 @@ import tree
 from omeroweb.webclient import tree as webclient_tree
 
 logger = logging.getLogger(__name__)
+
 
 def get_str_or_default(request, name, default):
     """
@@ -47,6 +55,7 @@ def get_str_or_default(request, name, default):
         val = str(val_raw)
     return val
 
+
 def get_list_or_default(request, name, default):
     """
     Retrieves a list of parameters from the request. If list is not present
@@ -57,10 +66,12 @@ def get_list_or_default(request, name, default):
     """
     return request.GET.getlist(name, default)
 
+
 @login_required()
 @render_response()
 def index(request, **kwargs):
     return HttpResponse()
+
 
 @login_required()
 def api_experimenter_detail(request, experimenter_id, conn=None, **kwargs):
@@ -76,7 +87,7 @@ def api_experimenter_detail(request, experimenter_id, conn=None, **kwargs):
         experimenter = webclient_tree.marshal_experimenter(
             conn=conn, experimenter_id=experimenter_id)
         mapann_names = get_list_or_default(request, 'name',
-                                               ["Gene Symbol"])
+                                           ["Gene Symbol"])
         mapann_query = get_str_or_default(request, 'query', None)
         if mapann_query:
             experimenter['extra'] = {'query': mapann_query}
@@ -96,6 +107,7 @@ def api_experimenter_detail(request, experimenter_id, conn=None, **kwargs):
         return HttpResponseServerError(e.message)
 
     return HttpJsonResponse({'experimenter': experimenter})
+
 
 @login_required()
 def api_mapannotation_list(request, conn=None, **kwargs):
@@ -118,25 +130,27 @@ def api_mapannotation_list(request, conn=None, **kwargs):
     # parents), screens and plates (without parents). This is fine for
     # the first page, but the second page may not be what is expected.
 
-    mapannotations=[]
-    screens=[]
+    mapannotations = []
+    screens = []
     try:
         # Get all genes from map annotation
         if mapann_value is not None:
-            screens = tree.marshal_screens(conn=conn,
-                                         mapann_value=mapann_value,
-                                         mapann_names=mapann_names,
-                                         group_id=group_id,
-                                         page=page,
-                                         limit=limit)
+            screens = tree.marshal_screens(
+                conn=conn,
+                mapann_value=mapann_value,
+                mapann_names=mapann_names,
+                group_id=group_id,
+                page=page,
+                limit=limit)
         else:
-            mapannotations = tree.marshal_mapannotations(conn=conn,
-                                     mapann_names=mapann_names,
-                                     mapann_query=mapann_query,
-                                     group_id=group_id,
-                                     experimenter_id=experimenter_id,
-                                     page=page,
-                                     limit=limit)
+            mapannotations = tree.marshal_mapannotations(
+                conn=conn,
+                mapann_names=mapann_names,
+                mapann_query=mapann_query,
+                group_id=group_id,
+                experimenter_id=experimenter_id,
+                page=page,
+                limit=limit)
 
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
@@ -145,7 +159,7 @@ def api_mapannotation_list(request, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'tags': mapannotations, 'screens': screens })
+    return HttpJsonResponse({'tags': mapannotations, 'screens': screens})
 
 
 @login_required()
@@ -157,9 +171,6 @@ def api_plate_list(request, conn=None, **kwargs):
         page = get_long_or_default(request, 'page', 1)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
-        load_pixels = get_bool_or_default(request, 'sizeXYZ', False)
-        thumb_version = get_bool_or_default(request, 'thumbVersion', False)
-        date = get_bool_or_default(request, 'date', False)
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
         screen_id = get_str_or_default(request, 'id', None)
@@ -235,6 +246,7 @@ def api_image_list(request, conn=None, **kwargs):
 
     return HttpJsonResponse({'images': images})
 
+
 @login_required()
 def mapannotations_autocomplete(request, conn=None, **kwargs):
 
@@ -256,7 +268,7 @@ def mapannotations_autocomplete(request, conn=None, **kwargs):
     # parents), screens and plates (without parents). This is fine for
     # the first page, but the second page may not be what is expected.
 
-    autocomplete=[]
+    autocomplete = []
     try:
         autocomplete = tree.marshal_autocomplete(
             conn=conn,
