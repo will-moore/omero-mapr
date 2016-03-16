@@ -72,14 +72,14 @@ def _set_parameters(mapann_names=[], params=None,
 def count_mapannotations(conn,
                          mapann_names=[], mapann_query=None,
                          group_id=-1, experimenter_id=-1):
-    ''' Marshals genes
+    ''' Count mapannotiation values
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
-        @param mapann_names The Map annotation name to filter by.
+        @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
-        @param query The Map annotation value to filter using like.
-        @type query L{string}
+        @param mapann_query The Map annotation value to filter by using like.
+        @type mapann_query L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1
         @type group_id L{long}
@@ -117,12 +117,14 @@ def count_mapannotations(conn,
 def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
                            group_id=-1, experimenter_id=-1,
                            page=1, limit=settings.PAGE):
-    ''' Marshals genes
+    ''' Marshals mapannotation values
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
-        @param mapann_names The Map annotation name to filter by.
+        @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
+        @param mapann_query The Map annotation value to filter by using like.
+        @type mapann_query L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1
         @type group_id L{long}
@@ -190,6 +192,10 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_names The Map annotation names to filter by.
+        @type mapann_names L{string}
+        @param mapann_value The Map annotation value to filter by.
+        @type mapann_value L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1
         @type group_id L{long}
@@ -256,14 +262,12 @@ def marshal_plates(conn, screen_id,
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
-        @param screen_id The Screen ID to filter by or `None` to
-        not filter by a specific screen.
-        defaults to `None`
+        @param screen_id The Screen ID to filter by.
         @type screen_id L{long}
-        @param orphaned If this is to filter by orphaned data. Overridden
-        by dataset_id.
-        defaults to False
-        @type orphaned Boolean
+        @param mapann_value The Map annotation value to filter by.
+        @type mapann_value L{string}
+        @param mapann_names The Map annotation names to filter by.
+        @type mapann_names L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1
         @type group_id L{long}
@@ -333,6 +337,10 @@ def marshal_images(conn, plate_id, mapann_value,
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param plate_id The Plate ID to filter by.
+        @type plate_id L{long}
+        @param mapann_names The Map annotation names to filter by.
+        @type mapann_names L{string}
         @param mapann_value The Map annotation value to filter by.
         @type mapann_value L{string}
         @param load_pixels Whether to load the X,Y,Z dimensions
@@ -349,7 +357,6 @@ def marshal_images(conn, plate_id, mapann_value,
         @param limit The limit of results per page to get
         defaults to the value set in settings.PAGE
         @type page L{long}
-
     '''
     images = []
     params, where_clause = _set_parameters(
@@ -464,10 +471,12 @@ def marshal_images(conn, plate_id, mapann_value,
 def marshal_autocomplete(conn, query=None, mapann_names=None,
                          group_id=-1, experimenter_id=-1,
                          page=1, limit=settings.PAGE):
-    ''' Marshals genes
+    ''' Marshals mapannotation values for autocomplete
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param query The Map annotation value to filter by using like.
+        @type query L{string}
         @param mapann_names The Map annotation name to filter by.
         @type mapann_names L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
