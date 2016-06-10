@@ -30,8 +30,7 @@ urlpatterns = patterns(
     url(r'^$', views.index,
         name="mapindex"),
 
-    # TODO: allow experimenter_id = -1  REGEX [-]?\d+
-    url(r'^api/experimenters/(?P<experimenter_id>[0-9]+)/$',
+    url(r'^api/experimenters/(?P<experimenter_id>([-1]|[0-9])+)/$',
         views.api_experimenter_detail,
         name='mapannotations_api_experimenter'),
     url(r'^api/mapannotations/$', views.api_mapannotation_list,

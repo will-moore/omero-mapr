@@ -39,11 +39,12 @@
         WEBCLIENT.URLS.tree_top_level = WEBCLIENT.URLS.api_tags_and_tagged;
         WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_plates' %}";
         WEBCLIENT.URLS.api_plate_acquisitions = "{% url 'mapannotations_api_images' %}";
-        WEBCLIENT.LABELS = {'all_members':'Genes'};
 
         {% if active_user %}
         WEBCLIENT.active_user = {'id': {{ active_user.id }} };
         WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' active_user.id %}";
+        {% else %}
+        WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' -1 %}";
         {% endif %}
 
         var MAPANNOTATIONS = {}
@@ -56,6 +57,16 @@
     <script src="{% static 'mapannotations/javascript/jquery.autocomplete-1.2.24.js'%}"></script>
 
     <script type="text/javascript">
+
+        // Disable the groups/users dropdown menu.
+        $("#groupsUsersButton")
+            .css('background-image', 'url()')
+            .attr('title', 'Use "Scope" in form below to search within specific Groups / Users');
+        setTimeout(function(){
+            // make sure we remove click handler AFTER it's been added
+            $("#groupsUsersButton").off('click');
+        },500);
+
         $(function () {
             var oldData = $.jstree.reference('#dataTree').settings.core.data;
             var inst = $.jstree.reference('#dataTree');

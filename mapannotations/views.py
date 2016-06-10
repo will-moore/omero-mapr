@@ -33,9 +33,10 @@ from django.http import HttpResponseServerError, HttpResponseBadRequest, \
 
 from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
-from omeroweb.webclient.views import get_long_or_default, get_bool_or_default, \
-    switch_active_group
-from omeroweb.webclient.forms import GlobalSearchForm, ContainerForm, UsersForm
+from omeroweb.webclient.views import get_long_or_default, get_bool_or_default
+from omeroweb.webclient.views import switch_active_group
+from omeroweb.webclient.views import fake_experimenter
+from omeroweb.webclient.forms import GlobalSearchForm, ContainerForm
 from omeroweb.webclient.show import Show, IncorrectMenuError
 
 import tree
@@ -139,14 +140,6 @@ def index(request, conn=None, url=None, **kwargs):
         user_id = long(user_id)
     except:
         user_id = None
-    if user_id is not None:
-        form_users = UsersForm(
-            initial={'users': users, 'empty_label': None, 'menu': menu},
-            data=request.GET.copy())
-        if not form_users.is_valid():
-            if user_id != -1:           # All users in group is allowed
-                user_id = None
-    if user_id is None:
         # ... or check that current user is valid in active group
         user_id = request.session.get('user_id', None)
         if user_id is None or int(user_id) not in userIds:
@@ -201,9 +194,14 @@ def api_experimenter_detail(request, experimenter_id, conn=None, **kwargs):
         return HttpResponseBadRequest('Invalid experimenter id')
 
     try:
-        # Get the experimenter
-        experimenter = webclient_tree.marshal_experimenter(
-            conn=conn, experimenter_id=experimenter_id)
+        if experimenter_id > -1:
+            # Get the experimenter
+            experimenter = webclient_tree.marshal_experimenter(
+                conn=conn, experimenter_id=experimenter_id)
+        else:
+            # fake experimenter -1
+            experimenter = fake_experimenter(request, default_name="Genes")
+
         mapann_names = get_list_or_default(request, 'name',
                                            ["Gene Symbol"])
         mapann_query = get_str_or_default(request, 'query', None)
