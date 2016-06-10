@@ -24,13 +24,10 @@
 from mapannotations import views
 from django.conf.urls import url, patterns
 
-from omeroweb.webclient import views as webclient_views
-
 
 urlpatterns = patterns(
     '',
-    url(r'^$', webclient_views.load_template,
-        {'menu': 'mapannotations'},
+    url(r'^$', views.index,
         name="mapindex"),
 
     # TODO: allow experimenter_id = -1  REGEX [-]?\d+

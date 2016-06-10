@@ -27,16 +27,21 @@ from Ice import Exception as IceException
 from omero import ApiUsageException, ServerError
 
 from django.conf import settings
-from django.http import HttpResponse
-from django.http import HttpResponseServerError, HttpResponseBadRequest
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseServerError, HttpResponseBadRequest, \
+    HttpResponseRedirect
 
 from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
-from omeroweb.webclient.views import get_long_or_default, get_bool_or_default
+from omeroweb.webclient.views import get_long_or_default, get_bool_or_default, \
+    switch_active_group
+from omeroweb.webclient.forms import GlobalSearchForm, ContainerForm, UsersForm
+from omeroweb.webclient.show import Show, IncorrectMenuError
 
 import tree
 
 from omeroweb.webclient import tree as webclient_tree
+
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +74,121 @@ def get_list_or_default(request, name, default):
 
 @login_required()
 @render_response()
-def index(request, **kwargs):
-    return HttpResponse()
+def index(request, conn=None, url=None, **kwargs):
+    """
+    This view handles most of the top-level pages, as specified by 'menu' E.g.
+    userdata, usertags, history, search etc.
+    Query string 'path' that specifies an object to display in the data tree
+    is parsed.
+    We also prepare the list of users in the current group, for the
+    switch-user form. Change-group form is also prepared.
+    """
+    request.session.modified = True
+    menu = "mapannotations"
+    template = "%s/%s.html" % (menu, menu)
+
+    # tree support
+    show = Show(conn, request, menu)
+    # Constructor does no loading.  Show.first_selected must be called first
+    # in order to set up our initial state correctly.
+    try:
+        first_sel = show.first_selected
+    except IncorrectMenuError, e:
+        return HttpResponseRedirect(e.uri)
+    # We get the owner of the top level object, E.g. Project
+    # Actual api_paths_to_object() is retrieved by jsTree once loaded
+    initially_open_owner = show.initially_open_owner
+
+    # need to be sure that tree will be correct omero.group
+    if first_sel is not None:
+        switch_active_group(request, first_sel.details.group.id.val)
+
+    # search support
+    init = {}
+    global_search_form = GlobalSearchForm(data=request.POST.copy())
+    if menu == "search":
+        if global_search_form.is_valid():
+            init['query'] = global_search_form.cleaned_data['search_query']
+
+    # get url without request string - used to refresh page after switch
+    # user/group etc
+    url = reverse(viewname="mapindex")
+
+    # validate experimenter is in the active group
+    active_group = (request.session.get('active_group') or
+                    conn.getEventContext().groupId)
+    # prepare members of group...
+    leaders, members = conn.getObject(
+        "ExperimenterGroup", active_group).groupSummary()
+    userIds = [u.id for u in leaders]
+    userIds.extend([u.id for u in members])
+    users = []
+    if len(leaders) > 0:
+        users.append(("Owners", leaders))
+    if len(members) > 0:
+        users.append(("Members", members))
+    users = tuple(users)
+
+    # check any change in experimenter...
+    user_id = request.GET.get('experimenter')
+    if initially_open_owner is not None:
+        if (request.session.get('user_id', None) != -1):
+            # if we're not already showing 'All Members'...
+            user_id = initially_open_owner
+    try:
+        user_id = long(user_id)
+    except:
+        user_id = None
+    if user_id is not None:
+        form_users = UsersForm(
+            initial={'users': users, 'empty_label': None, 'menu': menu},
+            data=request.GET.copy())
+        if not form_users.is_valid():
+            if user_id != -1:           # All users in group is allowed
+                user_id = None
+    if user_id is None:
+        # ... or check that current user is valid in active group
+        user_id = request.session.get('user_id', None)
+        if user_id is None or int(user_id) not in userIds:
+            if user_id != -1:           # All users in group is allowed
+                user_id = conn.getEventContext().userId
+
+    request.session['user_id'] = user_id
+
+    myGroups = list(conn.getGroupsMemberOf())
+    myGroups.sort(key=lambda x: x.getName().lower())
+    groups = myGroups
+
+    new_container_form = ContainerForm()
+
+    # colleagues required for search.html page only.
+    myColleagues = {}
+    if menu == "search":
+        for g in groups:
+            g.loadLeadersAndMembers()
+            for c in g.leaders + g.colleagues:
+                myColleagues[c.id] = c
+        myColleagues = myColleagues.values()
+        myColleagues.sort(key=lambda x: x.getLastName().lower())
+
+    context = {
+        'menu': menu,
+        'init': init,
+        'myGroups': myGroups,
+        'new_container_form': new_container_form,
+        'global_search_form': global_search_form}
+    context['groups'] = groups
+    context['myColleagues'] = myColleagues
+    context['active_group'] = conn.getObject(
+        "ExperimenterGroup", long(active_group))
+    context['active_user'] = conn.getObject("Experimenter", long(user_id))
+    context['initially_select'] = show.initially_select
+    context['isLeader'] = conn.isLeader()
+    context['current_url'] = url
+    context['page_size'] = settings.PAGE
+    context['template'] = template
+
+    return context
 
 
 @login_required()

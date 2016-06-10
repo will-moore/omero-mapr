@@ -108,10 +108,9 @@ def count_mapannotations(conn,
              join ial.parent i join i.wellSamples ws join ws.well w
              join w.plate p join p.screenLinks sl join sl.parent s
         where %s
-        group by mv.value, a.ns
         """ % (" and ".join(where_clause))
 
-    return len(unwrap(qs.projection(q, params, service_opts)))
+    return unwrap(qs.projection(q, params, service_opts))[0][0]
 
 
 def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,

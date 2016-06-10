@@ -28,6 +28,7 @@
 {% block link %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static "mapannotations/css/jquery.autocomplete-1.2.24.css" %}" type="text/css" />
+    <link rel="stylesheet" href="{% static "mapannotations/css/mapannotations.css" %}" type="text/css" />
 {% endblock %}
 
 {% block script %}
@@ -80,23 +81,6 @@
 {% block left %}
 
     <div id="left_panel_tabs" class="absolute_fill ui-tabs">
-
-        <ul id="left_panel_tab_list" class="ui-tabs-nav">
-
-			<!-- Remember to update this in public/public.html as well. We should change this, but for the meantime, you need to manually update the menu there too -->
-
-	        <li id="explore_tab" class="ui-state-default">
-                <a href="{% url 'load_template' 'userdata' %}" class="ui-tabs-anchor" title="Explore">{% trans "Explore" %}</a>
-            </li>
-            <li id="public_tab" class="ui-state-default{% ifequal menu 'mapannotations' %} ui-tabs-active{% endifequal %}"><a href="{% url 'load_template' 'mapannotations' %}" class="ui-tabs-anchor">{% trans "Genes" %}</a></li>
-	        <li id="tags_tab" class="ui-state-default">
-                <a href="{% url 'load_template' 'usertags' %}" class="ui-tabs-anchor">{% trans "Tags" %}</a>
-            </li>
-	        <li id="public_tab" class="ui-state-default">
-                <a href="{% url 'load_template' 'public' %}" class="ui-tabs-anchor">{% trans "Shares" %}</a>
-            </li>
-
-	    </ul>
 
         <!-- toolbar above tree -->
         <div>
