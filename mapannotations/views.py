@@ -31,6 +31,9 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseServerError, HttpResponseBadRequest, \
     HttpResponseRedirect
 
+import show
+import omeroweb.webclient.views
+
 from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
 from omeroweb.webclient.views import get_long_or_default, get_bool_or_default
@@ -38,6 +41,8 @@ from omeroweb.webclient.views import switch_active_group
 from omeroweb.webclient.views import fake_experimenter
 from omeroweb.webclient.forms import GlobalSearchForm, ContainerForm
 from omeroweb.webclient.show import Show, IncorrectMenuError
+from omeroweb.webclient.views import api_paths_to_object \
+    as webclient_api_paths_to_object
 
 import tree
 
@@ -86,10 +91,11 @@ def index(request, conn=None, url=None, **kwargs):
     """
     request.session.modified = True
     menu = "mapannotations"
-    template = "%s/%s.html" % (menu, menu)
+    template = "mapannotations/mapannotations.html"
 
     # tree support
     show = Show(conn, request, menu)
+
     # Constructor does no loading.  Show.first_selected must be called first
     # in order to set up our initial state correctly.
     try:
@@ -107,9 +113,6 @@ def index(request, conn=None, url=None, **kwargs):
     # search support
     init = {}
     global_search_form = GlobalSearchForm(data=request.POST.copy())
-    if menu == "search":
-        if global_search_form.is_valid():
-            init['query'] = global_search_form.cleaned_data['search_query']
 
     # get url without request string - used to refresh page after switch
     # user/group etc
@@ -154,16 +157,6 @@ def index(request, conn=None, url=None, **kwargs):
 
     new_container_form = ContainerForm()
 
-    # colleagues required for search.html page only.
-    myColleagues = {}
-    if menu == "search":
-        for g in groups:
-            g.loadLeadersAndMembers()
-            for c in g.leaders + g.colleagues:
-                myColleagues[c.id] = c
-        myColleagues = myColleagues.values()
-        myColleagues.sort(key=lambda x: x.getLastName().lower())
-
     context = {
         'menu': menu,
         'init': init,
@@ -171,7 +164,6 @@ def index(request, conn=None, url=None, **kwargs):
         'new_container_form': new_container_form,
         'global_search_form': global_search_form}
     context['groups'] = groups
-    context['myColleagues'] = myColleagues
     context['active_group'] = conn.getObject(
         "ExperimenterGroup", long(active_group))
     context['active_user'] = conn.getObject("Experimenter", long(user_id))
@@ -182,6 +174,30 @@ def index(request, conn=None, url=None, **kwargs):
     context['template'] = template
 
     return context
+
+
+@login_required()
+def api_paths_to_object(request, conn=None, **kwargs):
+    """
+    This override omeroweb.webclient.api_paths_to_object
+    to support custom path to map.value
+    Example to go to the image with id 1 somewhere in the tree.
+    http://localhost:8000/webclient/?show=map.value-abc
+
+    TODO: support alias for map.value
+    """
+
+    try:
+        map_value = get_str_or_default(request, 'map.value', None)
+    except ValueError:
+        return HttpResponseBadRequest('Invalid parameter value')
+
+    if map_value:
+        paths = show.map_paths_to_object(conn, map_value=map_value)
+        return HttpJsonResponse({'paths': paths})
+    return webclient_api_paths_to_object(request, **kwargs)
+
+omeroweb.webclient.views.api_paths_to_object = api_paths_to_object
 
 
 @login_required()

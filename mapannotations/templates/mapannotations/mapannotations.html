@@ -35,6 +35,8 @@
     {{ block.super }}
 
     <script type="text/javascript">
+        WEBCLIENT.URLS.api_paths_to_object = "{% url 'mapannotations_api_paths_to_object' %}";
+
         WEBCLIENT.URLS.api_tags_and_tagged = "{% url 'mapannotations_api_mapannotations' %}";
         WEBCLIENT.URLS.tree_top_level = WEBCLIENT.URLS.api_tags_and_tagged;
         WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_plates' %}";
@@ -57,15 +59,6 @@
     <script src="{% static 'mapannotations/javascript/jquery.autocomplete-1.2.24.js'%}"></script>
 
     <script type="text/javascript">
-
-        // Disable the groups/users dropdown menu.
-        $("#groupsUsersButton")
-            .css('background-image', 'url()')
-            .attr('title', 'Use "Scope" in form below to search within specific Groups / Users');
-        setTimeout(function(){
-            // make sure we remove click handler AFTER it's been added
-            $("#groupsUsersButton").off('click');
-        },500);
 
         $(function () {
             var oldData = $.jstree.reference('#dataTree').settings.core.data;
