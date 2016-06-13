@@ -27,11 +27,14 @@ from copy import deepcopy
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
+from omero.rtypes import rint
+
 import omeroweb.webclient.show as omeroweb_show
 
 
 class MapShow(omeroweb_show.Show):
 
+    omeroweb_show.Show.TOP_LEVEL_PREFIXES += ('map',)
     omeroweb_show.Show.SUPPORTED_OBJECT_TYPES += ('map',)
 
     def __init__(self, conn, request, menu):
@@ -53,7 +56,41 @@ class MapShow(omeroweb_show.Show):
                 reverse(viewname="mapindex") +
                 "?show=" + self._initially_select[0].replace(".id", "")
             )
-        super(MapShow, self)._find_first_selected()
+        return super(MapShow, self)._find_first_selected()
+
+    def _load_first_selected(self, first_obj, attributes):
+        first_selected = None
+        if first_obj in ["map"]:
+            first_selected = self._load_mapannotations(attributes)
+            self._initially_open_owner = first_selected.details.owner.id.val
+        else:
+            first_selected = super(MapShow, self) \
+                ._load_first_selected(first_obj, attributes)
+        return first_selected
+
+    def _load_mapannotations(self, attributes):
+        """
+        TODO: make sure it is calling right context (groups, users)
+        """
+        if 'value' in attributes:
+            service_opts = deepcopy(self.conn.SERVICE_OPTS)
+            params = omero.sys.ParametersI()
+            params.addString("mvalue", attributes['value'])
+            f = omero.sys.Filter()
+            f.limit = rint(1)
+            params.theFilter = f
+
+            q = """
+                select distinct (a)
+                from ImageAnnotationLink ial join ial.child a
+                join a.mapValue mv
+                where mv.value = :mvalue
+            """
+            qs = self.conn.getQueryService()
+            m = qs.findByQuery(q, params, service_opts)
+            # hardcode to always tell to load all users
+            m.details.owner = omero.model.ExperimenterI(-1L, False)
+            return omero.gateway.MapAnnotationWrapper(self.conn, m)
 
 omeroweb_show.Show = MapShow
 
