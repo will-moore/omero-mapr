@@ -402,6 +402,8 @@ def marshal_images(conn, plate_id, mapann_value,
                image.details.owner.id as ownerId,
                image as image_details_permissions,
                image.fileset.id as filesetId %s)
+        from Image image
+        where image.id in (
         """ % extraValues
 
     from_join_clauses.append("""
@@ -419,8 +421,8 @@ def marshal_images(conn, plate_id, mapann_value,
 
     q += """
         %s %s
-        order by lower(image.name), well.id
-        """ % (' from ' + ' '.join(from_join_clauses),
+        order by lower(image.name), well.id )
+        """ % (' select image.id from ' + ' '.join(from_join_clauses),
                build_clause(where_clause, 'where', 'and'))
 
     for e in qs.projection(q, params, service_opts):
