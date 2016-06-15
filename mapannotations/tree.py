@@ -172,6 +172,7 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
 
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
+        c = e[0]["imgCount"]
         e = [e[0]["value"],
              "%s (%d)" % (e[0]["value"], e[0]["imgCount"]),
              None,
@@ -179,7 +180,9 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
              {},  # e[0]["tag_details_permissions"],
              e[0]["ns"],
              e[0]["childCount"]]
-        mapannotations.append(_marshal_tag(conn, e[0:7]))
+        mt = _marshal_tag(conn, e[0:7])
+        mt.update({'extra': {'counter': c}})
+        mapannotations.append(mt)
     return mapannotations
 
 
@@ -407,7 +410,7 @@ def marshal_images(conn, plate_id, mapann_value,
         join a.mapValue mv
         join ial.parent image
         join image.wellSamples ws join ws.well well
-        join well.plate plate join plate.screenLinks sl join sl.parent screen
+        join well.plate plate
     """)
 
     if load_pixels:

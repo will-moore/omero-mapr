@@ -27,7 +27,47 @@ $(function () {
 
     // TODO: make a function and add button
     $.jstree.reference('#dataTree').settings.sort = function(nodeId1, nodeId2) {
-        return;
+        var inst = this;
+        var node1 = inst.get_node(nodeId1);
+        var node2 = inst.get_node(nodeId2);
+
+        function sortingStrategy(n1, n2) {
+            // sorting strategy
+            // sort by extra.imgCount or by name
+
+            if(n1.type === 'experimenter') {
+                if (n1.data.obj.id === WEBCLIENT.USER.id) {
+                    return -1;
+                } else if (n2.data.obj.id === WEBCLIENT.USER.id) {
+                    return 1;
+                }
+            }
+
+            var s1 = null;
+            var s2 = null;
+            var revert = false;
+            // extra:counter shoudl take priority in sorting
+            if (n1.data.obj.extra && n1.data.obj.extra.counter) {
+                s1 = parseInt(n1.data.obj.extra.counter);
+                s2 = parseInt(n2.data.obj.extra.counter);
+                revert = true
+            }
+            // If counters are the same sort by Name
+            if (s1 === s2) {
+                // otherwise sort by name
+                s1 = n1.text.toLowerCase();
+                s2 = n2.text.toLowerCase();
+            }
+            // If names are same, sort by ID
+            if (s1 === s2) {
+                return n1.data.obj.id <= n2.data.obj.id ? -1 : 1;
+            }
+            if (revert)
+                return s1 <= s2 ? 1 : -1;
+            return s1 <= s2 ? -1 : 1;
+        }
+
+        return sortingStrategy(node1, node2);
     };
 
     $.jstree.reference('#dataTree').settings.types['experimenter'] = {
