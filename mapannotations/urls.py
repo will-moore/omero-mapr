@@ -43,7 +43,14 @@ urlpatterns = patterns(
     url(r'^api/paths_to_object/$', views.api_paths_to_object,
         name='mapannotations_api_paths_to_object'),
 
+    url(r'^metadata_details/(?:(?P<c_type>[a-zA-Z]+)/'
+        r'(?P<c_id>[a-zA-Z0-9]+)/)?(?:(?P<share_id>[0-9]+)/)?$',
+        views.load_metadata_details,
+        name="load_metadata_details"),
+
+
     url(r'^autocomplete/$', views.mapannotations_autocomplete,
         name='mapannotations_autocomplete'),
+
 
 )

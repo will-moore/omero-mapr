@@ -41,12 +41,13 @@ from omeroweb.webclient.views import switch_active_group
 from omeroweb.webclient.views import fake_experimenter
 from omeroweb.webclient.forms import GlobalSearchForm, ContainerForm
 from omeroweb.webclient.show import Show, IncorrectMenuError
-from omeroweb.webclient.views import api_paths_to_object \
-    as webclient_api_paths_to_object
 
 import tree
 
 from omeroweb.webclient import tree as webclient_tree
+from omeroweb.webclient import views as webclient_views
+from omeroweb.webclient.views import api_annotations \
+    as webclient_api_annotations
 
 
 logger = logging.getLogger(__name__)
@@ -195,7 +196,7 @@ def api_paths_to_object(request, conn=None, **kwargs):
     if map_value:
         paths = show.map_paths_to_object(conn, map_value=map_value)
         return HttpJsonResponse({'paths': paths})
-    return webclient_api_paths_to_object(request, **kwargs)
+    return webclient_views.api_paths_to_object(request, **kwargs)
 
 omeroweb.webclient.views.api_paths_to_object = api_paths_to_object
 
@@ -377,6 +378,61 @@ def api_image_list(request, conn=None, **kwargs):
         return HttpResponseServerError(e.message)
 
     return HttpJsonResponse({'images': images})
+
+
+@login_required()
+@render_response()
+def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
+                          **kwargs):
+    """
+    This page is the right-hand panel 'general metadata', first tab only.
+    Shown for Projects, Datasets, Images, Screens, Plates, Wells, Tags etc.
+    The data and annotations are loaded by the manager. Display of appropriate
+    data is handled by the template.
+    """
+
+    template = "mapannotations/metadata_general.html"
+
+    context = dict()
+    context['template'] = template
+    context['manager'] = {'obj_type': c_type, 'obj_id': c_id}
+
+    return context
+
+
+@login_required()
+def api_annotations(request, conn=None, **kwargs):
+
+    # Get parameters
+    try:
+        mapann_type = get_str_or_default(request, 'type', None)
+        mapann_value = get_str_or_default(request, 'map', None)
+        mapann_names = get_list_or_default(request, 'name',
+                                           ["Gene Symbol"])
+    except ValueError:
+        return HttpResponseBadRequest('Invalid parameter value')
+
+    if mapann_type in ('map',) and mapann_value is not None \
+       and not mapann_value.isdigit():
+        anns = []
+        exps = []
+        try:
+            anns, exps = tree.load_mapannotation(
+                conn=conn,
+                mapann_names=mapann_names,
+                mapann_value=mapann_value)
+        except ApiUsageException as e:
+            return HttpResponseBadRequest(e.serverStackTrace)
+        except ServerError as e:
+            return HttpResponseServerError(e.serverStackTrace)
+        except IceException as e:
+            return HttpResponseServerError(e.message)
+
+        return HttpJsonResponse({'annotations': anns, 'experimenters': exps})
+    else:
+        return webclient_api_annotations(request, conn=conn, **kwargs)
+
+omeroweb.webclient.views.api_annotations = api_annotations
 
 
 @login_required()

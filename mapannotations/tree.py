@@ -31,6 +31,8 @@ from omeroweb.webclient.tree import _marshal_tag
 from omeroweb.webclient.tree import _marshal_screen
 from omeroweb.webclient.tree import _marshal_plate
 from omeroweb.webclient.tree import _marshal_image
+from omeroweb.webclient.tree import _marshal_annotation
+from omeroweb.webclient.tree import _marshal_exp_obj
 
 
 def _set_parameters(mapann_names=[], params=None,
@@ -114,6 +116,7 @@ def count_mapannotations(conn,
 
 
 def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
+                           mapann_value=None,
                            group_id=-1, experimenter_id=-1,
                            page=1, limit=settings.PAGE):
     ''' Marshals mapannotation values
@@ -141,7 +144,7 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
     params, where_clause = _set_parameters(
         mapann_names=mapann_names, params=None,
         experimenter_id=experimenter_id,
-        mapann_query=mapann_query, mapann_value=None,
+        mapann_query=mapann_query, mapann_value=mapann_value,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
@@ -470,6 +473,85 @@ def marshal_images(conn, plate_id, mapann_value,
                 i['thumbVersion'] = thumbVersions[i['id']]
 
     return images
+
+
+def load_mapannotation(conn, mapann_names=[], mapann_value=None,
+                       group_id=-1, experimenter_id=-1,
+                       page=1, limit=settings.PAGE):
+    ''' Marshals mapannotation values
+
+        @param conn OMERO gateway.
+        @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_names The Map annotation names to filter by.
+        @type mapann_names L{string}
+        @param mapann_query The Map annotation value to filter by using like.
+        @type mapann_query L{string}
+        @param group_id The Group ID to filter by or -1 for all groups,
+        defaults to -1
+        @type group_id L{long}
+        @param experimenter_id The Experimenter (user) ID to filter by
+        or -1 for all experimenters
+        @type experimenter_id L{long}
+        @param page Page number of results to get. `None` or 0 for no paging
+        defaults to 1
+        @type page L{long}
+        @param limit The limit of results per page to get
+        defaults to the value set in settings.PAGE
+        @type page L{long}
+    '''
+
+    annotations = []
+    experimenters = {}
+    params, where_clause = _set_parameters(
+        mapann_names=None, params=None,
+        experimenter_id=experimenter_id,
+        mapann_value=None, mapann_query=None,
+        page=page, limit=limit)
+
+    if mapann_names is not None and len(mapann_names) > 0:
+        manlist = [rstring(str(n)) for n in mapann_names]
+        params.add("filter", rlist(manlist))
+        where_clause.append('mv.name in (:filter)')
+
+    if mapann_value:
+        params.addString("value", mapann_value)
+        where_clause.append('mv.value  = :value')
+
+    service_opts = deepcopy(conn.SERVICE_OPTS)
+
+    # Set the desired group context
+    if group_id is None:
+        group_id = -1
+    service_opts.setOmeroGroup(group_id)
+
+    qs = conn.getQueryService()
+
+    q = """
+        select ial from ImageAnnotationLink ial
+            join fetch ial.details.creationEvent
+            join fetch ial.details.owner
+            join fetch ial.parent as pa
+            join fetch ial.child a
+            where a.id in (
+                select a
+                from Annotation a
+                join a.mapValue mv where %s)
+        """ % (" and ".join(where_clause))
+
+    for link in qs.findAllByQuery(q, params, service_opts):
+            ann = link.child
+            d = _marshal_annotation(conn, ann, link)
+            annotations.append(d)
+            exp = _marshal_exp_obj(link.details.owner)
+            experimenters[exp['id']] = exp
+            exp = _marshal_exp_obj(ann.details.owner)
+            experimenters[exp['id']] = exp
+
+    experimenters = experimenters.values()
+    # sort by id mostly for testing
+    experimenters.sort(key=lambda x: x['id'])
+
+    return annotations, experimenters
 
 
 def marshal_autocomplete(conn, query=None, mapann_names=None,
