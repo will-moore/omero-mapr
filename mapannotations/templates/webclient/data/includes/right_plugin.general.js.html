@@ -97,11 +97,9 @@ $(function () {
                 // experimenter
                 } else if (oid.indexOf("experimenter")>=0) {
                     //$metadata_general.html('<p>'+selected.children().eq(1).text()+'</p>');
-                } else if (!$.isNumeric(oid.split('-')[1])) {
-                    if (orel=="tag") {
-                        var map_prefix = '{% url 'mapindex' %}';
-                        url = map_prefix+'metadata_details/'+orel+'/'+oid.split("-")[1]+'/';
-                    }
+                } else if (orel.indexOf("tag")>=0) {
+                    var map_prefix = '{% url "mapindex" %}';
+                    url = map_prefix+'metadata_details/{{ menu }}/'+oid.split(/-(.+)/)[1]+'/';
                 // everything else
                 } else {
                     if(orel=="image") {
@@ -112,7 +110,7 @@ $(function () {
                         }
                     } else if(orel=="well"){
                         var well_index = selected[0]["index"];
-                        url = '{% url 'load_metadata_details' %}well/'+oid.split('-')[1]+'/?index='+ well_index;
+                        url = '{% url "load_metadata_details" %}well/'+oid.split('-')[1]+'/?index='+ well_index;
                     } else {
                         url = prefix+'metadata_details/'+orel+'/'+oid.split("-")[1]+'/';
                     }

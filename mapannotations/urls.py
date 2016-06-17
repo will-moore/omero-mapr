@@ -23,33 +23,68 @@
 
 from mapannotations import views
 from django.conf.urls import url, patterns
+from django.core.urlresolvers import reverse
+from django.utils.functional import lazy
+from django.views.generic import RedirectView
+from django.views.decorators.cache import never_cache
+
+from map_settings import map_settings
+
+reverse_lazy = lazy(reverse, str)
+
+# concatenate aliases to use in url regex
+MENU_MAPPER_REGEX = "(%s)" % ("|".join(map_settings.MENU_MAPPER))
+DEFAULT_MENU = map_settings.MENU_MAPPER.iterkeys().next()
 
 
-urlpatterns = patterns(
-    '',
-    url(r'^$', views.index,
+urlpatterns = patterns('',)
+
+# alias
+for m in map_settings.MENU_MAPPER:
+    urlpatterns += (
+        url(r'^%s/$' % m, views.index,
+            {'menu': m},
+            name="mapindex_%s" % m),
+        )
+
+urlpatterns += (
+
+    # core
+    url(r'^$', never_cache(
+        RedirectView.as_view(
+            url=reverse_lazy('mapindex_%s' % DEFAULT_MENU),
+            permanent=True,
+            query_string=True)),
         name="mapindex"),
 
-    url(r'^api/experimenters/(?P<experimenter_id>([-1]|[0-9])+)/$',
+    url(r'^api/experimenters/(?P<menu>%s)/'
+        r'(?P<experimenter_id>([-1]|[0-9])+)/$' % MENU_MAPPER_REGEX,
         views.api_experimenter_detail,
         name='mapannotations_api_experimenter'),
-    url(r'^api/mapannotations/$', views.api_mapannotation_list,
+    url(r'^api/mapannotations/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+        views.api_mapannotation_list,
         name='mapannotations_api_mapannotations'),
-    url(r'^api/plates/$', views.api_plate_list,
+    url(r'^api/plates/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+        views.api_plate_list,
         name='mapannotations_api_plates'),
-    url(r'^api/images/$', views.api_image_list,
+    url(r'^api/images/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+        views.api_image_list,
         name='mapannotations_api_images'),
 
-    url(r'^api/paths_to_object/$', views.api_paths_to_object,
+    url(r'^api/paths_to_object/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+        views.api_paths_to_object,
         name='mapannotations_api_paths_to_object'),
 
-    url(r'^metadata_details/(?:(?P<c_type>[a-zA-Z]+)/'
-        r'(?P<c_id>[a-zA-Z0-9]+)/)?(?:(?P<share_id>[0-9]+)/)?$',
+    # TODO: c_id takes namedValue.name as an attribute, make sure regex match
+    url(r'^metadata_details/(?P<c_type>%s)/'
+        r'(?P<c_id>(.*))/$' % MENU_MAPPER_REGEX,
         views.load_metadata_details,
         name="load_metadata_details"),
 
 
-    url(r'^autocomplete/$', views.mapannotations_autocomplete,
+    # autocomplete
+    url(r'^autocomplete/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+        views.mapannotations_autocomplete,
         name='mapannotations_autocomplete'),
 
 

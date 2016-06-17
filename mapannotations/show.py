@@ -25,11 +25,13 @@ import omero
 from copy import deepcopy
 
 from django.conf import settings
+from map_settings import map_settings
 from django.core.urlresolvers import reverse
 
 from omero.rtypes import rint
 
 import omeroweb.webclient.show as omeroweb_show
+import tree
 
 
 class MapShow(omeroweb_show.Show):
@@ -50,7 +52,7 @@ class MapShow(omeroweb_show.Show):
             return None
         first_obj = m.group('object_type')
         # if we're showing a tag, make sure we're on the tags page...
-        if first_obj in ["map"] and self.menu != "mapannotations":
+        if first_obj in ["map"] and self.menu not in map_settings.MENU_MAPPER:
             # redirect to usertags/?show=tag-123
             raise omeroweb_show.IncorrectMenuError(
                 reverse(viewname="mapindex") +
@@ -96,15 +98,21 @@ omeroweb_show.Show = MapShow
 
 
 def map_paths_to_object(conn, experimenter_id=None, group_id=None,
-                        page_size=None, map_value=None):
-    qs = conn.getQueryService()
-    if page_size is None:
-        page_size = settings.PAGE
+                        page_size=None, mapann_names=[], mapann_value=None):
+    params, where_clause = tree._set_parameters(
+        mapann_names=mapann_names, params=None,
+        experimenter_id=experimenter_id,
+        mapann_query=None, mapann_value=mapann_value,
+        page=0, limit=settings.PAGE)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
 
-    if group_id is not None:
-        service_opts.setOmeroGroup(group_id)
+    # Set the desired group context
+    if group_id is None:
+        group_id = -1
+    service_opts.setOmeroGroup(group_id)
+
+    qs = conn.getQueryService()
 
     # Hierarchies for this object
     paths = []
@@ -112,11 +120,7 @@ def map_paths_to_object(conn, experimenter_id=None, group_id=None,
     q = """
         select distinct(mv.value)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv
-        where mv.value = :mvalue
-    """
-
-    params = omero.sys.ParametersI()
-    params.addString("mvalue", map_value)
+        where %s """ % (" and ".join(where_clause))
 
     for e in qs.projection(q, params, service_opts):
         path = []

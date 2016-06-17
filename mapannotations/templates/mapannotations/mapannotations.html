@@ -35,18 +35,18 @@
     {{ block.super }}
 
     <script type="text/javascript">
-        WEBCLIENT.URLS.api_paths_to_object = "{% url 'mapannotations_api_paths_to_object' %}";
+        WEBCLIENT.URLS.api_paths_to_object = "{% url 'mapannotations_api_paths_to_object' menu %}";
 
-        WEBCLIENT.URLS.api_tags_and_tagged = "{% url 'mapannotations_api_mapannotations' %}";
+        WEBCLIENT.URLS.api_tags_and_tagged = "{% url 'mapannotations_api_mapannotations' menu %}";
         WEBCLIENT.URLS.tree_top_level = WEBCLIENT.URLS.api_tags_and_tagged;
-        WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_plates' %}";
-        WEBCLIENT.URLS.api_plate_acquisitions = "{% url 'mapannotations_api_images' %}";
+        WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_plates' menu %}";
+        WEBCLIENT.URLS.api_plate_acquisitions = "{% url 'mapannotations_api_images' menu %}";
 
         {% if active_user %}
         WEBCLIENT.active_user = {'id': {{ active_user.id }} };
-        WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' active_user.id %}";
+        WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' menu active_user.id %}";
         {% else %}
-        WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' -1 %}";
+        WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' menu -1 %}";
         {% endif %}
 
         var MAPANNOTATIONS = {}
@@ -64,7 +64,7 @@
             var oldData = $.jstree.reference('#dataTree').settings.core.data;
             var inst = $.jstree.reference('#dataTree');
             $('#autocomplete').devbridgeAutocomplete({
-                serviceUrl: '{% url 'mapannotations_autocomplete' %}',
+                serviceUrl: '{% url 'mapannotations_autocomplete' menu %}',
                 params: {
                     "experimenter_id": {% if active_user %}{{ active_user.id }}{% else %}-1{% endif %} ,
                     "group": {{ active_group.id }}
