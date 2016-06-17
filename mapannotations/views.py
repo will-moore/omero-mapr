@@ -429,6 +429,7 @@ def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
 
     context = dict()
     context['template'] = template
+    context['menu'] = c_type
     context['manager'] = {'obj_type': 'tag', 'obj_id': c_id}
 
     return context

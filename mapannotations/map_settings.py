@@ -7,18 +7,22 @@ class MapSettings(object):
         'gene': {
             'default': ('Gene Symbol', ),
             'all': ('Gene Symbol', 'Gene Identifier', ),
+            'label': ('Genes', ),
         },
         'phenotype': {
             'default': ('Phenotype', ),
             'all': ('Phenotype', ),
+            'label': ('Phenotype', ),
         },
         'compound': {
             'default': ('Compound Name', ),
             'all': ('Compound Name', ),
+            'label': ('Compound', ),
         },
         'sirna': {
             'default': ('siRNA Identifier', ),
             'all': ('siRNA Identifier', ),
+            'label': ('siRNA', ),
         },
     }
 
