@@ -42,7 +42,7 @@ urlpatterns = patterns('',)
 # alias
 for m in map_settings.MENU_MAPPER:
     urlpatterns += (
-        url(r'^%s/$' % m, views.index,
+        url(r'^(?i)%s/$' % m, views.index,
             {'menu': m},
             name="mapindex_%s" % m),
         )
