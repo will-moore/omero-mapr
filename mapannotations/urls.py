@@ -79,8 +79,7 @@ urlpatterns += (
     url(r'^metadata_details/(?P<c_type>%s)/'
         r'(?P<c_id>(.*))/$' % MENU_MAPPER_REGEX,
         views.load_metadata_details,
-        name="load_metadata_details"),
-
+        name="mapannotations_load_metadata_details"),
 
     # autocomplete
     url(r'^autocomplete/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,

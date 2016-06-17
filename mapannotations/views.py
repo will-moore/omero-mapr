@@ -431,7 +431,8 @@ def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
     context['template'] = template
     context['menu'] = c_type
     context['manager'] = {'obj_type': 'tag', 'obj_id': c_id}
-
+    context['webclient_path'] = request.build_absolute_uri(
+        reverse(viewname=('mapindex_%s' % c_type)))
     return context
 
 
