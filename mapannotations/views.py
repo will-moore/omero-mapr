@@ -33,8 +33,9 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseServerError, HttpResponseBadRequest, \
     HttpResponseRedirect
 
-import show
-import omeroweb.webclient.views
+from show import map_paths_to_object
+from show import MapShow as Show
+import tree as map_tree
 
 from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
@@ -42,14 +43,16 @@ from omeroweb.webclient.views import get_long_or_default, get_bool_or_default
 from omeroweb.webclient.views import switch_active_group
 from omeroweb.webclient.views import fake_experimenter
 from omeroweb.webclient.forms import GlobalSearchForm, ContainerForm
-from omeroweb.webclient.show import Show, IncorrectMenuError
-
-import tree
+from omeroweb.webclient.show import IncorrectMenuError
 
 from omeroweb.webclient import tree as webclient_tree
-from omeroweb.webclient import views as webclient_views
 from omeroweb.webclient.views import api_annotations \
     as webclient_api_annotations
+
+from omeroweb.webclient.views import api_paths_to_object \
+    as webclient_api_paths_to_object
+
+import omeroweb
 
 
 logger = logging.getLogger(__name__)
@@ -201,12 +204,12 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
         return HttpResponseBadRequest('Invalid parameter value')
 
     if mapann_value:
-        paths = show.map_paths_to_object(
+        paths = map_paths_to_object(
             conn,
             mapann_value=mapann_value,
             mapann_names=mapann_names)
         return HttpJsonResponse({'paths': paths})
-    return webclient_views.api_paths_to_object(request, **kwargs)
+    return webclient_api_paths_to_object(request, conn=conn, **kwargs)
 
 omeroweb.webclient.views.api_paths_to_object = api_paths_to_object
 
@@ -241,7 +244,7 @@ def api_experimenter_detail(request, menu, experimenter_id, conn=None,
             experimenter['extra'] = {'query': mapann_query,
                                      'menu': mapann_names}
 
-        experimenter['childCount'] = tree.count_mapannotations(
+        experimenter['childCount'] = map_tree.count_mapannotations(
             conn=conn,
             mapann_names=mapann_names,
             mapann_query=mapann_query,
@@ -288,7 +291,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
     try:
         # Get all genes from map annotation
         if mapann_value is not None:
-            screens = tree.marshal_screens(
+            screens = map_tree.marshal_screens(
                 conn=conn,
                 mapann_value=mapann_value,
                 mapann_names=mapann_names,
@@ -296,7 +299,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
                 page=page,
                 limit=limit)
         else:
-            mapannotations = tree.marshal_mapannotations(
+            mapannotations = map_tree.marshal_mapannotations(
                 conn=conn,
                 mapann_names=mapann_names,
                 mapann_query=mapann_query,
@@ -340,14 +343,15 @@ def api_plate_list(request, menu, conn=None, **kwargs):
     plates = []
     try:
         # Get the images
-        plates = tree.marshal_plates(conn=conn,
-                                     screen_id=screen_id,
-                                     mapann_names=mapann_names,
-                                     mapann_value=mapann_value,
-                                     group_id=group_id,
-                                     experimenter_id=experimenter_id,
-                                     page=page,
-                                     limit=limit)
+        plates = map_tree.marshal_plates(
+            conn=conn,
+            screen_id=screen_id,
+            mapann_names=mapann_names,
+            mapann_value=mapann_value,
+            group_id=group_id,
+            experimenter_id=experimenter_id,
+            page=page,
+            limit=limit)
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
     except ServerError as e:
@@ -393,17 +397,18 @@ def api_image_list(request, menu, conn=None, **kwargs):
     images = []
     try:
         # Get the images
-        images = tree.marshal_images(conn=conn,
-                                     plate_id=plate_id,
-                                     mapann_names=mapann_names,
-                                     mapann_value=mapann_value,
-                                     load_pixels=load_pixels,
-                                     group_id=group_id,
-                                     experimenter_id=experimenter_id,
-                                     page=page,
-                                     date=date,
-                                     thumb_version=thumb_version,
-                                     limit=limit)
+        images = map_tree.marshal_images(
+            conn=conn,
+            plate_id=plate_id,
+            mapann_names=mapann_names,
+            mapann_value=mapann_value,
+            load_pixels=load_pixels,
+            group_id=group_id,
+            experimenter_id=experimenter_id,
+            page=page,
+            date=date,
+            thumb_version=thumb_version,
+            limit=limit)
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
     except ServerError as e:
@@ -457,7 +462,7 @@ def api_annotations(request, conn=None, **kwargs):
         anns = []
         exps = []
         try:
-            anns, exps = tree.load_mapannotation(
+            anns, exps = map_tree.load_mapannotation(
                 conn=conn,
                 mapann_names=mapann_names,
                 mapann_value=mapann_value)
@@ -502,7 +507,7 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
 
     autocomplete = []
     try:
-        autocomplete = tree.marshal_autocomplete(
+        autocomplete = map_tree.marshal_autocomplete(
             conn=conn,
             query=query,
             mapann_names=mapann_names,

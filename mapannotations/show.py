@@ -31,7 +31,7 @@ from django.core.urlresolvers import reverse
 from omero.rtypes import rint
 
 import omeroweb.webclient.show as omeroweb_show
-import tree
+import tree as map_tree
 
 
 class MapShow(omeroweb_show.Show):
@@ -99,7 +99,7 @@ omeroweb_show.Show = MapShow
 
 def map_paths_to_object(conn, experimenter_id=None, group_id=None,
                         page_size=None, mapann_names=[], mapann_value=None):
-    params, where_clause = tree._set_parameters(
+    params, where_clause = map_tree._set_parameters(
         mapann_names=mapann_names, params=None,
         experimenter_id=experimenter_id,
         mapann_query=None, mapann_value=mapann_value,
