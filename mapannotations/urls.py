@@ -81,10 +81,13 @@ urlpatterns += (
         views.load_metadata_details,
         name="mapannotations_load_metadata_details"),
 
+    url(r'^api/annotations/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+        views.api_annotations,
+        name='mapannotations_api_annotations'),
+
     # autocomplete
     url(r'^autocomplete/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
         views.mapannotations_autocomplete,
         name='mapannotations_autocomplete'),
-
 
 )

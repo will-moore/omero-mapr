@@ -35,6 +35,7 @@
         
         $(document).ready(function()
             {
+
                 // This is called once the html for "General" tab of right panel has loaded...
 
                 // Delegate to sub-views to handle content of each collapsible panel
@@ -42,7 +43,8 @@
                 var annPaneData = {
                     'selected': selectedObjs,
                     // canAnnotate used by map annotations and ratings panes
-                    'canAnnotate': {% if manager.canAnnotate %}true{% else %}false{% endif %}
+                    'canAnnotate': {% if manager.canAnnotate %}true{% else %}false{% endif %},
+                    'url': "{{ mapindex }}" + "api/annotations/" + "{{ menu }}/", //lnk + "api/annotations/";
                 }
 
                 var mapAnnsPane = new MapAnnsPane($("#mapAnnsPane"), annPaneData);
@@ -59,7 +61,7 @@
                     $("#link_info_popup").show();
                     // var lnk = "{{ webclient_path }}?show=map.value-" +encodeURI("{{ manager.obj_id }}");
                     var lnk = location.href.substring(0,location.href.length - location.search.length);
-                    if (lnk.charAt( lnk.length-1 ) == "#") { lnk = lnk.substring(0, lnk.length-1)}
+                    if (lnk.charAt( lnk.length-1 ) == "#") { lnk = lnk.substring(0, lnk.length-1) };
                     lnk += "?show=map.value-" + encodeURI("{{ manager.obj_id }}");
                     var link_input = $("#link_info_popup input");
                     link_input.val(lnk);

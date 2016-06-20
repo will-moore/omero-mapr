@@ -46,8 +46,6 @@ from omeroweb.webclient.forms import GlobalSearchForm, ContainerForm
 from omeroweb.webclient.show import IncorrectMenuError
 
 from omeroweb.webclient import tree as webclient_tree
-from omeroweb.webclient.views import api_annotations \
-    as webclient_api_annotations
 
 from omeroweb.webclient.views import api_paths_to_object \
     as webclient_api_paths_to_object
@@ -436,48 +434,41 @@ def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
     context['template'] = template
     context['menu'] = c_type
     context['manager'] = {'obj_type': 'tag', 'obj_id': c_id}
-    context['webclient_path'] = request.build_absolute_uri(
-        reverse(viewname=('mapindex_%s' % c_type)))
+    context['mapindex'] = reverse(viewname=('mapindex'))
+    context['mapindex_path'] = reverse(viewname=('mapindex_%s' % c_type))
     return context
 
 
 @login_required()
-def api_annotations(request, conn=None, **kwargs):
+def api_annotations(request, menu, conn=None, **kwargs):
 
     try:
-        keys = map_settings.DEFAULT_MAPPER['default']['all']
+        keys = map_settings.MENU_MAPPER[menu]['default']
     except:
         pass
 
     # Get parameters
     try:
-        mapann_type = get_str_or_default(request, 'type', None)
         mapann_value = get_str_or_default(request, 'map', None)
         mapann_names = get_list_or_default(request, 'name', keys)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
-    # better strategy for reconfizing map
-    if mapann_type in ('map',) and mapann_value is not None:
-        anns = []
-        exps = []
-        try:
-            anns, exps = map_tree.load_mapannotation(
-                conn=conn,
-                mapann_names=mapann_names,
-                mapann_value=mapann_value)
-        except ApiUsageException as e:
-            return HttpResponseBadRequest(e.serverStackTrace)
-        except ServerError as e:
-            return HttpResponseServerError(e.serverStackTrace)
-        except IceException as e:
-            return HttpResponseServerError(e.message)
+    anns = []
+    exps = []
+    try:
+        anns, exps = map_tree.load_mapannotation(
+            conn=conn,
+            mapann_names=mapann_names,
+            mapann_value=mapann_value)
+    except ApiUsageException as e:
+        return HttpResponseBadRequest(e.serverStackTrace)
+    except ServerError as e:
+        return HttpResponseServerError(e.serverStackTrace)
+    except IceException as e:
+        return HttpResponseServerError(e.message)
 
-        return HttpJsonResponse({'annotations': anns, 'experimenters': exps})
-    else:
-        return webclient_api_annotations(request, conn=conn, **kwargs)
-
-omeroweb.webclient.views.api_annotations = api_annotations
+    return HttpJsonResponse({'annotations': anns, 'experimenters': exps})
 
 
 @login_required()
