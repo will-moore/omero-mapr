@@ -475,7 +475,7 @@ def api_annotations(request, menu, conn=None, **kwargs):
 def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
 
     try:
-        keys = map_settings.DEFAULT_MAPPER['default']['all']
+        keys = map_settings.MENU_MAPPER[menu]['default']
     except:
         pass
 
