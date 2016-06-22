@@ -61,7 +61,7 @@ urlpatterns += (
         r'(?P<experimenter_id>([-1]|[0-9])+)/$' % MENU_MAPPER_REGEX,
         views.api_experimenter_detail,
         name='mapannotations_api_experimenter'),
-    url(r'^api/mapannotations/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+    url(r'^api/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
         views.api_mapannotation_list,
         name='mapannotations_api_mapannotations'),
     url(r'^api/plates/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
