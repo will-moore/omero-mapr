@@ -74,7 +74,7 @@ $(function () {
         'icon' : WEBCLIENT.URLS.static_webclient + 'image/icon_user.png',
         'valid_children': ['tag']
     };
-    $.jstree.reference('#dataTree').settings.types['tag']['icon'] = MAPANNOTATIONS.URLS.static_webclient + 'image/gene_icon36x36.png';
+    $.jstree.reference('#dataTree').settings.types['tag']['icon'] = MAPANNOTATIONS.URLS.static_webclient + 'image/' + MAPANNOTATIONS.MENU.label + '_icon_16x16.png';
 
     $.jstree.reference('#dataTree').settings.types['plate'] = {
         'icon': WEBCLIENT.URLS.static_webclient + 'image/folder_plate16.png',
