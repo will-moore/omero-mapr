@@ -41,7 +41,6 @@ from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
 from omeroweb.webclient.views import get_long_or_default, get_bool_or_default
 from omeroweb.webclient.views import switch_active_group
-from omeroweb.webclient.views import fake_experimenter
 from omeroweb.webclient.forms import GlobalSearchForm, ContainerForm
 from omeroweb.webclient.show import IncorrectMenuError
 
@@ -54,6 +53,19 @@ import omeroweb
 
 
 logger = logging.getLogger(__name__)
+
+
+def fake_experimenter(label):
+    """
+    Marshal faked experimenter when id is -1
+    Load omero.client.ui.menu.dropdown.everyone.label as username
+    """
+    return {
+        'id': -1,
+        'omeName': label.capitalize(),
+        'firstName': label.capitalize(),
+        'lastName': ''
+    }
 
 
 def get_str_or_default(request, name, default):
@@ -201,11 +213,32 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
-    if mapann_value:
+    if menu in map_settings.MENU_MAPPER:
+
+        try:
+            experimenter_id = get_long_or_default(request, 'experimenter',
+                                                  None)
+            # project_id = get_long_or_default(request, 'project', None)
+            # dataset_id = get_long_or_default(request, 'dataset', None)
+            image_id = get_long_or_default(request, 'image', None)
+            screen_id = get_long_or_default(request, 'screen', None)
+            plate_id = get_long_or_default(request, 'plate', None)
+            acquisition_id = get_long_or_default(request, 'run', None)
+            # acquisition will override 'run' if both are specified as they are
+            # the same thing
+            acquisition_id = get_long_or_default(request, 'acquisition',
+                                                 acquisition_id)
+            # well_id = request.GET.get('well', None)
+            group_id = get_long_or_default(request, 'group', None)
+        except ValueError:
+            return HttpResponseBadRequest('Invalid parameter value')
+
         paths = map_paths_to_object(
-            conn,
-            mapann_value=mapann_value,
-            mapann_names=mapann_names)
+            conn=conn,
+            mapann_value=mapann_value, mapann_names=mapann_names,
+            screen_id=screen_id, plate_id=plate_id, image_id=image_id,
+            experimenter_id=experimenter_id, group_id=group_id)
+
         return HttpJsonResponse({'paths': paths})
     return webclient_api_paths_to_object(request, conn=conn, **kwargs)
 
@@ -234,7 +267,7 @@ def api_experimenter_detail(request, menu, experimenter_id, conn=None,
                 conn=conn, experimenter_id=experimenter_id)
         else:
             # fake experimenter -1
-            experimenter = fake_experimenter(request, default_name="Genes")
+            experimenter = fake_experimenter(menu)
 
         mapann_names = get_list_or_default(request, 'name', keys)
         mapann_query = get_str_or_default(request, 'query', None)
