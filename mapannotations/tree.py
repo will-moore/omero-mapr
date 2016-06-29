@@ -161,7 +161,7 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
     # a as tag_details_permissions,
 
     q = """
-        select new map(mv.value as value,
+        select new map( mv.value as value,
                a.ns as ns,
                count(distinct s.id) as childCount,
                count(distinct i.id) as imgCount)
@@ -527,10 +527,9 @@ def load_mapannotation(conn, mapann_names=[], mapann_value=None,
     qs = conn.getQueryService()
 
     q = """
-        select ial from ImageAnnotationLink ial
+        select distinct ial from ImageAnnotationLink ial
             join fetch ial.details.creationEvent
             join fetch ial.details.owner
-            join fetch ial.parent as pa
             join fetch ial.child a
             where a.id in (
                 select a
