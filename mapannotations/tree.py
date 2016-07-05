@@ -32,7 +32,6 @@ from omeroweb.webclient.tree import _marshal_screen
 from omeroweb.webclient.tree import _marshal_plate
 from omeroweb.webclient.tree import _marshal_image
 from omeroweb.webclient.tree import _marshal_annotation
-from omeroweb.webclient.tree import _marshal_exp_obj
 
 
 def _set_parameters(mapann_names=[], params=None,
@@ -503,19 +502,10 @@ def load_mapannotation(conn, mapann_names=[], mapann_value=None,
     annotations = []
     experimenters = {}
     params, where_clause = _set_parameters(
-        mapann_names=None, params=None,
+        mapann_names=mapann_names, params=None,
         experimenter_id=experimenter_id,
-        mapann_value=None, mapann_query=None,
+        mapann_value=mapann_value, mapann_query=None,
         page=page, limit=limit)
-
-    if mapann_names is not None and len(mapann_names) > 0:
-        manlist = [rstring(str(n)) for n in mapann_names]
-        params.add("filter", rlist(manlist))
-        where_clause.append('mv.name in (:filter)')
-
-    if mapann_value:
-        params.addString("value", mapann_value)
-        where_clause.append('mv.value  = :value')
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
 
@@ -527,28 +517,15 @@ def load_mapannotation(conn, mapann_names=[], mapann_value=None,
     qs = conn.getQueryService()
 
     q = """
-        select distinct ial from ImageAnnotationLink ial
-            join fetch ial.details.creationEvent
-            join fetch ial.details.owner
-            join fetch ial.child a
-            where a.id in (
-                select a
-                from Annotation a
-                join a.mapValue mv where %s)
+        select distinct a
+            from Annotation a
+            join fetch a.details.creationEvent
+            join a.mapValue mv where %s
         """ % (" and ".join(where_clause))
 
-    for link in qs.findAllByQuery(q, params, service_opts):
-            ann = link.child
-            d = _marshal_annotation(conn, ann, link)
-            annotations.append(d)
-            exp = _marshal_exp_obj(link.details.owner)
-            experimenters[exp['id']] = exp
-            exp = _marshal_exp_obj(ann.details.owner)
-            experimenters[exp['id']] = exp
-
-    experimenters = experimenters.values()
-    # sort by id mostly for testing
-    experimenters.sort(key=lambda x: x['id'])
+    for ann in qs.findAllByQuery(q, params, service_opts):
+        d = _marshal_annotation(conn, ann, None)
+        annotations.append(d)
 
     return annotations, experimenters
 
