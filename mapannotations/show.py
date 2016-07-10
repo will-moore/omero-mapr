@@ -37,10 +37,17 @@ import tree as map_tree
 class MapShow(omeroweb_show.Show):
 
     omeroweb_show.Show.TOP_LEVEL_PREFIXES += ('map',)
-    omeroweb_show.Show.SUPPORTED_OBJECT_TYPES += ('map',)
 
-    def __init__(self, conn, request, menu):
+    # supported objects
+    omeroweb_show.Show.SUPPORTED_OBJECT_TYPES += ('map',)
+    omeroweb_show.Show.SUPPORTED_OBJECT_TYPES += \
+        tuple(map_settings.MENU_MAPPER)
+
+    def __init__(self, conn, request, menu, value=None):
         super(MapShow, self).__init__(conn, request, menu)
+        if value and len(self._initially_select) < 1:
+            path = "map.value-%s" % value
+            self._add_if_supported(path)
 
     def _find_first_selected(self):
         if len(self._initially_select) == 0:
@@ -51,12 +58,14 @@ class MapShow(omeroweb_show.Show):
         if m is None:
             return None
         first_obj = m.group('object_type')
-        # if we're showing a tag, make sure we're on the tags page...
-        if first_obj in ["map"] and self.menu not in map_settings.MENU_MAPPER:
-            # redirect to usertags/?show=tag-123
+        # if we are showing any of map.value alias make sure
+        # we are not in webclient
+        if (first_obj in (['map']+map_settings.MENU_MAPPER.keys()) and
+                self.menu not in map_settings.MENU_MAPPER):
+            # redirect to menu/value/
             raise omeroweb_show.IncorrectMenuError(
-                reverse(viewname="mapindex") +
-                "?show=" + self._initially_select[0].replace(".id", "")
+                reverse(viewname="mapindex_%s" % first_obj,
+                        args=[m.group('value')])
             )
         # if in mapannotations app hierachy is different
         if self.menu in map_settings.MENU_MAPPER:
@@ -77,23 +86,11 @@ class MapShow(omeroweb_show.Show):
                 # Need to see if first item has parents
                 if first_selected is not None:
                     for p in first_selected.getAncestry():
-                        # If 'Well' is a parent, we have stared with Image.
-                        # We want to start again at 'Well' to
-                        # _load_first_selected with well, so we get
-                        # 'acquisition' in ancestors.
-                        if p.OMERO_CLASS == "Well":
-                            return self._find_first_selected()
-                        if p.OMERO_CLASS == "Acquisition":
-                            return self._find_first_selected()
-                        if first_obj == "tag":
-                            # Parents of tags must be tagset (no OMERO_CLASS)
-                            self._initially_open.insert(
-                                0, "tagset-%s" % p.getId())
-                        else:
-                            self._initially_open.insert(
-                                0,
-                                "%s-%s" % (p.OMERO_CLASS.lower(), p.getId())
-                            )
+                        # # we display images directly
+                        self._initially_open.insert(
+                            0,
+                            "%s-%s" % (p.OMERO_CLASS.lower(), p.getId())
+                        )
                         self._initially_open_owner = p.details.owner.id.val
                     m = self.PATH_REGEX.match(self._initially_open[0])
                     if m.group('object_type') == 'image':
@@ -132,13 +129,13 @@ class MapShow(omeroweb_show.Show):
             qs = self.conn.getQueryService()
             m = qs.findByQuery(q, params, service_opts)
             # hardcode to always tell to load all users
-            m.details.owner = omero.model.ExperimenterI(-1L, False)
             return omero.gateway.MapAnnotationWrapper(self.conn, m)
 
 omeroweb_show.Show = MapShow
 
 
-def map_paths_to_object(conn, mapann_names=[], mapann_value=None,
+def map_paths_to_object(conn, mapann_query=None,
+                        mapann_names=[], mapann_value=None,
                         screen_id=None, plate_id=None, image_id=None,
                         experimenter_id=None, group_id=None, page_size=None):
 
@@ -146,7 +143,7 @@ def map_paths_to_object(conn, mapann_names=[], mapann_value=None,
     params, where_clause = map_tree._set_parameters(
         mapann_names=mapann_names, params=None,
         experimenter_id=experimenter_id,
-        mapann_query=None, mapann_value=mapann_value,
+        mapann_query=mapann_query, mapann_value=mapann_value,
         page=0, limit=settings.PAGE)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
@@ -157,6 +154,7 @@ def map_paths_to_object(conn, mapann_names=[], mapann_value=None,
     q = '''
         select
             distinct new map (mv.value as map_value,
+            i.details.owner.id as owner,
         '''
 
     q_select = []
@@ -176,6 +174,7 @@ def map_paths_to_object(conn, mapann_names=[], mapann_value=None,
     q += ''' count(i.id) as imgCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv
             join ial.parent i
+            left outer join i.details.owner
             join i.wellSamples ws
             join ws.well w
             join w.plate p
@@ -196,7 +195,7 @@ def map_paths_to_object(conn, mapann_names=[], mapann_value=None,
     if len(where_clause) > 0:
         q += ' and '.join(where_clause)
 
-    q += " group by mv.value "
+    q += " group by mv.value, i.details.owner.id "
     q_groupby = []
     if screen_id:
         q_groupby.append(" sl.parent.id ")
@@ -218,9 +217,13 @@ def map_paths_to_object(conn, mapann_names=[], mapann_value=None,
         path = []
 
         # Experimenter is always found
+        try:
+            experimenter_id = e[0]["owner"]
+        except:
+            experimenter_id = -1
         path.append({
             'type': 'experimenter',
-            'id': -1
+            'id': experimenter_id
         })
 
         try:

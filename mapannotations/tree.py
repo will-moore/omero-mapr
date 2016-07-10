@@ -111,7 +111,18 @@ def count_mapannotations(conn,
         where %s
         """ % (" and ".join(where_clause))
 
-    return unwrap(qs.projection(q, params, service_opts))[0][0]
+    counter = unwrap(qs.projection(q, params, service_opts))[0][0]
+
+    q = """
+        select count( distinct mv.value) as childCount
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+             join ial.parent i join i.datasetLinks dsl
+             join dsl.parent ds join ds.projectLinks pl join pl.parent p
+        where %s
+        """ % (" and ".join(where_clause))
+
+    counter += unwrap(qs.projection(q, params, service_opts))[0][0]
+    return counter
 
 
 def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
@@ -185,6 +196,34 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
         mt = _marshal_tag(conn, e[0:7])
         mt.update({'extra': {'counter': c}})
         mapannotations.append(mt)
+
+    q = """
+        select new map( mv.value as value,
+               a.ns as ns,
+               count(distinct p.id) as childCount,
+               count(distinct i.id) as imgCount)
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+             join ial.parent i join i.datasetLinks dsl
+             join dsl.parent ds join ds.projectLinks pl join pl.parent p
+        where %s
+        group by mv.value, a.ns
+        order by count(i.id) DESC
+        """ % (" and ".join(where_clause))
+
+    for e in qs.projection(q, params, service_opts):
+        e = unwrap(e)
+        c = e[0]["imgCount"]
+        e = [e[0]["value"],
+             "%s (%d)" % (e[0]["value"], e[0]["imgCount"]),
+             None,
+             experimenter_id,  # e[0]["ownerId"],
+             {},  # e[0]["tag_details_permissions"],
+             e[0]["ns"],
+             e[0]["childCount"]]
+        mt = _marshal_tag(conn, e[0:7])
+        mt.update({'extra': {'counter': c}})
+        mapannotations.append(mt)
+
     return mapannotations
 
 
@@ -257,6 +296,151 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
     return screens
 
 
+def marshal_projects(conn, mapann_names=[], mapann_value=None,
+                     group_id=-1, experimenter_id=-1,
+                     page=1, limit=settings.PAGE):
+
+    ''' Marshals projects
+
+        @param conn OMERO gateway.
+        @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_names The Map annotation names to filter by.
+        @type mapann_names L{string}
+        @param mapann_value The Map annotation value to filter by.
+        @type mapann_value L{string}
+        @param group_id The Group ID to filter by or -1 for all groups,
+        defaults to -1
+        @type group_id L{long}
+        @param experimenter_id The Experimenter (user) ID to filter by
+        or -1 for all experimenters
+        @type experimenter_id L{long}
+        @param page Page number of results to get. `None` or 0 for no paging
+        defaults to 1
+        @type page L{long}
+        @param limit The limit of results per page to get
+        defaults to the value set in settings.PAGE
+        @type page L{long}
+    '''
+    projects = []
+    params, where_clause = _set_parameters(
+        mapann_names=mapann_names, params=None,
+        experimenter_id=experimenter_id,
+        mapann_query=None, mapann_value=mapann_value,
+        page=page, limit=limit)
+
+    service_opts = deepcopy(conn.SERVICE_OPTS)
+
+    # Set the desired group context
+    if group_id is None:
+        group_id = -1
+    service_opts.setOmeroGroup(group_id)
+
+    qs = conn.getQueryService()
+    q = """
+        select new map(project.id as id,
+               project.name as name,
+               project.details.owner.id as ownerId,
+               project as project_details_permissions,
+               count(distinct dataset.id) as childCount,
+               count(distinct i.id) as imgCount)
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+             join ial.parent i join i.datasetLinks dil
+             join dil.parent dataset join dataset.projectLinks pl
+             join pl.parent project
+        where %s
+        group by project.id, project.name
+        order by lower(project.name), project.id
+        """ % (" and ".join(where_clause))
+
+    for e in qs.projection(q, params, service_opts):
+        e = unwrap(e)
+        e = [e[0]["id"],
+             "%s (%d)" % (e[0]["name"], e[0]["imgCount"]),
+             e[0]["ownerId"],
+             e[0]["project_details_permissions"],
+             e[0]["childCount"]]
+        ms = _marshal_screen(conn, e[0:5])
+        ms.update({'extra': {'value': mapann_value}})
+        projects.append(ms)
+
+    return projects
+
+
+def marshal_datasets(conn, project_id,
+                     mapann_value, mapann_names=[],
+                     group_id=-1, experimenter_id=-1,
+                     page=1, limit=settings.PAGE):
+
+    ''' Marshals plates
+
+        @param conn OMERO gateway.
+        @type conn L{omero.gateway.BlitzGateway}
+        @param project_id The Project ID to filter by.
+        @type project_id L{long}
+        @param mapann_value The Map annotation value to filter by.
+        @type mapann_value L{string}
+        @param mapann_names The Map annotation names to filter by.
+        @type mapann_names L{string}
+        @param group_id The Group ID to filter by or -1 for all groups,
+        defaults to -1
+        @type group_id L{long}
+        @param experimenter_id The Experimenter (user) ID to filter by
+        or -1 for all experimenters
+        @type experimenter_id L{long}
+        @param page Page number of results to get. `None` or 0 for no paging
+        defaults to 1
+        @type page L{long}
+        @param limit The limit of results per page to get
+        defaults to the value set in settings.PAGE
+        @type page L{long}
+    '''
+    datasets = []
+    params, where_clause = _set_parameters(
+        mapann_names=mapann_names, params=None,
+        experimenter_id=experimenter_id,
+        mapann_query=None, mapann_value=mapann_value,
+        page=page, limit=limit)
+
+    params.addLong("pid", project_id)
+    where_clause.append('project.id = :pid')
+
+    service_opts = deepcopy(conn.SERVICE_OPTS)
+
+    # Set the desired group context
+    if group_id is None:
+        group_id = -1
+    service_opts.setOmeroGroup(group_id)
+
+    qs = conn.getQueryService()
+    q = """
+        select new map(dataset.id as id,
+               dataset.name as name,
+               dataset.details.owner.id as ownerId,
+               dataset as dataset_details_permissions,
+               count(distinct i.id) as childCount)
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+             join ial.parent i join i.datasetLinks dil
+             join dil.parent dataset join dataset.projectLinks pl
+             join pl.parent project
+        where %s
+        group by dataset.id, dataset.name
+        order by lower(dataset.name), dataset.id
+        """ % (" and ".join(where_clause))
+
+    for e in qs.projection(q, params, service_opts):
+        e = unwrap(e)
+        e = [e[0]["id"],
+             e[0]["name"],
+             e[0]["ownerId"],
+             e[0]["dataset_details_permissions"],
+             e[0]["childCount"]]
+        mp = _marshal_plate(conn, e[0:5])
+        mp.update({'extra': {'value': mapann_value, 'node': 'dataset'}})
+        datasets.append(mp)
+
+    return datasets
+
+
 def marshal_plates(conn, screen_id,
                    mapann_value, mapann_names=[],
                    group_id=-1, experimenter_id=-1,
@@ -311,7 +495,8 @@ def marshal_plates(conn, screen_id,
                count(distinct i.id) as childCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv
              join ial.parent i join i.wellSamples ws join ws.well w
-             join w.plate plate join plate.screenLinks sl join sl.parent screen
+             join w.plate plate join plate.screenLinks sl join
+             sl.parent screen
         where %s
         group by plate.id, plate.name
         order by lower(plate.name), plate.id
@@ -325,13 +510,13 @@ def marshal_plates(conn, screen_id,
              e[0]["plate_details_permissions"],
              e[0]["childCount"]]
         mp = _marshal_plate(conn, e[0:5])
-        mp.update({'extra': {'value': mapann_value}})
+        mp.update({'extra': {'value': mapann_value, 'node': 'plate'}})
         plates.append(mp)
 
     return plates
 
 
-def marshal_images(conn, plate_id, mapann_value,
+def marshal_images(conn, parent, parent_id, mapann_value,
                    mapann_names=[], load_pixels=False,
                    group_id=-1, experimenter_id=-1,
                    page=1, date=False, thumb_version=False,
@@ -378,9 +563,6 @@ def marshal_images(conn, plate_id, mapann_value,
 
     from_join_clauses = []
 
-    params.addLong("pid", plate_id)
-    where_clause.append('plate.id = :pid')
-
     qs = conn.getQueryService()
 
     extraValues = ""
@@ -405,25 +587,41 @@ def marshal_images(conn, plate_id, mapann_value,
                image as image_details_permissions,
                image.fileset.id as filesetId %s)
         from Image image
-        where image.id in (
         """ % extraValues
-
-    from_join_clauses.append("""
-        ImageAnnotationLink ial
-        join ial.child a
-        join a.mapValue mv
-        join ial.parent image
-        join image.wellSamples ws join ws.well well
-        join well.plate plate
-    """)
 
     if load_pixels:
         # We use 'left outer join', since we still want images if no pixels
-        from_join_clauses.append('left outer join image.pixels pix')
+        q += ' left outer join image.pixels pix '
+
+    q += """
+        where image.id in (
+        """
+
+    if parent == 'plate':
+        from_join_clauses.append("""
+            ImageAnnotationLink ial
+            join ial.child a
+            join a.mapValue mv
+            join ial.parent image
+            join image.wellSamples ws join ws.well well
+            join well.plate plate
+        """)
+        params.addLong("pid", parent_id)
+        where_clause.append('plate.id = :pid')
+    if parent == 'dataset':
+        from_join_clauses.append("""
+            ImageAnnotationLink ial
+            join ial.child a
+            join a.mapValue mv
+            join ial.parent image
+            join image.datasetLinks dil join dil.parent dataset
+        """)
+        params.addLong("did", parent_id)
+        where_clause.append('dataset.id = :did')
 
     q += """
         %s %s
-        order by lower(image.name), well.id )
+        order by lower(image.name))
         """ % (' select image.id from ' + ' '.join(from_join_clauses),
                build_clause(where_clause, 'where', 'and'))
 

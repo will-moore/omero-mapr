@@ -27,65 +27,58 @@
 
 {% block link %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static "mapannotations/css/jquery.autocomplete-1.2.24.css" %}" type="text/css" />
-    <link rel="stylesheet" href="{% static "mapannotations/css/mapannotations.css" %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'mapannotations/css/mapannotations.css'|add:url_suffix %}" type="text/css" />
 {% endblock %}
 
 {% block script %}
+    
     {{ block.super }}
 
     <script type="text/javascript">
-        WEBCLIENT.URLS.api_paths_to_object = "{% url 'mapannotations_api_paths_to_object' menu %}";
+
+        {% if map_value %}
+            WEBCLIENT.URLS.api_experimenters = "{% url 'mapannotations_api_experimenters' menu map_value %}";
+        {% else %}
+            WEBCLIENT.URLS.api_experimenters = "{% url 'mapannotations_api_experimenters' menu %}";
+        {% endif %}
 
         WEBCLIENT.URLS.api_tags_and_tagged = "{% url 'mapannotations_api_mapannotations' menu %}";
-        WEBCLIENT.URLS.tree_top_level = WEBCLIENT.URLS.api_tags_and_tagged;
-        WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_plates' menu %}";
-        WEBCLIENT.URLS.api_plate_acquisitions = "{% url 'mapannotations_api_images' menu %}";
 
-        {% if active_user %}
-        WEBCLIENT.active_user = {'id': {{ active_user.id }} };
-        WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' menu active_user.id %}";
+        WEBCLIENT.URLS.tree_top_level = WEBCLIENT.URLS.api_tags_and_tagged;
+        
+        WEBCLIENT.URLS.api_datasets = "{% url 'mapannotations_api_datasets' menu %}";
+        WEBCLIENT.URLS.api_images = "{% url 'mapannotations_api_images' menu %}";
+        WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_plates' menu %}";
+        WEBCLIENT.URLS.api_plate_acquisitions = WEBCLIENT.URLS.api_images;
+
+        {% if map_value %}
+            WEBCLIENT.URLS.api_paths_to_object = "{% url 'mapannotations_api_paths_to_object' menu map_value %}";
         {% else %}
-        WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenter' menu -1 %}";
+            WEBCLIENT.URLS.api_paths_to_object = "{% url 'mapannotations_api_paths_to_object' menu %}";
         {% endif %}
 
         var MAPANNOTATIONS = {}
         MAPANNOTATIONS.URLS = {'static_webclient': "{% static 'mapannotations' %}/"};
+        MAPANNOTATIONS.URLS.autocomplete = "{% url 'mapannotations_autocomplete' menu %}";
+        MAPANNOTATIONS.URLS.autocomplete_default = "{% url 'mapannotations_api_experimenters' menu %}";
 
         MAPANNOTATIONS.MENU = {'label': "{{ menu }}"};
+        MAPANNOTATIONS.VALUE = "{{ value }}";
 
     </script>
 
-    <script src="{% static 'mapannotations/javascript/mapannotations.tree.js'|add:url_suffix %}"></script>
+    <script src="{% static 'mapannotations/javascript/mapannotations.js'|add:url_suffix %}"></script>
+    <script src="{% static 'mapannotations/javascript/autocomplete.js'|add:url_suffix %}"></script>
+    
+    <!-- include code to handle primary 'thumbs' middle plugin -->
+    <script src="{% static 'mapannotations/javascript/center_plugin.thumbs.js'|add:url_suffix %}"></script>
 
-    <script src="{% static 'mapannotations/javascript/jquery.autocomplete-1.2.24.js'%}"></script>
 
-    <script type="text/javascript">
-
-        $(function () {
-            var oldData = $.jstree.reference('#dataTree').settings.core.data;
-            var inst = $.jstree.reference('#dataTree');
-            $('#autocomplete').devbridgeAutocomplete({
-                serviceUrl: '{% url 'mapannotations_autocomplete' menu %}',
-                params: {
-                    "experimenter_id": {% if active_user %}{{ active_user.id }}{% else %}-1{% endif %} ,
-                    "group": {{ active_group.id }}
-                },
-                onSelect: function (suggestion) {
-                    $.jstree.reference('#dataTree').settings.core.data = function(node, callback, payload) {
-                        oldData.apply(inst, [node, callback, {'query': suggestion.value}]);
-                    };
-                    $.jstree.reference('#dataTree').refresh();
-                }
-            });
-
-        });
-    </script>
 {% endblock %}
 
 
 {% block left %}
-
+    
     <div id="left_panel_tabs" class="absolute_fill ui-tabs">
 
         <!-- toolbar above tree -->
@@ -98,7 +91,7 @@
 
                 <li class="seperator"></li>
 
-                <li><input type="text" name="mapannotation" id="autocomplete"/></li>
+                <li><input type="text" name="mapannotation" id="mapannotation" title="Type {{ menu }} name."/></li>
 
             </ul>
 

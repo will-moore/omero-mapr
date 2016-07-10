@@ -42,7 +42,7 @@ urlpatterns = patterns('',)
 # alias
 for m in map_settings.MENU_MAPPER:
     urlpatterns += (
-        url(r'^(?i)%s/$' % m, views.index,
+        url(r'^(?i)%s/(?:(?P<value>(.*))/)?$' % m, views.index,
             {'menu': m},
             name="mapindex_%s" % m),
         )
@@ -57,21 +57,25 @@ urlpatterns += (
             query_string=True)),
         name="mapindex"),
 
-    url(r'^api/experimenters/(?P<menu>%s)/'
-        r'(?P<experimenter_id>([-1]|[0-9])+)/$' % MENU_MAPPER_REGEX,
-        views.api_experimenter_detail,
-        name='mapannotations_api_experimenter'),
+    url(r'^api/(?P<menu>%s)/(?:(?P<value>(.*))/)?'
+        r'experimenters/$' % MENU_MAPPER_REGEX,
+        views.api_experimenter_list,
+        name='mapannotations_api_experimenters'),
     url(r'^api/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
         views.api_mapannotation_list,
         name='mapannotations_api_mapannotations'),
-    url(r'^api/plates/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+    url(r'^api/(?P<menu>%s)/datasets/$' % MENU_MAPPER_REGEX,
+        views.api_datasets_list,
+        name='mapannotations_api_datasets'),
+    url(r'^api/(?P<menu>%s)/plates/$' % MENU_MAPPER_REGEX,
         views.api_plate_list,
         name='mapannotations_api_plates'),
-    url(r'^api/images/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+    url(r'^api/(?P<menu>%s)/images/$' % MENU_MAPPER_REGEX,
         views.api_image_list,
         name='mapannotations_api_images'),
 
-    url(r'^api/paths_to_object/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+    url(r'^api/(?P<menu>%s)/(?:(?P<value>(.*))/)?'
+        r'paths_to_object/$' % MENU_MAPPER_REGEX,
         views.api_paths_to_object,
         name='mapannotations_api_paths_to_object'),
 
@@ -81,7 +85,7 @@ urlpatterns += (
         views.load_metadata_details,
         name="mapannotations_load_metadata_details"),
 
-    url(r'^api/annotations/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
+    url(r'^api/(?P<menu>%s)/annotations/$' % MENU_MAPPER_REGEX,
         views.api_annotations,
         name='mapannotations_api_annotations'),
 

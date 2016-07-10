@@ -25,7 +25,6 @@
 
 $(function () {
 
-    // TODO: make a function and add button
     $.jstree.reference('#dataTree').settings.sort = function(nodeId1, nodeId2) {
         var inst = this;
         var node1 = inst.get_node(nodeId1);
@@ -80,4 +79,5 @@ $(function () {
         'icon': WEBCLIENT.URLS.static_webclient + 'image/folder_plate16.png',
         'valid_children': ['image']
     };
+
 });

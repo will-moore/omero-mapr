@@ -44,7 +44,7 @@
                     'selected': selectedObjs,
                     // canAnnotate used by map annotations and ratings panes
                     'canAnnotate': {% if manager.canAnnotate %}true{% else %}false{% endif %},
-                    'url': "{{ mapindex }}" + "api/annotations/" + "{{ menu }}/", //lnk + "api/annotations/";
+                    'url': "{{ mapindex }}" + "api/{{ menu }}/annotations/", //lnk + "api/annotations/";
                 }
 
                 var mapAnnsPane = new MapAnnsPane($("#mapAnnsPane"), annPaneData);
@@ -59,10 +59,7 @@
                 // show a link to the current object
                 $("#show_link_btn").click(function(){
                     $("#link_info_popup").show();
-                    // var lnk = "{{ webclient_path }}?show=map.value-" +encodeURI("{{ manager.obj_id }}");
-                    var lnk = location.href.substring(0,location.href.length - location.search.length);
-                    if (lnk.charAt( lnk.length-1 ) == "#") { lnk = lnk.substring(0, lnk.length-1) };
-                    lnk += "?show=map.value-" + encodeURI("{{ manager.obj_id }}");
+                    var lnk = location.protocol + "//" + location.host + "{{ mapindex }}{{ menu }}/" + encodeURI("{{ manager.obj_id }}/")
                     var link_input = $("#link_info_popup input");
                     link_input.val(lnk);
                     link_input.get(0).focus();
