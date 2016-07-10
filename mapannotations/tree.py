@@ -27,7 +27,7 @@ from django.conf import settings
 from copy import deepcopy
 
 from omeroweb.webclient.tree import build_clause
-from omeroweb.webclient.tree import _marshal_tag
+from omeroweb.webclient.tree import parse_permissions_css
 from omeroweb.webclient.tree import _marshal_screen
 from omeroweb.webclient.tree import _marshal_plate
 from omeroweb.webclient.tree import _marshal_image
@@ -68,6 +68,40 @@ def _set_parameters(mapann_names=[], params=None,
         where_clause.append('mv.value  = :value')
 
     return params, where_clause
+
+
+def _marshal_map(conn, row):
+    ''' Given a Map row (list) marshals it into a dictionary.  Order
+        and type of columns in row is:
+          * id (rlong)
+          * value (rstring)
+          * description (rstring)
+          * details.owner.id (rlong)
+          * details.permissions (dict)
+          * namespace (rstring)
+
+        @param conn OMERO gateway.
+        @type conn L{omero.gateway.BlitzGateway}
+        @param row The Tag row to marshal
+        @type row L{list}
+
+    '''
+    map_id, value, description, owner_id, permissions, namespace, \
+        child_count = row
+
+    mapann = dict()
+    mapann['id'] = unwrap(map_id)
+    mapann['name'] = unwrap(value)
+    desc = unwrap(description)
+    if desc:
+        mapann['description'] = desc
+    mapann['ownerId'] = unwrap(owner_id)
+    mapann['permsCss'] = parse_permissions_css(permissions,
+                                               unwrap(owner_id), conn)
+
+    mapann['childCount'] = unwrap(child_count)
+
+    return mapann
 
 
 def count_mapannotations(conn,
@@ -168,7 +202,7 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
 
     # TODO:
     # a.details.owner.id as ownerId,
-    # a as tag_details_permissions,
+    # a as map_details_permissions,
 
     q = """
         select new map( mv.value as value,
@@ -190,10 +224,10 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
              "%s (%d)" % (e[0]["value"], e[0]["imgCount"]),
              None,
              experimenter_id,  # e[0]["ownerId"],
-             {},  # e[0]["tag_details_permissions"],
+             {},  # e[0]["map_details_permissions"],
              e[0]["ns"],
              e[0]["childCount"]]
-        mt = _marshal_tag(conn, e[0:7])
+        mt = _marshal_map(conn, e[0:7])
         mt.update({'extra': {'counter': c}})
         mapannotations.append(mt)
 
@@ -217,10 +251,10 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
              "%s (%d)" % (e[0]["value"], e[0]["imgCount"]),
              None,
              experimenter_id,  # e[0]["ownerId"],
-             {},  # e[0]["tag_details_permissions"],
+             {},  # e[0]["map_details_permissions"],
              e[0]["ns"],
              e[0]["childCount"]]
-        mt = _marshal_tag(conn, e[0:7])
+        mt = _marshal_map(conn, e[0:7])
         mt.update({'extra': {'counter': c}})
         mapannotations.append(mt)
 

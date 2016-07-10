@@ -229,7 +229,7 @@ def map_paths_to_object(conn, mapann_query=None,
         try:
             mapValue = e[0]["map_value"]
             ds = {
-                'type': 'tag',
+                'type': 'map',
                 'id': mapValue,
             }
             path.append(ds)

@@ -44,7 +44,7 @@
                     'selected': selectedObjs,
                     // canAnnotate used by map annotations and ratings panes
                     'canAnnotate': {% if manager.canAnnotate %}true{% else %}false{% endif %},
-                    'url': "{{ mapindex }}" + "api/{{ menu }}/annotations/", //lnk + "api/annotations/";
+                    'url': "{{ mapindex }}" + "api/{{ menu }}/annotations/",
                 }
 
                 var mapAnnsPane = new MapAnnsPane($("#mapAnnsPane"), annPaneData);

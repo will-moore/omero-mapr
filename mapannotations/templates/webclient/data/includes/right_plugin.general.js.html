@@ -97,7 +97,7 @@ $(function () {
                 // experimenter
                 } else if (oid.indexOf("experimenter")>=0) {
                     //$metadata_general.html('<p>'+selected.children().eq(1).text()+'</p>');
-                } else if (orel.indexOf("tag")>=0) {
+                } else if (orel.indexOf("map")>=0) {
                     var map_prefix = '{% url "mapindex" %}';
                     url = map_prefix+'metadata_details/{{ menu }}/'+oid.split(/-(.+)/)[1]+'/';
                 // everything else

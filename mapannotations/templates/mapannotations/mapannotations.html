@@ -42,9 +42,8 @@
             WEBCLIENT.URLS.api_experimenters = "{% url 'mapannotations_api_experimenters' menu %}";
         {% endif %}
 
-        WEBCLIENT.URLS.api_tags_and_tagged = "{% url 'mapannotations_api_mapannotations' menu %}";
-
-        WEBCLIENT.URLS.tree_top_level = WEBCLIENT.URLS.api_tags_and_tagged;
+        WEBCLIENT.URLS.tree_top_level = "{% url 'mapannotations_api_mapannotations' menu %}";
+        WEBCLIENT.URLS.api_tags_and_tagged = WEBCLIENT.URLS.tree_top_level;
         
         WEBCLIENT.URLS.api_datasets = "{% url 'mapannotations_api_datasets' menu %}";
         WEBCLIENT.URLS.api_images = "{% url 'mapannotations_api_images' menu %}";

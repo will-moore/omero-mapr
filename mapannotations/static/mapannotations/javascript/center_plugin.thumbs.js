@@ -24,26 +24,19 @@
 $(function() {
 
     var inst = $.jstree.reference('#dataTree');
-    var parentNode;     // the currently selected node
 
     var old_update_thumbnails_panel = window.update_thumbnails_panel;
     window.update_thumbnails_panel = function(event, data) {
         // Get the current selection
         var selected = inst.get_selected(true);
         var dtype = selected[0].type;
-
-        // parent node cannot be "screen", "plate", "acquisition", "project", "image"
-        // see ome.tree.js
-        var parentTypes = ["screen", "plate", "acquisition", "project", "image"],
-            imgNodes = [];
-        if (parentTypes.indexOf(dtype) > -1) {
-            parentNode = selected[0];
-        } else if (dtype !== "image") {
+        if (dtype !== "image") {
             parentId = undefined;
             OME.clearThumbnailsPanel();
             return;
         } else {
             return old_update_thumbnails_panel(event, data);
         }
+        
     };
 });

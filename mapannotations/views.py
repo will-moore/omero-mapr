@@ -354,7 +354,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'tags': mapannotations,
+    return HttpJsonResponse({'maps': mapannotations,
                              'screens': screens, 'projects': projects})
 
 
@@ -521,7 +521,7 @@ def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
     context = dict()
     context['template'] = template
     context['menu'] = c_type
-    context['manager'] = {'obj_type': 'tag', 'obj_id': c_id}
+    context['manager'] = {'obj_type': 'map', 'obj_id': c_id}
     context['mapindex'] = reverse(viewname=('mapindex'))
     context['mapindex_path'] = reverse(viewname=('mapindex_%s' % c_type))
     return context

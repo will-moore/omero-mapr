@@ -25,7 +25,9 @@
 
 $(function () {
 
-    $.jstree.reference('#dataTree').settings.sort = function(nodeId1, nodeId2) {
+    var jstreeInst = $.jstree.reference('#dataTree');
+
+    jstreeInst.settings.sort = function(nodeId1, nodeId2) {
         var inst = this;
         var node1 = inst.get_node(nodeId1);
         var node2 = inst.get_node(nodeId2);
@@ -69,15 +71,9 @@ $(function () {
         return sortingStrategy(node1, node2);
     };
 
-    $.jstree.reference('#dataTree').settings.types['experimenter'] = {
-        'icon' : WEBCLIENT.URLS.static_webclient + 'image/icon_user.png',
-        'valid_children': ['tag']
-    };
-    $.jstree.reference('#dataTree').settings.types['tag']['icon'] = MAPANNOTATIONS.URLS.static_webclient + 'image/' + MAPANNOTATIONS.MENU.label + '_icon_16x16.png';
+    jstreeInst.settings.types['experimenter'].valid_children = ['map'];
+    jstreeInst.settings.types['map'].icon = MAPANNOTATIONS.URLS.static_webclient + 'image/' + MAPANNOTATIONS.MENU.label + '_icon_16x16.png';
+    jstreeInst.settings.types['plate'].valid_children = ['image'];
 
-    $.jstree.reference('#dataTree').settings.types['plate'] = {
-        'icon': WEBCLIENT.URLS.static_webclient + 'image/folder_plate16.png',
-        'valid_children': ['image']
-    };
 
 });

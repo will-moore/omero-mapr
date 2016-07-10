@@ -7,7 +7,7 @@ class MapSettings(object):
         'gene': {
             'default': ('Gene Symbol', ),
             'all': ('Gene Symbol', 'Gene Identifier', ),
-            'label': ('Genes', ),
+            'label': ('Gene', ),
         },
         'phenotype': {
             'default': ('Phenotype', ),
