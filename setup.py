@@ -25,7 +25,7 @@ from setuptools import setup, find_packages
 
 VERSION = '0.0.1'
 
-setup(name="mapannotations",
+setup(name="mapr",
       version=VERSION,
       description=('A high-level Python Web Client framework for OMERO'),
       author='Aleksandra Tarkowska',

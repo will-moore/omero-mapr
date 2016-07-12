@@ -27,7 +27,7 @@
 
 {% block link %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'mapannotations/css/mapannotations.css'|add:url_suffix %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'mapr/css/ome.mapr.css'|add:url_suffix %}" type="text/css" />
 {% endblock %}
 
 {% block script %}
@@ -42,8 +42,9 @@
             WEBCLIENT.URLS.api_experimenters = "{% url 'mapannotations_api_experimenters' menu %}";
         {% endif %}
 
-        WEBCLIENT.URLS.tree_map_level = "{% url 'mapannotations_api_data' menu %}";
         WEBCLIENT.URLS.tree_top_level = "{% url 'mapannotations_api_mapannotations' menu %}";
+        WEBCLIENT.URLS.tree_map_level = WEBCLIENT.URLS.tree_top_level;
+        
         WEBCLIENT.URLS.api_tags_and_tagged = WEBCLIENT.URLS.tree_top_level;
         
         WEBCLIENT.URLS.api_datasets = "{% url 'mapannotations_api_datasets' menu %}";
@@ -58,7 +59,7 @@
         {% endif %}
 
         var MAPANNOTATIONS = {}
-        MAPANNOTATIONS.URLS = {'static_webclient': "{% static 'mapannotations' %}/"};
+        MAPANNOTATIONS.URLS = {'static_webclient': "{% static 'mapr' %}/"};
         MAPANNOTATIONS.URLS.autocomplete = "{% url 'mapannotations_autocomplete' menu %}";
         MAPANNOTATIONS.URLS.autocomplete_default = "{% url 'mapannotations_api_experimenters' menu %}";
 
@@ -67,11 +68,11 @@
 
     </script>
 
-    <script src="{% static 'mapannotations/javascript/mapannotations.js'|add:url_suffix %}"></script>
-    <script src="{% static 'mapannotations/javascript/autocomplete.js'|add:url_suffix %}"></script>
+    <script src="{% static 'mapr/javascript/ome.mapr.js'|add:url_suffix %}"></script>
+    <script src="{% static 'mapr/javascript/ome.mapr.ui.autocomplete.js'|add:url_suffix %}"></script>
     
     <!-- include code to handle primary 'thumbs' middle plugin -->
-    <script src="{% static 'mapannotations/javascript/center_plugin.thumbs.js'|add:url_suffix %}"></script>
+    <script src="{% static 'mapr/javascript/center_plugin.thumbs.js'|add:url_suffix %}"></script>
 
 
 {% endblock %}
@@ -91,7 +92,7 @@
 
                 <li class="seperator"></li>
 
-                <li><input type="text" name="mapannotation" id="mapannotation" title="Type {{ menu }} name."/></li>
+                <li><input type="text" name="mapannotation" id="mapannotation" title="Search using a {{ menu_default }}."/></li>
 
             </ul>
 

@@ -27,7 +27,7 @@
 import logging
 
 from django import template
-from mapannotations.map_settings import map_settings
+from mapr.mapr_settings import mapr_settings
 
 register = template.Library()
 
@@ -38,4 +38,4 @@ logger = logging.getLogger(__name__)
 @register.filter
 def menutolabel(value):
     "Subtracts the arg from the value"
-    return map_settings.MENU_MAPPER[value]['label'][0]
+    return mapr_settings.MENU_MAPR[value]['label'][0]

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load common_filters %}
 {% load common_tags %}
-{% load map_filters %}
+{% load mapr_filters %}
 {% comment %}
 <!--
   Copyright (C) 2011-2016 University of Dundee & Open Microscopy Environment.
@@ -44,7 +44,7 @@
                     'selected': selectedObjs,
                     // canAnnotate used by map annotations and ratings panes
                     'canAnnotate': {% if manager.canAnnotate %}true{% else %}false{% endif %},
-                    'url': "{{ mapindex }}" + "api/{{ menu }}/annotations/",
+                    'url': "{{ maprindex }}" + "api/{{ menu }}/annotations/",
                 }
 
                 var mapAnnsPane = new MapAnnsPane($("#mapAnnsPane"), annPaneData);
@@ -59,7 +59,7 @@
                 // show a link to the current object
                 $("#show_link_btn").click(function(){
                     $("#link_info_popup").show();
-                    var lnk = location.protocol + "//" + location.host + "{{ mapindex }}{{ menu }}/" + encodeURI("{{ manager.obj_id }}/")
+                    var lnk = location.protocol + "//" + location.host + "{{ maprindex }}{{ menu }}/" + encodeURI("{{ manager.obj_id }}/")
                     var link_input = $("#link_info_popup input");
                     link_input.val(lnk);
                     link_input.get(0).focus();

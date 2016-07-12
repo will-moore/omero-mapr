@@ -27,15 +27,15 @@ from Ice import Exception as IceException
 from omero import ApiUsageException, ServerError
 
 from django.conf import settings
-from map_settings import map_settings
+from mapr_settings import mapr_settings
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseServerError, HttpResponseBadRequest, \
     HttpResponseRedirect
 
-from show import map_paths_to_object
+from show import mapr_paths_to_object
 from show import MapShow as Show
-import tree as map_tree
+import tree as mapr_tree
 
 from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
@@ -106,7 +106,7 @@ def index(request, menu, value=None, conn=None, url=None, **kwargs):
     switch-user form. Change-group form is also prepared.
     """
     request.session.modified = True
-    template = "mapannotations/mapannotations.html"
+    template = "mapr/base_mapr.html"
 
     # tree support
     show = Show(conn=conn, request=request, menu=menu, value=value)
@@ -131,7 +131,7 @@ def index(request, menu, value=None, conn=None, url=None, **kwargs):
 
     # get url without request string - used to refresh page after switch
     # user/group etc
-    url = reverse(viewname="mapindex_%s" % menu)
+    url = reverse(viewname="maprindex_%s" % menu)
 
     # validate experimenter is in the active group
     active_group = (request.session.get('active_group') or
@@ -174,6 +174,7 @@ def index(request, menu, value=None, conn=None, url=None, **kwargs):
 
     context = {
         'menu': menu,
+        'menu_default': ", ".join(mapr_settings.MENU_MAPR[menu]['default']),
         'init': init,
         'myGroups': myGroups,
         'new_container_form': new_container_form,
@@ -201,7 +202,7 @@ def api_paths_to_object(request, menu=None, value=None, conn=None, **kwargs):
     """
 
     try:
-        keys = map_settings.MENU_MAPPER[menu]['default']
+        keys = mapr_settings.MENU_MAPR[menu]['default']
     except:
         keys = None
 
@@ -211,7 +212,7 @@ def api_paths_to_object(request, menu=None, value=None, conn=None, **kwargs):
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
-    if menu in map_settings.MENU_MAPPER:
+    if menu in mapr_settings.MENU_MAPR:
 
         try:
             experimenter_id = get_long_or_default(request, 'experimenter',
@@ -231,7 +232,7 @@ def api_paths_to_object(request, menu=None, value=None, conn=None, **kwargs):
         except ValueError:
             return HttpResponseBadRequest('Invalid parameter value')
 
-        paths = map_paths_to_object(
+        paths = mapr_paths_to_object(
             conn=conn, mapann_query=value,
             mapann_value=mapann_value, mapann_names=mapann_names,
             screen_id=screen_id, plate_id=plate_id, image_id=image_id,
@@ -248,7 +249,7 @@ def api_experimenter_list(request, menu,
                           value=None, conn=None, **kwargs):
     # Validate parameter
     try:
-        keys = map_settings.MENU_MAPPER[menu]['default']
+        keys = mapr_settings.MENU_MAPR[menu]['default']
     except:
         pass
 
@@ -279,7 +280,7 @@ def api_experimenter_list(request, menu,
         if mapann_value:
             experimenter['extra'] = {'value': mapann_value}
         # count children
-        experimenter['childCount'] = map_tree.count_mapannotations(
+        experimenter['childCount'] = mapr_tree.count_mapannotations(
             conn=conn,
             mapann_names=mapann_names,
             mapann_value=mapann_value,
@@ -300,56 +301,7 @@ def api_experimenter_list(request, menu,
 @login_required()
 def api_mapannotation_list(request, menu, conn=None, **kwargs):
     try:
-        keys = map_settings.MENU_MAPPER[menu]['default']
-    except:
-        pass
-
-    # Get parameters
-    try:
-        page = get_long_or_default(request, 'page', 1)
-        limit = get_long_or_default(request, 'limit', settings.PAGE)
-        group_id = get_long_or_default(request, 'group', -1)
-        experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
-        mapann_value = get_str_or_default(request, 'value', None) \
-            or get_str_or_default(request, 'id', None)
-        mapann_names = get_list_or_default(request, 'name', keys)
-        mapann_query = get_str_or_default(request, 'query', None)
-    except ValueError:
-        return HttpResponseBadRequest('Invalid parameter value')
-
-    # While this interface does support paging, it does so in a
-    # very odd way. The results per page is enforced per query so this
-    # will actually get the limit for projects, datasets (without
-    # parents), screens and plates (without parents). This is fine for
-    # the first page, but the second page may not be what is expected.
-
-    mapannotations = []
-    try:
-        # Get genes from map annotation
-        mapannotations = map_tree.marshal_mapannotations(
-            conn=conn,
-            mapann_names=mapann_names,
-            mapann_value=mapann_value,
-            mapann_query=mapann_query,
-            group_id=group_id,
-            experimenter_id=experimenter_id,
-            page=page,
-            limit=limit)
-
-    except ApiUsageException as e:
-        return HttpResponseBadRequest(e.serverStackTrace)
-    except ServerError as e:
-        return HttpResponseServerError(e.serverStackTrace)
-    except IceException as e:
-        return HttpResponseServerError(e.message)
-
-    return HttpJsonResponse({'maps': mapannotations})
-
-
-@login_required()
-def api_root_list(request, menu, conn=None, **kwargs):
-    try:
-        keys = map_settings.MENU_MAPPER[menu]['default']
+        keys = mapr_settings.MENU_MAPR[menu]['default']
     except:
         pass
 
@@ -363,6 +315,7 @@ def api_root_list(request, menu, conn=None, **kwargs):
             or get_str_or_default(request, 'value', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         mapann_query = get_str_or_default(request, 'query', None)
+        orphaned = get_bool_or_default(request, 'orphaned', False)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -372,12 +325,13 @@ def api_root_list(request, menu, conn=None, **kwargs):
     # parents), screens and plates (without parents). This is fine for
     # the first page, but the second page may not be what is expected.
 
+    mapannotations = []
     screens = []
     projects = []
     try:
-        # Get all genes from map annotation
-        if mapann_value is not None:
-            screens = map_tree.marshal_screens(
+        # Get genes from map annotation
+        if orphaned:
+            mapannotations = mapr_tree.marshal_mapannotations(
                 conn=conn,
                 mapann_names=mapann_names,
                 mapann_value=mapann_value,
@@ -386,7 +340,17 @@ def api_root_list(request, menu, conn=None, **kwargs):
                 experimenter_id=experimenter_id,
                 page=page,
                 limit=limit)
-            projects = map_tree.marshal_projects(
+        else:
+            screens = mapr_tree.marshal_screens(
+                conn=conn,
+                mapann_names=mapann_names,
+                mapann_value=mapann_value,
+                mapann_query=mapann_query,
+                group_id=group_id,
+                experimenter_id=experimenter_id,
+                page=page,
+                limit=limit)
+            projects = mapr_tree.marshal_projects(
                 conn=conn,
                 mapann_names=mapann_names,
                 mapann_value=mapann_value,
@@ -403,7 +367,8 @@ def api_root_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'screens': screens, 'projects': projects})
+    return HttpJsonResponse({'maps': mapannotations,
+                             'screens': screens, 'projects': projects})
 
 
 @login_required()
@@ -411,7 +376,7 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
     ''' Get a list of plates
     '''
     try:
-        keys = map_settings.MENU_MAPPER[menu]['default']
+        keys = mapr_settings.MENU_MAPR[menu]['default']
     except:
         pass
 
@@ -431,7 +396,7 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
     datasets = []
     try:
         # Get the images
-        datasets = map_tree.marshal_datasets(
+        datasets = mapr_tree.marshal_datasets(
             conn=conn,
             project_id=project_id,
             mapann_names=mapann_names,
@@ -455,7 +420,7 @@ def api_plate_list(request, menu, conn=None, **kwargs):
     ''' Get a list of plates
     '''
     try:
-        keys = map_settings.MENU_MAPPER[menu]['default']
+        keys = mapr_settings.MENU_MAPR[menu]['default']
     except:
         pass
 
@@ -475,7 +440,7 @@ def api_plate_list(request, menu, conn=None, **kwargs):
     plates = []
     try:
         # Get the images
-        plates = map_tree.marshal_plates(
+        plates = mapr_tree.marshal_plates(
             conn=conn,
             screen_id=screen_id,
             mapann_names=mapann_names,
@@ -506,7 +471,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
 
     '''
     try:
-        keys = map_settings.MENU_MAPPER[menu]['default']
+        keys = mapr_settings.MENU_MAPR[menu]['default']
     except:
         pass
 
@@ -530,7 +495,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
     images = []
     try:
         # Get the images
-        images = map_tree.marshal_images(
+        images = mapr_tree.marshal_images(
             conn=conn,
             parent=parent,
             parent_id=parent_id,
@@ -564,14 +529,14 @@ def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
     data is handled by the template.
     """
 
-    template = "mapannotations/metadata_general.html"
+    template = "mapr/metadata_general.html"
 
     context = dict()
     context['template'] = template
     context['menu'] = c_type
     context['manager'] = {'obj_type': 'map', 'obj_id': c_id}
-    context['mapindex'] = reverse(viewname=('mapindex'))
-    context['mapindex_path'] = reverse(viewname=('mapindex_%s' % c_type))
+    context['maprindex'] = reverse(viewname=('maprindex'))
+    context['maprindex_path'] = reverse(viewname=('maprindex_%s' % c_type))
     return context
 
 
@@ -579,7 +544,7 @@ def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
 def api_annotations(request, menu, conn=None, **kwargs):
 
     try:
-        keys = map_settings.MENU_MAPPER[menu]['default']
+        keys = mapr_settings.MENU_MAPR[menu]['default']
     except:
         pass
 
@@ -593,7 +558,7 @@ def api_annotations(request, menu, conn=None, **kwargs):
     anns = []
     exps = []
     try:
-        anns, exps = map_tree.load_mapannotation(
+        anns, exps = mapr_tree.load_mapannotation(
             conn=conn,
             mapann_names=mapann_names,
             mapann_value=mapann_value)
@@ -611,7 +576,7 @@ def api_annotations(request, menu, conn=None, **kwargs):
 def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
 
     try:
-        keys = map_settings.MENU_MAPPER[menu]['default']
+        keys = mapr_settings.MENU_MAPR[menu]['default']
     except:
         pass
 
@@ -634,7 +599,7 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
 
     autocomplete = []
     try:
-        autocomplete = map_tree.marshal_autocomplete(
+        autocomplete = mapr_tree.marshal_autocomplete(
             conn=conn,
             query=query,
             mapann_names=mapann_names,

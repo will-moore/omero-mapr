@@ -25,13 +25,13 @@ import omero
 from copy import deepcopy
 
 from django.conf import settings
-from map_settings import map_settings
+from mapr_settings import mapr_settings
 from django.core.urlresolvers import reverse
 
 from omero.rtypes import rint, rlong, unwrap
 
 import omeroweb.webclient.show as omeroweb_show
-import tree as map_tree
+import tree as mapr_tree
 
 
 class MapShow(omeroweb_show.Show):
@@ -41,7 +41,7 @@ class MapShow(omeroweb_show.Show):
     # supported objects
     omeroweb_show.Show.SUPPORTED_OBJECT_TYPES += ('map',)
     omeroweb_show.Show.SUPPORTED_OBJECT_TYPES += \
-        tuple(map_settings.MENU_MAPPER)
+        tuple(mapr_settings.MENU_MAPR)
 
     def __init__(self, conn, request, menu, value=None):
         super(MapShow, self).__init__(conn, request, menu)
@@ -60,15 +60,15 @@ class MapShow(omeroweb_show.Show):
         first_obj = m.group('object_type')
         # if we are showing any of map.value alias make sure
         # we are not in webclient
-        if (first_obj in (['map']+map_settings.MENU_MAPPER.keys()) and
-                self.menu not in map_settings.MENU_MAPPER):
+        if (first_obj in (['map']+mapr_settings.MENU_MAPR.keys()) and
+                self.menu not in mapr_settings.MENU_MAPR):
             # redirect to menu/value/
             raise omeroweb_show.IncorrectMenuError(
-                reverse(viewname="mapindex_%s" % first_obj,
+                reverse(viewname="maprindex_%s" % first_obj,
                         args=[m.group('value')])
             )
-        # if in mapannotations app hierachy is different
-        if self.menu in map_settings.MENU_MAPPER:
+        # if in mapr app hierachy is different
+        if self.menu in mapr_settings.MENU_MAPR:
             first_selected = None
             try:
                 key = m.group('key')
@@ -134,13 +134,13 @@ class MapShow(omeroweb_show.Show):
 omeroweb_show.Show = MapShow
 
 
-def map_paths_to_object(conn, mapann_query=None,
-                        mapann_names=[], mapann_value=None,
-                        screen_id=None, plate_id=None, image_id=None,
-                        experimenter_id=None, group_id=None, page_size=None):
+def mapr_paths_to_object(conn, mapann_query=None,
+                         mapann_names=[], mapann_value=None,
+                         screen_id=None, plate_id=None, image_id=None,
+                         experimenter_id=None, group_id=None, page_size=None):
 
     qs = conn.getQueryService()
-    params, where_clause = map_tree._set_parameters(
+    params, where_clause = mapr_tree._set_parameters(
         mapann_names=mapann_names, params=None,
         experimenter_id=experimenter_id,
         mapann_query=mapann_query, mapann_value=mapann_value,

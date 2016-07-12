@@ -1,9 +1,9 @@
 from django.conf import settings
 
 
-class MapSettings(object):
+class MaprSettings(object):
 
-    CUSTOM_MENU_MAPPER = {
+    MAPR_MENU_CUSTOM = {
         'gene': {
             'default': ('Gene Symbol', ),
             'all': ('Gene Symbol', 'Gene Identifier', ),
@@ -26,9 +26,9 @@ class MapSettings(object):
         },
     }
 
-    MENU_MAPPER = getattr(settings, 'MAP_MENU_MAPPER', CUSTOM_MENU_MAPPER)
+    MENU_MAPR = getattr(settings, 'MAPR_MENU_CUSTOM', MAPR_MENU_CUSTOM)
 
-    DEFAULT_MENU_MAPPER = {
+    MAPR_MENU_DEFAULT = {
         'default': {
             'default': ('Gene Symbol', ),
             'all': ('Gene Symbol', 'Gene Identifier', 'Phenotype',
@@ -36,6 +36,6 @@ class MapSettings(object):
         }
     }
 
-    DEFAULT_MAPPER = getattr(settings, 'MAP_MENU_MAPPER', DEFAULT_MENU_MAPPER)
+    DEFAULT_MAPR = getattr(settings, 'MAPR_MENU_DEFAULT', MAPR_MENU_DEFAULT)
 
-map_settings = MapSettings()
+mapr_settings = MaprSettings()
