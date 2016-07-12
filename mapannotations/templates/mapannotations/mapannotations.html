@@ -42,6 +42,7 @@
             WEBCLIENT.URLS.api_experimenters = "{% url 'mapannotations_api_experimenters' menu %}";
         {% endif %}
 
+        WEBCLIENT.URLS.tree_map_level = "{% url 'mapannotations_api_data' menu %}";
         WEBCLIENT.URLS.tree_top_level = "{% url 'mapannotations_api_mapannotations' menu %}";
         WEBCLIENT.URLS.api_tags_and_tagged = WEBCLIENT.URLS.tree_top_level;
         

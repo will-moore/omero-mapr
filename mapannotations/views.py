@@ -258,6 +258,10 @@ def api_experimenter_list(request, menu,
         # limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter', -1)
+        mapann_value = value or get_str_or_default(request, 'value', None) \
+            or get_str_or_default(request, 'id', None)
+        mapann_names = get_list_or_default(request, 'name', keys)
+        mapann_query = get_str_or_default(request, 'query', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -270,14 +274,15 @@ def api_experimenter_list(request, menu,
             # fake experimenter -1
             experimenter = fake_experimenter(menu)
 
-        mapann_names = get_list_or_default(request, 'name', keys)
-        mapann_query = value or get_str_or_default(request, 'query', None)
         if mapann_query:
             experimenter['extra'] = {'query': mapann_query}
+        if mapann_value:
+            experimenter['extra'] = {'value': mapann_value}
         # count children
         experimenter['childCount'] = map_tree.count_mapannotations(
             conn=conn,
             mapann_names=mapann_names,
+            mapann_value=mapann_value,
             mapann_query=mapann_query,
             group_id=group_id,
             experimenter_id=experimenter_id)
@@ -305,7 +310,8 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
-        mapann_value = get_str_or_default(request, 'id', None)
+        mapann_value = get_str_or_default(request, 'value', None) \
+            or get_str_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         mapann_query = get_str_or_default(request, 'query', None)
     except ValueError:
@@ -318,6 +324,54 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
     # the first page, but the second page may not be what is expected.
 
     mapannotations = []
+    try:
+        # Get genes from map annotation
+        mapannotations = map_tree.marshal_mapannotations(
+            conn=conn,
+            mapann_names=mapann_names,
+            mapann_value=mapann_value,
+            mapann_query=mapann_query,
+            group_id=group_id,
+            experimenter_id=experimenter_id,
+            page=page,
+            limit=limit)
+
+    except ApiUsageException as e:
+        return HttpResponseBadRequest(e.serverStackTrace)
+    except ServerError as e:
+        return HttpResponseServerError(e.serverStackTrace)
+    except IceException as e:
+        return HttpResponseServerError(e.message)
+
+    return HttpJsonResponse({'maps': mapannotations})
+
+
+@login_required()
+def api_root_list(request, menu, conn=None, **kwargs):
+    try:
+        keys = map_settings.MENU_MAPPER[menu]['default']
+    except:
+        pass
+
+    # Get parameters
+    try:
+        page = get_long_or_default(request, 'page', 1)
+        limit = get_long_or_default(request, 'limit', settings.PAGE)
+        group_id = get_long_or_default(request, 'group', -1)
+        experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
+        mapann_value = get_str_or_default(request, 'id', None) \
+            or get_str_or_default(request, 'value', None)
+        mapann_names = get_list_or_default(request, 'name', keys)
+        mapann_query = get_str_or_default(request, 'query', None)
+    except ValueError:
+        return HttpResponseBadRequest('Invalid parameter value')
+
+    # While this interface does support paging, it does so in a
+    # very odd way. The results per page is enforced per query so this
+    # will actually get the limit for projects, datasets (without
+    # parents), screens and plates (without parents). This is fine for
+    # the first page, but the second page may not be what is expected.
+
     screens = []
     projects = []
     try:
@@ -325,22 +379,17 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
         if mapann_value is not None:
             screens = map_tree.marshal_screens(
                 conn=conn,
-                mapann_value=mapann_value,
                 mapann_names=mapann_names,
+                mapann_value=mapann_value,
+                mapann_query=mapann_query,
                 group_id=group_id,
+                experimenter_id=experimenter_id,
                 page=page,
                 limit=limit)
             projects = map_tree.marshal_projects(
                 conn=conn,
+                mapann_names=mapann_names,
                 mapann_value=mapann_value,
-                mapann_names=mapann_names,
-                group_id=group_id,
-                page=page,
-                limit=limit)
-        else:
-            mapannotations = map_tree.marshal_mapannotations(
-                conn=conn,
-                mapann_names=mapann_names,
                 mapann_query=mapann_query,
                 group_id=group_id,
                 experimenter_id=experimenter_id,
@@ -354,8 +403,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'maps': mapannotations,
-                             'screens': screens, 'projects': projects})
+    return HttpJsonResponse({'screens': screens, 'projects': projects})
 
 
 @login_required()

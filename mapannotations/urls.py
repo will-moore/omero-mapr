@@ -42,7 +42,7 @@ urlpatterns = patterns('',)
 # alias
 for m in map_settings.MENU_MAPPER:
     urlpatterns += (
-        url(r'^(?i)%s/(?:(?P<value>(.*))/)?$' % m, views.index,
+        url(r'^(?i)%s/(?:(?P<value>[:\.\-\w\s]+)/)?$' % m, views.index,
             {'menu': m},
             name="mapindex_%s" % m),
         )
@@ -57,13 +57,16 @@ urlpatterns += (
             query_string=True)),
         name="mapindex"),
 
-    url(r'^api/(?P<menu>%s)/(?:(?P<value>(.*))/)?'
+    url(r'^api/(?P<menu>%s)/(?:(?P<value>[:\.\-\w\s]+)/)?'
         r'experimenters/$' % MENU_MAPPER_REGEX,
         views.api_experimenter_list,
         name='mapannotations_api_experimenters'),
     url(r'^api/(?P<menu>%s)/$' % MENU_MAPPER_REGEX,
         views.api_mapannotation_list,
         name='mapannotations_api_mapannotations'),
+    url(r'^api/(?P<menu>%s)/data/$' % MENU_MAPPER_REGEX,
+        views.api_root_list,
+        name='mapannotations_api_data'),
     url(r'^api/(?P<menu>%s)/datasets/$' % MENU_MAPPER_REGEX,
         views.api_datasets_list,
         name='mapannotations_api_datasets'),
@@ -74,7 +77,7 @@ urlpatterns += (
         views.api_image_list,
         name='mapannotations_api_images'),
 
-    url(r'^api/(?P<menu>%s)/(?:(?P<value>(.*))/)?'
+    url(r'^api/(?P<menu>%s)/(?:(?P<value>[:\.\-\w\s]+)/)?'
         r'paths_to_object/$' % MENU_MAPPER_REGEX,
         views.api_paths_to_object,
         name='mapannotations_api_paths_to_object'),

@@ -58,7 +58,7 @@ $(function () {
         select: function(event, ui) {
             WEBCLIENT.URLS.api_experimenters = MAPANNOTATIONS.URLS.autocomplete_default
             $.jstree.reference('#dataTree').settings.core.data = function(node, callback, payload) {
-                oldData.apply(jstreeInst, [node, callback, {'query': ui.item.value}]);
+                oldData.apply(jstreeInst, [node, callback, {'value': ui.item.value}]);
             };
             $.jstree.reference('#dataTree').refresh();
             return false;

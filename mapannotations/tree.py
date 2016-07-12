@@ -60,6 +60,7 @@ def _set_parameters(mapann_names=[], params=None,
         where_clause.append('a.details.owner.id = :id')
 
     if mapann_query:
+        # query starts from search terms
         params.addString("query", rstring("%s%%" % str(mapann_query).lower()))
         where_clause.append('lower(mv.value) like :query')
 
@@ -104,9 +105,10 @@ def _marshal_map(conn, row):
     return mapann
 
 
-def count_mapannotations(conn,
-                         mapann_names=[], mapann_query=None,
-                         group_id=-1, experimenter_id=-1):
+def count_mapannotations(conn, mapann_names=[],
+                         mapann_value=None, mapann_query=None,
+                         group_id=-1, experimenter_id=-1,
+                         page=1, limit=settings.PAGE):
     ''' Count mapannotiation values
 
         @param conn OMERO gateway.
@@ -125,8 +127,8 @@ def count_mapannotations(conn,
     params, where_clause = _set_parameters(
         mapann_names=mapann_names, params=None,
         experimenter_id=experimenter_id,
-        mapann_query=mapann_query, mapann_value=None,
-        page=0, limit=settings.PAGE)
+        mapann_query=mapann_query, mapann_value=mapann_value,
+        page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
 
@@ -261,7 +263,8 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
     return mapannotations
 
 
-def marshal_screens(conn, mapann_names=[], mapann_value=None,
+def marshal_screens(conn, mapann_names=[],
+                    mapann_value=None, mapann_query=None,
                     group_id=-1, experimenter_id=-1,
                     page=1, limit=settings.PAGE):
 
@@ -290,7 +293,7 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
     params, where_clause = _set_parameters(
         mapann_names=mapann_names, params=None,
         experimenter_id=experimenter_id,
-        mapann_query=None, mapann_value=mapann_value,
+        mapann_query=mapann_query, mapann_value=mapann_value,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
@@ -330,7 +333,8 @@ def marshal_screens(conn, mapann_names=[], mapann_value=None,
     return screens
 
 
-def marshal_projects(conn, mapann_names=[], mapann_value=None,
+def marshal_projects(conn, mapann_names=[],
+                     mapann_value=None, mapann_query=None,
                      group_id=-1, experimenter_id=-1,
                      page=1, limit=settings.PAGE):
 
@@ -359,7 +363,7 @@ def marshal_projects(conn, mapann_names=[], mapann_value=None,
     params, where_clause = _set_parameters(
         mapann_names=mapann_names, params=None,
         experimenter_id=experimenter_id,
-        mapann_query=None, mapann_value=mapann_value,
+        mapann_query=mapann_query, mapann_value=mapann_value,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
