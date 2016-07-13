@@ -79,7 +79,7 @@
 
 
 {% block left %}
-    
+
     <div id="left_panel_tabs" class="absolute_fill ui-tabs">
 
         <!-- toolbar above tree -->
@@ -92,8 +92,16 @@
 
                 <li class="seperator"></li>
 
-                <li><input type="text" name="mapannotation" id="mapannotation" title="Search using a {{ menu_default }}."/></li>
+                <li>
+                    <div class="search filtersearch autocompletesearch" id="autocompletesearch">
+                        <label for="id_autocomplete">Type {{ menu_default }}...</label>
+                        <input type="text" name="id_autocomplete" id="id_autocomplete" title="Search using a {{ menu_default }}.">
+                    </div>
+                </li>
 
+                <li style="float:right">
+                    <input id="search_hints" type="image" class="button" src="{% static "webgateway/img/help16.png" %}" data-content="Please start typing to search for {{ menu_default }}. Autocomplete will help you enter {{ menu_default }} by automatically filling information in as you type."/>
+                </li>
             </ul>
 
             <div class="clear"></div>

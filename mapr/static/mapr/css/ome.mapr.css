@@ -1,17 +1,17 @@
 #tree_details {
-    top:29px;
     padding:0;
     padding-top:6px;
+    top: 29px;
 }
 
 
-#mapannotation {
-    margin-top: 3px;
+#id_autocomplete {
+    margin-top: -2px;
 }
-#mapannotation:active {
+#id_autocomplete:active {
     box-shadow: 0 0 10px #ffffff
 }
-#mapannotation:focus {
+#id_autocomplete:focus {
     box-shadow: 0 0 10px #ffffff
 }
 
@@ -32,4 +32,8 @@ ul.ui-autocomplete{
     background:#ffffff;
     font-size: 10px;
     width: 135px;
+}
+
+.autocompletesearch label{
+    top:3px;
 }

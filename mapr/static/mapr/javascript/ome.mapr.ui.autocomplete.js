@@ -23,9 +23,12 @@
 
 $(function () {
 
-    var oldData = $.jstree.reference('#dataTree').settings.core.data;
+    $("label").inFieldLabels();
+
     var jstreeInst = $.jstree.reference('#dataTree');
-    $("#mapannotation").autocomplete({
+    var oldData = jstreeInst.settings.core.data;
+    
+    $("#id_autocomplete").autocomplete({
         autoFocus: true,
         source: function( request, response ) {
             $.ajax({
@@ -38,13 +41,13 @@ $(function () {
                     group: WEBCLIENT.active_group_id
                 },
                 success: function(data) {
-                    $('#autocomplete').removeClass('ui-autocomplete-loading');  
+                    $('#id_autocomplete').removeClass('ui-autocomplete-loading');  
                     response( $.map( data, function(item) {
                         return item;
                     }));
                 },
                 error: function(data) {
-                    $('#mapannotation').removeClass('ui-autocomplete-loading');  
+                    $('#id_autocomplete').removeClass('ui-autocomplete-loading');  
                 }
             });
         },
@@ -52,15 +55,18 @@ $(function () {
         open: function() {},
         close: function() {},
         focus: function(event,ui) {
-            $( "#mapannotation" ).val( ui.item.label );
+            $( "#id_autocomplete" ).val( ui.item.label );
             return false;
         },
         select: function(event, ui) {
+            jstreeInst.deselect_all();
+            jstreeInst.close_all();
+            OME.clearThumbnailsPanel();
             WEBCLIENT.URLS.api_experimenters = MAPANNOTATIONS.URLS.autocomplete_default
-            $.jstree.reference('#dataTree').settings.core.data = function(node, callback, payload) {
+            jstreeInst.settings.core.data = function(node, callback, payload) {
                 oldData.apply(jstreeInst, [node, callback, {'value': ui.item.value}]);
             };
-            $.jstree.reference('#dataTree').refresh();
+            jstreeInst.refresh();
             return false;
         }
     }).data("ui-autocomplete")._renderItem = function( ul, item ) {
@@ -69,11 +75,14 @@ $(function () {
             .appendTo( ul );
     }
 
-    //$("#mapannotation").val('KIF')
-    //    .data("ui-autocomplete")
-    //    ._trigger('select', 'autocompleteselect', {
-    //        item: {
-    //            label: MAPANNOTATIONS.MENU.label,
-    //            value: MAPANNOTATIONS.VALUE}} );
-    
+    $("#search_hints").tooltip({
+        track: true,
+        show: false,
+        hide: false,
+        items: '[data-content]',
+        content: function() {
+            return $(this).data('content');
+        },
+    });
+
 });

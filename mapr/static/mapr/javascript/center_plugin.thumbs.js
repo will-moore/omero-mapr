@@ -23,20 +23,24 @@
 
 $(function() {
 
-    var inst = $.jstree.reference('#dataTree');
+    var jstreeInst = $.jstree.reference('#dataTree');
 
     var old_update_thumbnails_panel = window.update_thumbnails_panel;
     window.update_thumbnails_panel = function(event, data) {
         // Get the current selection
-        var selected = inst.get_selected(true);
-        var dtype = selected[0].type;
-        if (dtype !== "image") {
-            parentId = undefined;
-            OME.clearThumbnailsPanel();
-            return;
+        var selected = jstreeInst.get_selected(true);
+        if (selected.length > 0 ) {
+            var dtype = selected[0].type;
+            if (dtype !== "image") {
+                OME.clearThumbnailsPanel();
+                return false;
+            } else {
+                return old_update_thumbnails_panel(event, data);
+            }
         } else {
-            return old_update_thumbnails_panel(event, data);
+            OME.clearThumbnailsPanel();
+            return false;
         }
-        
+
     };
 });
