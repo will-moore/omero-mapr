@@ -60,7 +60,7 @@ class MapShow(omeroweb_show.Show):
         first_obj = m.group('object_type')
         # if we are showing any of map.value alias make sure
         # we are not in webclient
-        if (first_obj in (['map']+mapr_settings.MENU_MAPR.keys()) and
+        if (first_obj in mapr_settings.MENU_MAPR.keys() and
                 self.menu not in mapr_settings.MENU_MAPR):
             # redirect to menu/value/
             raise omeroweb_show.IncorrectMenuError(
@@ -236,7 +236,6 @@ def mapr_paths_to_object(conn, mapann_query=None,
         except:
             pass
 
-        # If it is experimenter->project->dataset->image
         try:
             path.append({
                 'type': 'screen',
@@ -245,8 +244,6 @@ def mapr_paths_to_object(conn, mapann_query=None,
         except:
             pass
 
-        # If it is experimenter->dataset->image or
-        # experimenter->project->dataset->image
         try:
             plateId = e[0]["plate_id"]
             ds = {
@@ -256,6 +253,7 @@ def mapr_paths_to_object(conn, mapann_query=None,
             path.append(ds)
         except:
             pass
+
         # Image always present
         try:
             path.append({

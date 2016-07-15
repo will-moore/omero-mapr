@@ -275,18 +275,19 @@ def api_experimenter_list(request, menu,
             # fake experimenter -1
             experimenter = fake_experimenter(menu)
 
-        if mapann_query:
-            experimenter['extra'] = {'query': mapann_query}
-        if mapann_value:
-            experimenter['extra'] = {'value': mapann_value}
-        # count children
-        experimenter['childCount'] = mapr_tree.count_mapannotations(
-            conn=conn,
-            mapann_names=mapann_names,
-            mapann_value=mapann_value,
-            mapann_query=mapann_query,
-            group_id=group_id,
-            experimenter_id=experimenter_id)
+        if mapann_value is not None or mapann_query is not None:
+            if mapann_query:
+                experimenter['extra'] = {'query': mapann_query}
+            if mapann_value:
+                experimenter['extra'] = {'value': mapann_value}
+            # count children
+            experimenter['childCount'] = mapr_tree.count_mapannotations(
+                conn=conn,
+                mapann_names=mapann_names,
+                mapann_value=mapann_value,
+                mapann_query=mapann_query,
+                group_id=group_id,
+                experimenter_id=experimenter_id)
 
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
@@ -319,27 +320,22 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
-    # While this interface does support paging, it does so in a
-    # very odd way. The results per page is enforced per query so this
-    # will actually get the limit for projects, datasets (without
-    # parents), screens and plates (without parents). This is fine for
-    # the first page, but the second page may not be what is expected.
-
     mapannotations = []
     screens = []
     projects = []
     try:
-        # Get genes from map annotation
+        # Get attributes from map annotation
         if orphaned:
-            mapannotations = mapr_tree.marshal_mapannotations(
-                conn=conn,
-                mapann_names=mapann_names,
-                mapann_value=mapann_value,
-                mapann_query=mapann_query,
-                group_id=group_id,
-                experimenter_id=experimenter_id,
-                page=page,
-                limit=limit)
+            if mapann_value is not None or mapann_query is not None:
+                mapannotations = mapr_tree.marshal_mapannotations(
+                    conn=conn,
+                    mapann_names=mapann_names,
+                    mapann_value=mapann_value,
+                    mapann_query=mapann_query,
+                    group_id=group_id,
+                    experimenter_id=experimenter_id,
+                    page=page,
+                    limit=limit)
         else:
             screens = mapr_tree.marshal_screens(
                 conn=conn,
