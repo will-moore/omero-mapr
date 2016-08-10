@@ -34,9 +34,9 @@ from omeroweb.webclient.tree import _marshal_image
 from omeroweb.webclient.tree import _marshal_annotation
 
 
-def _set_parameters(mapann_names=[], params=None,
-                    experimenter_id=-1,
+def _set_parameters(mapann_ns=[], mapann_names=[],
                     mapann_query=None, mapann_value=None,
+                    params=None, experimenter_id=-1,
                     page=1, limit=settings.PAGE):
     if params is None:
         params = omero.sys.ParametersI()
@@ -52,8 +52,10 @@ def _set_parameters(mapann_names=[], params=None,
         params.add("filter", rlist(manlist))
         where_clause.append('mv.name in (:filter)')
 
-    params.addString("ns", "openmicroscopy.org/omero/bulk_annotations")
-    where_clause.append('a.ns = :ns')
+    if mapann_ns is not None and len(mapann_ns) > 0:
+        mnslist = [rstring(str(n)) for n in mapann_ns]
+        params.add("ns", rlist(mnslist))
+        where_clause.append('a.ns in (:ns)')
 
     if experimenter_id is not None and experimenter_id != -1:
         params.addId(experimenter_id)
@@ -105,7 +107,7 @@ def _marshal_map(conn, row):
     return mapann
 
 
-def count_mapannotations(conn, mapann_names=[],
+def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
                          mapann_value=None, mapann_query=None,
                          group_id=-1, experimenter_id=-1,
                          page=1, limit=settings.PAGE):
@@ -125,9 +127,9 @@ def count_mapannotations(conn, mapann_names=[],
         @type experimenter_id L{long}
     '''
     params, where_clause = _set_parameters(
-        mapann_names=mapann_names, params=None,
-        experimenter_id=experimenter_id,
+        mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=mapann_query, mapann_value=mapann_value,
+        params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
@@ -161,7 +163,7 @@ def count_mapannotations(conn, mapann_names=[],
     return counter
 
 
-def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
+def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[], mapann_query=None,
                            mapann_value=None,
                            group_id=-1, experimenter_id=-1,
                            page=1, limit=settings.PAGE):
@@ -188,9 +190,9 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
     '''
     mapannotations = []
     params, where_clause = _set_parameters(
-        mapann_names=mapann_names, params=None,
-        experimenter_id=experimenter_id,
+        mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=mapann_query, mapann_value=mapann_value,
+        params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
@@ -208,14 +210,13 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
 
     q = """
         select new map( mv.value as value,
-               a.ns as ns,
                count(distinct s.id) as childCount,
                count(distinct i.id) as imgCount)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv
              join ial.parent i join i.wellSamples ws join ws.well w
              join w.plate p join p.screenLinks sl join sl.parent s
         where %s
-        group by mv.value, a.ns
+        group by mv.value
         order by count(i.id) DESC
         """ % (" and ".join(where_clause))
 
@@ -227,7 +228,7 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
              None,
              experimenter_id,  # e[0]["ownerId"],
              {},  # e[0]["map_details_permissions"],
-             e[0]["ns"],
+             None, #e[0]["ns"],
              e[0]["childCount"]]
         mt = _marshal_map(conn, e[0:7])
         mt.update({'extra': {'counter': c}})
@@ -263,7 +264,7 @@ def marshal_mapannotations(conn, mapann_names=[], mapann_query=None,
     return mapannotations
 
 
-def marshal_screens(conn, mapann_names=[],
+def marshal_screens(conn, mapann_ns=[], mapann_names=[],
                     mapann_value=None, mapann_query=None,
                     group_id=-1, experimenter_id=-1,
                     page=1, limit=settings.PAGE):
@@ -291,9 +292,9 @@ def marshal_screens(conn, mapann_names=[],
     '''
     screens = []
     params, where_clause = _set_parameters(
-        mapann_names=mapann_names, params=None,
-        experimenter_id=experimenter_id,
+        mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=mapann_query, mapann_value=mapann_value,
+        params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
@@ -333,7 +334,7 @@ def marshal_screens(conn, mapann_names=[],
     return screens
 
 
-def marshal_projects(conn, mapann_names=[],
+def marshal_projects(conn, mapann_ns=[], mapann_names=[],
                      mapann_value=None, mapann_query=None,
                      group_id=-1, experimenter_id=-1,
                      page=1, limit=settings.PAGE):
@@ -361,9 +362,9 @@ def marshal_projects(conn, mapann_names=[],
     '''
     projects = []
     params, where_clause = _set_parameters(
-        mapann_names=mapann_names, params=None,
-        experimenter_id=experimenter_id,
+        mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=mapann_query, mapann_value=mapann_value,
+        params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
@@ -405,7 +406,7 @@ def marshal_projects(conn, mapann_names=[],
 
 
 def marshal_datasets(conn, project_id,
-                     mapann_value, mapann_names=[],
+                     mapann_value, mapann_ns=[], mapann_names=[],
                      group_id=-1, experimenter_id=-1,
                      page=1, limit=settings.PAGE):
 
@@ -434,9 +435,9 @@ def marshal_datasets(conn, project_id,
     '''
     datasets = []
     params, where_clause = _set_parameters(
-        mapann_names=mapann_names, params=None,
-        experimenter_id=experimenter_id,
+        mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=None, mapann_value=mapann_value,
+        params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     params.addLong("pid", project_id)
@@ -480,7 +481,7 @@ def marshal_datasets(conn, project_id,
 
 
 def marshal_plates(conn, screen_id,
-                   mapann_value, mapann_names=[],
+                   mapann_value, mapann_ns=[], mapann_names=[],
                    group_id=-1, experimenter_id=-1,
                    page=1, limit=settings.PAGE):
 
@@ -509,9 +510,9 @@ def marshal_plates(conn, screen_id,
     '''
     plates = []
     params, where_clause = _set_parameters(
-        mapann_names=mapann_names, params=None,
-        experimenter_id=experimenter_id,
+        mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=None, mapann_value=mapann_value,
+        params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     params.addLong("sid", screen_id)
@@ -555,7 +556,8 @@ def marshal_plates(conn, screen_id,
 
 
 def marshal_images(conn, parent, parent_id, mapann_value,
-                   mapann_names=[], load_pixels=False,
+                   mapann_ns=[], mapann_names=[],
+                   load_pixels=False,
                    group_id=-1, experimenter_id=-1,
                    page=1, date=False, thumb_version=False,
                    limit=settings.PAGE):
@@ -587,9 +589,9 @@ def marshal_images(conn, parent, parent_id, mapann_value,
     '''
     images = []
     params, where_clause = _set_parameters(
-        mapann_names=mapann_names, params=None,
-        experimenter_id=experimenter_id,
+        mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=None, mapann_value=mapann_value,
+        params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
@@ -710,7 +712,7 @@ def marshal_images(conn, parent, parent_id, mapann_value,
     return images
 
 
-def load_mapannotation(conn, mapann_names=[], mapann_value=None,
+def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
                        group_id=-1, experimenter_id=-1,
                        page=1, limit=settings.PAGE):
     ''' Marshals mapannotation values
@@ -738,9 +740,9 @@ def load_mapannotation(conn, mapann_names=[], mapann_value=None,
     annotations = []
     experimenters = {}
     params, where_clause = _set_parameters(
-        mapann_names=mapann_names, params=None,
-        experimenter_id=experimenter_id,
-        mapann_value=mapann_value, mapann_query=None,
+        mapann_ns=mapann_ns, mapann_names=mapann_names,
+        mapann_query=None, mapann_value=mapann_value,
+        params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
@@ -766,7 +768,8 @@ def load_mapannotation(conn, mapann_names=[], mapann_value=None,
     return annotations, experimenters
 
 
-def marshal_autocomplete(conn, query=None, mapann_names=None,
+def marshal_autocomplete(conn, mapann_ns=[],
+                         query=None, mapann_names=None,
                          group_id=-1, experimenter_id=-1,
                          page=1, limit=settings.PAGE):
     ''' Marshals mapannotation values for autocomplete
@@ -793,9 +796,9 @@ def marshal_autocomplete(conn, query=None, mapann_names=None,
     if not query:
         return ['Pattern not found']
     params, where_clause = _set_parameters(
-        mapann_names=mapann_names, params=None,
-        experimenter_id=experimenter_id,
+        mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=query, mapann_value=None,
+        params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)

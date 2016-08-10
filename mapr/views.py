@@ -55,6 +55,7 @@ import omeroweb
 logger = logging.getLogger(__name__)
 
 
+# Helpers
 def fake_experimenter(label):
     """
     Marshal faked experimenter when id is -1
@@ -92,6 +93,24 @@ def get_list_or_default(request, name, default):
     the arguments provided do not pass basic type validation
     """
     return request.GET.getlist(name, default)
+
+
+def _get_ns(mapr_settings, menu):
+    ns = []
+    try:
+        ns = mapr_settings.MENU_MAPR[menu]['ns']
+    except:
+        pass
+    return ns
+
+
+def _get_keys(mapr_settings, menu):
+    keys = None
+    try:
+        keys = mapr_settings.MENU_MAPR[menu]['default']
+    except:
+        pass
+    return keys
 
 
 @login_required()
@@ -201,10 +220,8 @@ def api_paths_to_object(request, menu=None, value=None, conn=None, **kwargs):
     to support custom path to map.value
     """
 
-    try:
-        keys = mapr_settings.MENU_MAPR[menu]['default']
-    except:
-        keys = None
+    mapann_ns = _get_ns(mapr_settings, menu)
+    keys = _get_keys(mapr_settings, menu)
 
     try:
         mapann_value = get_str_or_default(request, 'map.value', None)
@@ -233,7 +250,7 @@ def api_paths_to_object(request, menu=None, value=None, conn=None, **kwargs):
             return HttpResponseBadRequest('Invalid parameter value')
 
         paths = mapr_paths_to_object(
-            conn=conn, mapann_query=value,
+            conn=conn, mapann_ns=mapann_ns, mapann_query=value,
             mapann_value=mapann_value, mapann_names=mapann_names,
             screen_id=screen_id, plate_id=plate_id, image_id=image_id,
             experimenter_id=experimenter_id, group_id=group_id)
@@ -247,11 +264,9 @@ omeroweb.webclient.views.api_paths_to_object = api_paths_to_object
 @login_required()
 def api_experimenter_list(request, menu,
                           value=None, conn=None, **kwargs):
-    # Validate parameter
-    try:
-        keys = mapr_settings.MENU_MAPR[menu]['default']
-    except:
-        pass
+
+    mapann_ns = _get_ns(mapr_settings, menu)
+    keys = _get_keys(mapr_settings, menu)
 
     # Get parameters
     try:
@@ -273,7 +288,7 @@ def api_experimenter_list(request, menu,
                 conn=conn, experimenter_id=experimenter_id)
         else:
             # fake experimenter -1
-            experimenter = fake_experimenter(menu)
+            experimenter = fake_experimenter(mapr_settings.MENU_MAPR[menu]['label'])
 
         if mapann_value is not None or mapann_query is not None:
             if mapann_query:
@@ -283,6 +298,7 @@ def api_experimenter_list(request, menu,
             # count children
             experimenter['childCount'] = mapr_tree.count_mapannotations(
                 conn=conn,
+                mapann_ns=mapann_ns, 
                 mapann_names=mapann_names,
                 mapann_value=mapann_value,
                 mapann_query=mapann_query,
@@ -301,10 +317,9 @@ def api_experimenter_list(request, menu,
 
 @login_required()
 def api_mapannotation_list(request, menu, conn=None, **kwargs):
-    try:
-        keys = mapr_settings.MENU_MAPR[menu]['default']
-    except:
-        pass
+
+    mapann_ns = _get_ns(mapr_settings, menu)
+    keys = _get_keys(mapr_settings, menu)
 
     # Get parameters
     try:
@@ -329,6 +344,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
             if mapann_value is not None or mapann_query is not None:
                 mapannotations = mapr_tree.marshal_mapannotations(
                     conn=conn,
+                    mapann_ns=mapann_ns,
                     mapann_names=mapann_names,
                     mapann_value=mapann_value,
                     mapann_query=mapann_query,
@@ -339,6 +355,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
         else:
             screens = mapr_tree.marshal_screens(
                 conn=conn,
+                mapann_ns=mapann_ns,
                 mapann_names=mapann_names,
                 mapann_value=mapann_value,
                 mapann_query=mapann_query,
@@ -348,6 +365,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
                 limit=limit)
             projects = mapr_tree.marshal_projects(
                 conn=conn,
+                mapann_ns=mapann_ns,
                 mapann_names=mapann_names,
                 mapann_value=mapann_value,
                 mapann_query=mapann_query,
@@ -369,12 +387,9 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
 
 @login_required()
 def api_datasets_list(request, menu, conn=None, **kwargs):
-    ''' Get a list of plates
-    '''
-    try:
-        keys = mapr_settings.MENU_MAPR[menu]['default']
-    except:
-        pass
+
+    mapann_ns = _get_ns(mapr_settings, menu)
+    keys = _get_keys(mapr_settings, menu)
 
     # Get parameters
     try:
@@ -395,6 +410,7 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
         datasets = mapr_tree.marshal_datasets(
             conn=conn,
             project_id=project_id,
+            mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             mapann_value=mapann_value,
             group_id=group_id,
@@ -413,12 +429,9 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
 
 @login_required()
 def api_plate_list(request, menu, conn=None, **kwargs):
-    ''' Get a list of plates
-    '''
-    try:
-        keys = mapr_settings.MENU_MAPR[menu]['default']
-    except:
-        pass
+
+    mapann_ns = _get_ns(mapr_settings, menu)
+    keys = _get_keys(mapr_settings, menu)
 
     # Get parameters
     try:
@@ -439,6 +452,7 @@ def api_plate_list(request, menu, conn=None, **kwargs):
         plates = mapr_tree.marshal_plates(
             conn=conn,
             screen_id=screen_id,
+            mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             mapann_value=mapann_value,
             group_id=group_id,
@@ -457,19 +471,9 @@ def api_plate_list(request, menu, conn=None, **kwargs):
 
 @login_required()
 def api_image_list(request, menu, conn=None, **kwargs):
-    ''' Get a list of images
-        Specifiying dataset_id will return only images in that dataset
-        Specifying experimenter_id will return orpahned images for that
-        user
-        The orphaned images will include images which belong to the user
-        but are not in any dataset belonging to the user
-        Currently specifying both, experimenter_id will be ignored
 
-    '''
-    try:
-        keys = mapr_settings.MENU_MAPR[menu]['default']
-    except:
-        pass
+    mapann_ns = _get_ns(mapr_settings, menu)
+    keys = _get_keys(mapr_settings, menu)
 
     # Get parameters
     try:
@@ -495,6 +499,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
             conn=conn,
             parent=parent,
             parent_id=parent_id,
+            mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             mapann_value=mapann_value,
             load_pixels=load_pixels,
@@ -539,10 +544,8 @@ def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
 @login_required()
 def api_annotations(request, menu, conn=None, **kwargs):
 
-    try:
-        keys = mapr_settings.MENU_MAPR[menu]['default']
-    except:
-        pass
+    mapann_ns = _get_ns(mapr_settings, menu)
+    keys = _get_keys(mapr_settings, menu)
 
     # Get parameters
     try:
@@ -556,6 +559,7 @@ def api_annotations(request, menu, conn=None, **kwargs):
     try:
         anns, exps = mapr_tree.load_mapannotation(
             conn=conn,
+            mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             mapann_value=mapann_value)
     except ApiUsageException as e:
@@ -571,10 +575,8 @@ def api_annotations(request, menu, conn=None, **kwargs):
 @login_required()
 def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
 
-    try:
-        keys = mapr_settings.MENU_MAPR[menu]['default']
-    except:
-        pass
+    mapann_ns = _get_ns(mapr_settings, menu)
+    keys = _get_keys(mapr_settings, menu)
 
     # Get parameters
     try:
@@ -587,17 +589,12 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
-    # While this interface does support paging, it does so in a
-    # very odd way. The results per page is enforced per query so this
-    # will actually get the limit for projects, datasets (without
-    # parents), screens and plates (without parents). This is fine for
-    # the first page, but the second page may not be what is expected.
-
     autocomplete = []
     try:
         autocomplete = mapr_tree.marshal_autocomplete(
             conn=conn,
             query=query,
+            mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             group_id=group_id,
             experimenter_id=experimenter_id,

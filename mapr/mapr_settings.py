@@ -8,34 +8,32 @@ class MaprSettings(object):
             'default': ('Gene Symbol', ),
             'all': ('Gene Symbol', 'Gene Identifier', ),
             'label': ('Gene', ),
+            'ns': (
+                'openmicroscopy.org/mapr/gene',
+            ),
         },
         'phenotype': {
             'default': ('Phenotype', ),
             'all': ('Phenotype', ),
             'label': ('Phenotype', ),
+            'ns': (
+                'openmicroscopy.org/mapr/phenotype',
+            ),
         },
         'compound': {
             'default': ('Compound Name', ),
             'all': ('Compound Name', ),
             'label': ('Compound', ),
+            'ns': ('openmicroscopy.org/omero/bulk_annotations',),
         },
         'sirna': {
             'default': ('siRNA Identifier', ),
             'all': ('siRNA Identifier', ),
             'label': ('siRNA', ),
+            'ns': ('openmicroscopy.org/omero/bulk_annotations',),
         },
     }
 
     MENU_MAPR = getattr(settings, 'MAPR_MENU_CUSTOM', MAPR_MENU_CUSTOM)
-
-    MAPR_MENU_DEFAULT = {
-        'default': {
-            'default': ('Gene Symbol', ),
-            'all': ('Gene Symbol', 'Gene Identifier', 'Phenotype',
-                    'Compound Name', 'siRNA Identifier', ),
-        }
-    }
-
-    DEFAULT_MAPR = getattr(settings, 'MAPR_MENU_DEFAULT', MAPR_MENU_DEFAULT)
 
 mapr_settings = MaprSettings()
