@@ -62,8 +62,8 @@ def fake_experimenter(label):
     """
     return {
         'id': -1,
-        'omeName': label.capitalize(),
-        'firstName': label.capitalize(),
+        'omeName': label,
+        'firstName': label,
         'lastName': ''
     }
 
