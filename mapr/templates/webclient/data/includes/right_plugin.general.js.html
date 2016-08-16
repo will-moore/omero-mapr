@@ -1,4 +1,5 @@
 {% load common_tags %}
+{% load mapr_tags %}
 
 {% comment %}
 /**
@@ -20,13 +21,40 @@
 */
 {% endcomment %}
 
-
 <script type="text/javascript">
 /**
  * This script is included in the main containers.html page as well as the container_tags.html and public.html pages,
  * adding itself as a selection listener to the jsTree in each case.
  * It loads appropriate data into the right-hand 'general' tab on selection changes in the jsTree.
 **/
+
+OME.linkify_element = function(elements) {
+
+    var mapr_menu = {% mapr_menu_config %};
+    var menu2keys = [];
+    var keys2menu = {};
+    $.each( mapr_menu, function( i, obj ) {
+        $.merge(menu2keys, obj['all']);
+        $.each( obj['all'], function( j, d ) {
+            keys2menu[d] = i
+        });
+    });
+
+    elements.each(function() {
+        var $this = $(this);
+        $this.html(linkify($this.html()));
+
+        // mapr links
+        var _key = $this.children("td:nth-child(1)").text();
+        if ($.inArray(_key, menu2keys) > -1 ) {
+            if (_key in keys2menu && keys2menu[_key] !== undefined) {
+                var _val = $this.children("td:nth-child(2)").text();
+                var _url = "<a href='{% url 'maprindex' %}" + keys2menu[_key] +"/" + _val +"/'>" + _val + "</a>";
+                $this.children("td:nth-child(2)").html(_url);
+            }
+        }
+    });
+};
 
 $(function () {
 

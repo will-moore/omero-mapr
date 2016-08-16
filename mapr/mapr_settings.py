@@ -14,7 +14,7 @@ class MaprSettings(object):
         },
         'phenotype': {
             'default': ('Phenotype', ),
-            'all': ('Phenotype', ),
+            'all': ('Phenotype', 'Phenotype Term Accession', ),
             'label': ('Phenotype', ),
             'ns': (
                 'openmicroscopy.org/mapr/phenotype',

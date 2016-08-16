@@ -74,7 +74,6 @@
     <!-- include code to handle primary 'thumbs' middle plugin -->
     <script src="{% static 'mapr/javascript/center_plugin.thumbs.js'|add:url_suffix %}" type="text/javascript"></script>
 
-
 {% endblock %}
 
 
@@ -95,12 +94,12 @@
                 <li>
                     <div class="search filtersearch autocompletesearch" id="autocompletesearch">
                         <label for="id_autocomplete">Type {{ menu_default }}...</label>
-                        <input type="text" name="id_autocomplete" id="id_autocomplete" title="Search using a {{ menu_default }}.">
+                        <input type="text" name="id_autocomplete" id="id_autocomplete" title="Search using a {{ menu_default }} ({{ menu_all }}).">
                     </div>
                 </li>
 
                 <li style="float:right">
-                    <input id="search_hints" type="image" class="button" src="{% static "webgateway/img/help16.png" %}" data-content="Please start typing to search for {{ menu_default }}. Autocomplete will help you enter {{ menu_default }} by automatically filling information in as you type."/>
+                    <input id="search_hints" type="image" class="button" src="{% static "webgateway/img/help16.png" %}" data-content="Please start typing to search for {{ menu_default }}. Autocomplete will help you to enter {{ menu_default }} ({{ menu_all }}) by automatically filling information in as you type."/>
                 </li>
             </ul>
 

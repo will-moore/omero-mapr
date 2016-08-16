@@ -107,7 +107,7 @@ def _get_ns(mapr_settings, menu):
 def _get_keys(mapr_settings, menu):
     keys = None
     try:
-        keys = mapr_settings.MENU_MAPR[menu]['default']
+        keys = mapr_settings.MENU_MAPR[menu]['all']
     except:
         pass
     return keys
@@ -194,10 +194,12 @@ def index(request, menu, value=None, conn=None, url=None, **kwargs):
     context = {
         'menu': menu,
         'menu_default': ", ".join(mapr_settings.MENU_MAPR[menu]['default']),
+        'menu_all': ", ".join(mapr_settings.MENU_MAPR[menu]['all']),
         'init': init,
         'myGroups': myGroups,
         'new_container_form': new_container_form,
-        'global_search_form': global_search_form}
+        'global_search_form': global_search_form
+    }
     context['groups'] = groups
     context['active_group'] = conn.getObject(
         "ExperimenterGroup", long(active_group))
