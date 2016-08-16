@@ -290,7 +290,8 @@ def api_experimenter_list(request, menu,
                 conn=conn, experimenter_id=experimenter_id)
         else:
             # fake experimenter -1
-            experimenter = fake_experimenter(mapr_settings.MENU_MAPR[menu]['label'])
+            experimenter = fake_experimenter(
+                mapr_settings.MENU_MAPR[menu]['label'])
 
         if mapann_value is not None or mapann_query is not None:
             if mapann_query:
@@ -300,7 +301,7 @@ def api_experimenter_list(request, menu,
             # count children
             experimenter['childCount'] = mapr_tree.count_mapannotations(
                 conn=conn,
-                mapann_ns=mapann_ns, 
+                mapann_ns=mapann_ns,
                 mapann_names=mapann_names,
                 mapann_value=mapann_value,
                 mapann_query=mapann_query,

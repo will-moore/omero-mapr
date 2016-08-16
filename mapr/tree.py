@@ -163,8 +163,8 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
     return counter
 
 
-def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[], mapann_query=None,
-                           mapann_value=None,
+def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
+                           mapann_query=None, mapann_value=None,
                            group_id=-1, experimenter_id=-1,
                            page=1, limit=settings.PAGE):
     ''' Marshals mapannotation values
@@ -228,7 +228,7 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[], mapann_query=Non
              None,
              experimenter_id,  # e[0]["ownerId"],
              {},  # e[0]["map_details_permissions"],
-             None, #e[0]["ns"],
+             None,  # e[0]["ns"],
              e[0]["childCount"]]
         mt = _marshal_map(conn, e[0:7])
         mt.update({'extra': {'counter': c}})
