@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/aleksandra-tarkowska/mapannotations.svg?branch=master)](https://travis-ci.org/aleksandra-tarkowska/mapannotations)
+
 # mapr tree
 An OMERO.web app allowing to browse the data through attributes linekd to image
 
