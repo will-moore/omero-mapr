@@ -21,12 +21,46 @@
 */
 {% endcomment %}
 
+
+<style type="text/css">
+
+    .keyValueTable tbody tr td span.favicon img {
+        border: 1px solid hsl(210, 8%, 65%);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+        vertical-align: middle;
+        width: 15px;
+        height: 15px;
+    }
+    .keyValueTable tbody tr td span.blank img {
+        width: 17px;
+        height: 15px;
+    }
+</style>
+
+
 <script type="text/javascript">
 /**
  * This script is included in the main containers.html page as well as the container_tags.html and public.html pages,
  * adding itself as a selection listener to the jsTree in each case.
  * It loads appropriate data into the right-hand 'general' tab on selection changes in the jsTree.
 **/
+
+var urlRegex = /(https?|ftp|file):\/\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]/g;
+
+var iconify = function(input, label, imgsrc, target) {
+    if (typeof imgsrc === 'undefined') {
+        imgsrc = "http://www.google.com/s2/favicons?domain=$&";
+    }
+    if (typeof target !== 'undefined') {
+        target = "target='_blank'"
+    }
+    return input.replace(urlRegex, "<span class='favicon'><a href='$&' " + target + " title='"+ label +"'><img src='" + imgsrc + "' /></a> " + label + "</span>");
+};
+
+var isURL = function(input) {
+    var regex = new RegExp(urlRegex);
+    return regex.test(input);
+};
 
 OME.linkify_element = function(elements) {
 
@@ -42,18 +76,31 @@ OME.linkify_element = function(elements) {
 
     elements.each(function() {
         var $this = $(this);
-        $this.html(linkify($this.html()));
+
+        var $chlabel = $this.children("td:nth-child(1)");
+        var $chvalue = $this.children("td:nth-child(2)");
 
         // mapr links
-        var _key = $this.children("td:nth-child(1)").text();
+        var _key = $chlabel.text();
         if ($.inArray(_key, menu2keys) > -1 ) {
             if (_key in keys2menu && keys2menu[_key] !== undefined) {
-                var _val = $this.children("td:nth-child(2)").text();
-                var _url = "<a href='{% url 'maprindex' %}" + keys2menu[_key] +"/" + _val +"/'>" + _val + "</a>";
-                $this.children("td:nth-child(2)").html(_url);
+                var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/" + $chvalue.text() + "/";
+                $chvalue.html("<a href='" + _url + "'>" + $chvalue.text() + "</a>");
+                imgsrc = "{% static 'webgateway/img/ome.ico' %}";
+                $chlabel.html(iconify(_url, $chlabel.text(), imgsrc));
+            }
+        }  else {
+            // linkify
+            if (isURL( $chvalue.html())) {
+                $chlabel.html(iconify($chvalue.html(), $chlabel.text(), undefined, true));
+                $chvalue.html(linkify($chvalue.html()));
+            } else {
+                $chlabel.html("<span class='blank'><img src='{% static 'webgateway/img/blank_tile.png' %}'/></span> " + $chlabel.text());
             }
         }
+        
     });
+
 };
 
 $(function () {
