@@ -30,7 +30,7 @@ class MaprSettings(object):
             'default': ('siRNA Identifier', ),
             'all': ('siRNA Identifier', ),
             'label': ('siRNA', ),
-            'ns': ('openmicroscopy.org/omero/bulk_annotations',),
+            'ns': ('openmicroscopy.org/mapr/sirna',),
         },
     }
 
