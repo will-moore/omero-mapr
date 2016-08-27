@@ -20,18 +20,35 @@
 #
 # Version: 1.0
 
-
+import os
 from setuptools import setup, find_packages
 
-VERSION = '0.0.1'
 
-setup(name="mapr",
-      version=VERSION,
-      description=('A high-level Python Web Client framework for OMERO'),
-      author='Aleksandra Tarkowska',
-      author_email='A.Tarkowska@dundee.ac.uk',
-      license='AGPLv3',
-      packages=find_packages(exclude=['ez_setup']),
-      include_package_data=True,
-      zip_safe=False,
-      )
+def get_requirements():
+    with open('requirements.txt') as f:
+        rv = f.read().splitlines()
+    return rv
+
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
+VERSION = '0.1.1'
+
+
+setup(
+    name="omero-mapr",
+    packages=find_packages(exclude=['ez_setup']),
+    version=VERSION,
+    description="MAPR is a Python plugin for OMERO.web",
+    long_description=read('README.rst'),
+    author='The Open Microscopy Team',
+    author_email='ome-devel@lists.openmicroscopy.org.uk',
+    license='AGPLv3',
+    url="https://github.com/aleksandra-tarkowska/mapr",
+    download_url='https://github.com/aleksandra-tarkowska/mapr/tarball/0.1.1',
+    install_requires=get_requirements(),
+    include_package_data=True,
+    zip_safe=False,
+)

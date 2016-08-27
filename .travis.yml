@@ -12,4 +12,6 @@ install:
   - pip install flake8 --use-mirrors
 
 script:
-  - find . -name "*.py" | xargs flake8
+  - flake8 -v .
+  - python setup.py sdist
+  - pip install dist/omero-mapr*.tar.gz

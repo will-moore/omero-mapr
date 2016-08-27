@@ -20,6 +20,7 @@
 #
 # Version: 1.0
 
+import logging
 import omero
 
 from omero.rtypes import rstring, rlist, unwrap, wrap
@@ -32,6 +33,9 @@ from omeroweb.webclient.tree import _marshal_screen
 from omeroweb.webclient.tree import _marshal_plate
 from omeroweb.webclient.tree import _marshal_image
 from omeroweb.webclient.tree import _marshal_annotation
+
+
+logger = logging.getLogger(__name__)
 
 
 def _set_parameters(mapann_ns=[], mapann_names=[],
@@ -159,6 +163,7 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
         where %s
         """ % (" and ".join(where_clause))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     counter += unwrap(qs.projection(q, params, service_opts))[0][0]
     return counter
 
@@ -220,6 +225,7 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
         order by count(i.id) DESC
         """ % (" and ".join(where_clause))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         c = e[0]["imgCount"]
@@ -247,6 +253,7 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
         order by count(i.id) DESC
         """ % (" and ".join(where_clause))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         c = e[0]["imgCount"]
@@ -320,6 +327,7 @@ def marshal_screens(conn, mapann_ns=[], mapann_names=[],
         order by lower(screen.name), screen.id
         """ % (" and ".join(where_clause))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         e = [e[0]["id"],
@@ -391,6 +399,7 @@ def marshal_projects(conn, mapann_ns=[], mapann_names=[],
         order by lower(project.name), project.id
         """ % (" and ".join(where_clause))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         e = [e[0]["id"],
@@ -466,6 +475,7 @@ def marshal_datasets(conn, project_id,
         order by lower(dataset.name), dataset.id
         """ % (" and ".join(where_clause))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         e = [e[0]["id"],
@@ -541,6 +551,7 @@ def marshal_plates(conn, screen_id,
         order by lower(plate.name), plate.id
         """ % (" and ".join(where_clause))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         e = [e[0]["id"],
@@ -665,6 +676,7 @@ def marshal_images(conn, parent, parent_id, mapann_value,
         """ % (' select image.id from ' + ' '.join(from_join_clauses),
                build_clause(where_clause, 'where', 'and'))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)[0]
         d = [e["id"],
@@ -701,6 +713,7 @@ def marshal_images(conn, parent, parent_id, mapann_value,
             )
             """
         thumbVersions = {}
+        logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
         for t in qs.projection(q, params, service_opts):
             iid, tv = unwrap(t)
             thumbVersions[iid] = tv
@@ -761,6 +774,7 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
             join a.mapValue mv where %s
         """ % (" and ".join(where_clause))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for ann in qs.findAllByQuery(q, params, service_opts):
         d = _marshal_annotation(conn, ann, None)
         annotations.append(d)
@@ -818,6 +832,7 @@ def marshal_autocomplete(conn, mapann_ns=[],
         order by lower(mv.value)
         """ % (" and ".join(where_clause))
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     autocomplete = []
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
