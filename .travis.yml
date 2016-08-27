@@ -13,5 +13,4 @@ install:
 
 script:
   - flake8 -v .
-  - python setup.py sdist
-  - pip install dist/omero-mapr*.tar.gz
+  - python setup.py sdist install
