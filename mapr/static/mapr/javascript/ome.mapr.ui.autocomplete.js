@@ -62,7 +62,7 @@ $(function () {
             jstreeInst.deselect_all();
             jstreeInst.close_all();
             OME.clearThumbnailsPanel();
-            WEBCLIENT.URLS.api_experimenters = MAPANNOTATIONS.URLS.autocomplete_default
+            WEBCLIENT.URLS.api_experimenter = MAPANNOTATIONS.URLS.autocomplete_default
             jstreeInst.settings.core.data = function(node, callback, payload) {
                 oldData.apply(jstreeInst, [node, callback, {'value': ui.item.value}]);
             };

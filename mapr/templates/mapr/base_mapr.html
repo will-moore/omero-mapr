@@ -37,9 +37,9 @@
     <script type="text/javascript">
 
         {% if map_value %}
-            WEBCLIENT.URLS.api_experimenters = "{% url 'mapannotations_api_experimenters' menu map_value %}";
+            WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenters' menu map_value %}";
         {% else %}
-            WEBCLIENT.URLS.api_experimenters = "{% url 'mapannotations_api_experimenters' menu %}";
+            WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenters' menu %}";
         {% endif %}
 
         WEBCLIENT.URLS.tree_top_level = "{% url 'mapannotations_api_mapannotations' menu %}";
