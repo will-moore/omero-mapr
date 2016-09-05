@@ -32,14 +32,6 @@ class MaprSettings(object):
             'label': ('siRNA', ),
             'ns': ('openmicroscopy.org/mapr/sirna',),
         },
-        'organism': {
-            'default': ('Organism', ),
-            'all': ('Organism', 'Organism Part', ),
-            'label': ('Organism', ),
-            'ns': (
-                'openmicroscopy.org/mapr/organism',
-            ),
-        },
     }
 
     MENU_MAPR = getattr(settings, 'MAPR_MENU_CUSTOM', MAPR_MENU_CUSTOM)
