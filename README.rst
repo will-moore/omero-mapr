@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/aleksandra-tarkowska/mapr.svg?branch=master
-    :target: https://travis-ci.org/aleksandra-tarkowska/mapr
+.. image:: https://travis-ci.org/ome/omero-mapr.svg?branch=master
+    :target: https://travis-ci.org/ome/omero-mapr
 
 .. image:: https://badge.fury.io/py/omero-mapr.svg
     :target: https://badge.fury.io/py/omero-mapr
