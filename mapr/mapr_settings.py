@@ -10,6 +10,7 @@ class MaprSettings(object):
             'label': ('Gene', ),
             'ns': (
                 'openmicroscopy.org/mapr/gene',
+                'openmicroscopy.org/omero/bulk_annotations'
             ),
         },
         'phenotype': {
@@ -18,19 +19,26 @@ class MaprSettings(object):
             'label': ('Phenotype', ),
             'ns': (
                 'openmicroscopy.org/mapr/phenotype',
+                'openmicroscopy.org/omero/bulk_annotations'
             ),
         },
         'compound': {
             'default': ('Compound Name', ),
             'all': ('Compound Name', ),
             'label': ('Compound', ),
-            'ns': ('openmicroscopy.org/omero/bulk_annotations',),
+            'ns': (
+                'openmicroscopy.org/omero/compund',
+                'openmicroscopy.org/omero/bulk_annotations'
+            ),
         },
         'sirna': {
             'default': ('siRNA Identifier', ),
             'all': ('siRNA Identifier', ),
             'label': ('siRNA', ),
-            'ns': ('openmicroscopy.org/mapr/sirna',),
+            'ns': (
+                'openmicroscopy.org/mapr/sirna',
+                'openmicroscopy.org/omero/bulk_annotations'
+            ),
         },
     }
 

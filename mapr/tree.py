@@ -772,6 +772,7 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
             from Annotation a
             join fetch a.details.creationEvent
             join a.mapValue mv where %s
+            order by a.ns asc
         """ % (" and ".join(where_clause))
 
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
