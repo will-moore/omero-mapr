@@ -73,23 +73,25 @@ OME.linkify_element = function(elements) {
 
     elements.each(function() {
         var $this = $(this);
+        if (!$this.parent().parent().hasClass("editableKeyValueTable")) {
+            var $chlabel = $this.children("td:nth-child(1)");
+            var $chvalue = $this.children("td:nth-child(2)");
 
-        var $chlabel = $this.children("td:nth-child(1)");
-        var $chvalue = $this.children("td:nth-child(2)");
-
-        // iconify url if exists
-        $chvalue.html(iconify($chvalue.text()));
+            // iconify url if exists
+            $chvalue.html(iconify($chvalue.text()));
         
-        // if label matchs mapr PK convert text value to string
-        var _key = $chlabel.text().trim();
-        var _val = $chvalue.text().trim();
-        if ( $.inArray(_key, menu2keys) > -1 ) {
-            if ( _key in keys2menu && keys2menu[_key] !== undefined ) {
-                // create mapr url
-                var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/" + _val + "/";
-                $chvalue.html($chvalue.html().replace(_val, "<a href='" + _url + "'>" + _val + "</a>"));
-            }
-        } 
+            // if label matchs mapr PK convert text value to string
+            var _key = $chlabel.text().trim();
+            var _val = $chvalue.text().trim();
+            if ( $.inArray(_key, menu2keys) > -1 ) {
+                if ( _key in keys2menu && keys2menu[_key] !== undefined ) {
+                    // create mapr url
+                    var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/" + _val + "/";
+                    $chvalue.html($chvalue.html().replace(_val, "<a href='" + _url + "'>" + _val + "</a>"));
+                }
+            } 
+        }
+
     });
 
 };
