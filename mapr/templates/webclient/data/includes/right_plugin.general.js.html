@@ -51,7 +51,7 @@ var iconify = function(input, imgsrc) {
     if (typeof imgsrc === 'undefined') {
         imgsrc = "http://www.google.com/s2/favicons?domain=$&";
     }
-    return input.replace(urlRegex, "<span class='favicon'><a href='$&' target='_blank' ><img src='" + imgsrc + "' /></a></span>");
+    return input.replace(urlRegex, " <span class='favicon'><a href='$&' target='_blank' ><img src='" + imgsrc + "' /></a></span>");
 };
 
 var isURL = function(input) {
@@ -72,14 +72,12 @@ OME.linkify_element = function(elements) {
     });
 
     elements.each(function() {
-        var $this = $(this);
-        if (!$this.parent().parent().hasClass("editableKeyValueTable")) {
-            var $chlabel = $this.children("td:nth-child(1)");
-            var $chvalue = $this.children("td:nth-child(2)");
+        var $row = $(this);
+        if (!$row.parent().parent().hasClass("editableKeyValueTable")) {
+            var $chlabel = $row.children("td:nth-child(1)");
+            var $chvalue = $row.children("td:nth-child(2)");
 
-            // iconify url if exists
             $chvalue.html(iconify($chvalue.text()));
-        
             // if label matchs mapr PK convert text value to string
             var _key = $chlabel.text().trim();
             var _val = $chvalue.text().trim();
@@ -89,7 +87,19 @@ OME.linkify_element = function(elements) {
                     var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/" + _val + "/";
                     $chvalue.html($chvalue.html().replace(_val, "<a href='" + _url + "'>" + _val + "</a>"));
                 }
-            } 
+            }
+            var _tkey = _key.replace("URL", "").trim();
+            if ( _key.indexOf("URL") >= 0 && $.inArray(_tkey, menu2keys) > -1 ) {
+                //var $target = $("td").filter(function( label ) {
+                //    return $(this).text() == _tkey;
+                //}).closest("tr");
+                var $target = $row.prev('tr');
+                var $targetchlabel = $target.children("td:nth-child(1)");
+                var $targetchvalue = $target.children("td:nth-child(2)");
+                // iconify url if exists
+                $targetchvalue.append($chvalue.html());
+                $row.remove();
+            }
         }
 
     });
