@@ -31,13 +31,12 @@ from mapr_settings import mapr_settings
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseServerError, HttpResponseBadRequest, \
-    HttpResponseRedirect
+    HttpResponseRedirect, JsonResponse
 
 from show import mapr_paths_to_object
 from show import MapShow as Show
 import tree as mapr_tree
 
-from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
 from omeroweb.webclient.views import get_long_or_default, get_bool_or_default
 from omeroweb.webclient.views import switch_active_group
@@ -257,7 +256,7 @@ def api_paths_to_object(request, menu=None, value=None, conn=None, **kwargs):
             screen_id=screen_id, plate_id=plate_id, image_id=image_id,
             experimenter_id=experimenter_id, group_id=group_id)
 
-        return HttpJsonResponse({'paths': paths})
+        return JsonResponse({'paths': paths})
     return webclient_api_paths_to_object(request, conn=conn, **kwargs)
 
 omeroweb.webclient.views.api_paths_to_object = api_paths_to_object
@@ -315,7 +314,7 @@ def api_experimenter_list(request, menu,
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'experimenter': experimenter})
+    return JsonResponse({'experimenter': experimenter})
 
 
 @login_required()
@@ -384,8 +383,8 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'maps': mapannotations,
-                             'screens': screens, 'projects': projects})
+    return JsonResponse({'maps': mapannotations,
+                         'screens': screens, 'projects': projects})
 
 
 @login_required()
@@ -427,7 +426,7 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'datasets': datasets})
+    return JsonResponse({'datasets': datasets})
 
 
 @login_required()
@@ -469,7 +468,7 @@ def api_plate_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'plates': plates})
+    return JsonResponse({'plates': plates})
 
 
 @login_required()
@@ -519,7 +518,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'images': images})
+    return JsonResponse({'images': images})
 
 
 @login_required()
@@ -572,7 +571,7 @@ def api_annotations(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'annotations': anns, 'experimenters': exps})
+    return JsonResponse({'annotations': anns, 'experimenters': exps})
 
 
 @login_required()
@@ -610,4 +609,4 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse(autocomplete)
+    return JsonResponse(list(autocomplete), safe=False)
