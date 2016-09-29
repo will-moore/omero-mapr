@@ -1,3 +1,7 @@
+import django
+if django.VERSION < (1, 8):
+    raise RuntimeError('MAPR requires Django 1.8+')
+
 from django.conf import settings
 
 
