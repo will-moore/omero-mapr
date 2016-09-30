@@ -32,7 +32,7 @@ from omeroweb.webclient.tree import parse_permissions_css
 from omeroweb.webclient.tree import _marshal_screen
 from omeroweb.webclient.tree import _marshal_plate
 from omeroweb.webclient.tree import _marshal_image
-from omeroweb.webclient.tree import _marshal_annotation
+from omeroweb.webclient.tree import _marshal_annotation, _marshal_exp_obj
 
 
 logger = logging.getLogger(__name__)
@@ -771,6 +771,7 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
         select distinct a
             from Annotation a
             join fetch a.details.creationEvent
+            join fetch a.details.owner
             join a.mapValue mv where %s
             order by a.ns asc
         """ % (" and ".join(where_clause))
@@ -778,7 +779,11 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for ann in qs.findAllByQuery(q, params, service_opts):
         d = _marshal_annotation(conn, ann, None)
+        exp = _marshal_exp_obj(ann.details.owner)
+        experimenters[exp['id']] = exp
         annotations.append(d)
+
+    experimenters = experimenters.values()
 
     return annotations, experimenters
 
