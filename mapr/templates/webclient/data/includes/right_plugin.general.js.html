@@ -35,6 +35,9 @@
         width: 17px;
         height: 15px;
     }
+    .keyValueTable thead tr h1 {
+        padding: 2px 0px;
+    }
 </style>
 
 
@@ -59,52 +62,75 @@ var isURL = function(input) {
     return regex.test(input);
 };
 
+var old_linkify_element = OME.linkify_element;
 OME.linkify_element = function(elements) {
+    if ($("table.keyValueTable").is(elements) ) {
+        var mapr_menu = {% mapr_menu_config %};
 
-    var mapr_menu = {% mapr_menu_config %};
-    var menu2keys = [];
-    var keys2menu = {};
-    $.each( mapr_menu, function( i, obj ) {
-        $.merge(menu2keys, obj['all']);
-        $.each( obj['all'], function( j, d ) {
-            keys2menu[d] = i
+        // Replace namespace with label
+        var ns2menu = {};
+        $.each( mapr_menu, function( i, obj ) {
+            $.each( obj['ns'], function( j, ns ) {
+                ns2menu[ns] = obj['label'];
+            });
         });
-    });
+        var t = $("table.keyValueTable thead tr");
+        var $targets = t.filter(function() {
+            if ($(this).attr('title') in ns2menu) {
+                var old = $(this).children("th").text();
+                $(this).children("th").html("<h1>" + ns2menu[$(this).attr('title')] + "</h1>");
+                    //.append(' <span style="font-weight:normal;">' + old + '</span>')
+            }
+        });
 
-    elements.each(function() {
-        var $row = $(this);
-        if (!$row.parent().parent().hasClass("editableKeyValueTable")) {
-            var $chlabel = $row.children("td:nth-child(1)");
-            var $chvalue = $row.children("td:nth-child(2)");
+        // linkify also mapr keys and convert URL to icons
+        var menu2keys = [];
+        var keys2menu = {};
+        $.each( mapr_menu, function( i, obj ) {
+            $.merge(menu2keys, obj['all']);
+            $.each( obj['all'], function( j, d ) {
+                keys2menu[d] = i
+            });
+        });
 
-            $chvalue.html(iconify($chvalue.text()));
-            // if label matchs mapr PK convert text value to string
-            var _key = $chlabel.text().trim();
-            var _val = $chvalue.text().trim();
-            if ( $.inArray(_key, menu2keys) > -1 ) {
-                if ( _key in keys2menu && keys2menu[_key] !== undefined ) {
-                    // create mapr url
-                    var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/" + _val + "/";
-                    $chvalue.html($chvalue.html().replace(_val, "<a href='" + _url + "'>" + _val + "</a>"));
+        elements.find("tbody").find("tr").each(function() {
+            var $row = $(this);
+            if (!$row.parent().parent().hasClass("editableKeyValueTable")) {
+                var $chlabel = $row.children("td:nth-child(1)");
+                var $chvalue = $row.children("td:nth-child(2)");
+
+                $chvalue.html(iconify($chvalue.text()));
+                // if label matchs mapr PK convert text value to string
+                var _key = $chlabel.text().trim();
+                var _val = $chvalue.text().trim();
+                if ( $.inArray(_key, menu2keys) > -1 ) {
+                    if ( _key in keys2menu && keys2menu[_key] !== undefined ) {
+                        // create mapr url
+                        var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/" + _val + "/";
+                        $chvalue.html($chvalue.html().replace(_val, "<a href='" + _url + "'>" + _val + "</a>"));
+                    }
+                }
+                var _tkey = _key.replace("URL", "").trim();
+                if ( _key.indexOf("URL") >= 0 && $.inArray(_tkey, menu2keys) > -1 ) {
+                    //var $target = $("td").filter(function() {
+                    //    return $(this).text() == _tkey;
+                    //}).closest("tr");
+                    var $target = $row.prev('tr');
+                    var $targetchlabel = $target.children("td:nth-child(1)");
+                    var $targetchvalue = $target.children("td:nth-child(2)");
+                    // iconify url if exists
+                    $targetchvalue.append($chvalue.html());
+                    $row.remove();
                 }
             }
-            var _tkey = _key.replace("URL", "").trim();
-            if ( _key.indexOf("URL") >= 0 && $.inArray(_tkey, menu2keys) > -1 ) {
-                //var $target = $("td").filter(function( label ) {
-                //    return $(this).text() == _tkey;
-                //}).closest("tr");
-                var $target = $row.prev('tr');
-                var $targetchlabel = $target.children("td:nth-child(1)");
-                var $targetchvalue = $target.children("td:nth-child(2)");
-                // iconify url if exists
-                $targetchvalue.append($chvalue.html());
-                $row.remove();
-            }
-        }
 
-    });
-
+        });
+    } else {
+        old_linkify_element(elements);
+    }
 };
+
+
 
 $(function () {
 
