@@ -1,47 +1,27 @@
 import django
+from django.conf import settings
+from omeroweb.settings import process_custom_settings, report_settings
+import sys
+import json
+
+
 if django.VERSION < (1, 8):
     raise RuntimeError('MAPR requires Django 1.8+')
 
-from django.conf import settings
+# load settings
+MAPR_SETTINGS_MAPPING = {
+    "omeroweb.mapr.config":
+        ["MAPR_CONFIG", '[]',
+         json.loads,
+         None],
+    }
+
+process_custom_settings(sys.modules[__name__], 'MAPR_SETTINGS_MAPPING')
+report_settings(sys.modules[__name__])
 
 
 class MaprSettings(object):
 
-    MAPR_MENU_CUSTOM = {
-        'gene': {
-            'default': ('Gene Symbol', ),
-            'all': ('Gene Symbol', 'Gene Identifier', ),
-            'label': ('Gene', ),
-            'ns': (
-                'openmicroscopy.org/mapr/gene',
-            ),
-        },
-        'phenotype': {
-            'default': ('Phenotype', ),
-            'all': ('Phenotype', 'Phenotype Term Accession', ),
-            'label': ('Phenotype', ),
-            'ns': (
-                'openmicroscopy.org/mapr/phenotype',
-            ),
-        },
-        'compound': {
-            'default': ('Compound Name', ),
-            'all': ('Compound Name', ),
-            'label': ('Compound', ),
-            'ns': (
-                'openmicroscopy.org/omero/compund',
-            ),
-        },
-        'sirna': {
-            'default': ('siRNA Identifier', ),
-            'all': ('siRNA Identifier', ),
-            'label': ('siRNA', ),
-            'ns': (
-                'openmicroscopy.org/mapr/sirna',
-            ),
-        },
-    }
-
-    MENU_MAPR = getattr(settings, 'MAPR_MENU_CUSTOM', MAPR_MENU_CUSTOM)
+    MENU_MAPR = getattr(settings, 'MAPR_CONFIG', MAPR_CONFIG)  # noqa
 
 mapr_settings = MaprSettings()
