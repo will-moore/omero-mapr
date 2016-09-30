@@ -58,12 +58,9 @@ urlpatterns += (
         name="maprindex"),
 
     url(r'^api/(?P<menu>%s)/(?:(?P<value>[:\.\-\w\s]+)/)?'
-        r'experimenters/$' % MENU_MAPR_REGEX,
+        r'count/$' % MENU_MAPR_REGEX,
         views.api_experimenter_list,
         name='mapannotations_api_experimenters'),
-    url(r'^api/(?P<menu>%s)/$' % MENU_MAPR_REGEX,
-        views.api_mapannotation_list,
-        name='mapannotations_api_mapannotations'),
     url(r'^api/(?P<menu>%s)/datasets/$' % MENU_MAPR_REGEX,
         views.api_datasets_list,
         name='mapannotations_api_datasets'),
@@ -88,6 +85,11 @@ urlpatterns += (
     url(r'^api/(?P<menu>%s)/annotations/$' % MENU_MAPR_REGEX,
         views.api_annotations,
         name='mapannotations_api_annotations'),
+
+    # must be last on the list
+    url(r'^api/(?P<menu>%s)/(?:(?P<value>[:\.\-\w\s]+)/)?$' % MENU_MAPR_REGEX,
+        views.api_mapannotation_list,
+        name='mapannotations_api_mapannotations'),
 
     # autocomplete
     url(r'^autocomplete/(?P<menu>%s)/$' % MENU_MAPR_REGEX,

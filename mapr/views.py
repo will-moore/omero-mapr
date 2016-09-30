@@ -318,7 +318,7 @@ def api_experimenter_list(request, menu,
 
 
 @login_required()
-def api_mapannotation_list(request, menu, conn=None, **kwargs):
+def api_mapannotation_list(request, menu, value=None, conn=None, **kwargs):
 
     mapann_ns = _get_ns(mapr_settings, menu)
     keys = _get_keys(mapr_settings, menu)
@@ -329,8 +329,8 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
-        mapann_value = get_str_or_default(request, 'id', None) \
-            or get_str_or_default(request, 'value', None)
+        mapann_value = value or get_str_or_default(request, 'value', None) \
+            or get_str_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         mapann_query = get_str_or_default(request, 'query', None)
         orphaned = get_bool_or_default(request, 'orphaned', False)
