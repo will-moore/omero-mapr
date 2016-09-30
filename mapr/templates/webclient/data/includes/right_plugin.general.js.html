@@ -79,7 +79,8 @@ OME.linkify_element = function(elements) {
             if ($(this).attr('title') in ns2menu) {
                 var old = $(this).children("th").text();
                 $(this).children("th").html("<h1>" + ns2menu[$(this).attr('title')] + "</h1>");
-                    //.append(' <span style="font-weight:normal;">' + old + '</span>')
+                $(this).closest('tr').nextAll("tr.tooltip").children('th').children('span')
+                    .append('<br/><b>NS:</b> ' + old + '');
             }
         });
 
