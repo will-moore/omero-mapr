@@ -113,10 +113,10 @@ OME.linkify_element = function(elements) {
                 }
                 var _tkey = _key.replace("URL", "").trim();
                 if ( _key.indexOf("URL") >= 0 && $.inArray(_tkey, menu2keys) > -1 ) {
-                    //var $target = $("td").filter(function() {
-                    //    return $(this).text() == _tkey;
-                    //}).closest("tr");
-                    var $target = $row.prev('tr');
+                    var $target = $row.find("tr").filter(function() {
+                        return $(this).text() == _tkey;
+                    }).closest("tr");
+                    //var $target = $row.prev('tr');
                     var $targetchlabel = $target.children("td:nth-child(1)");
                     var $targetchvalue = $target.children("td:nth-child(2)");
                     // iconify url if exists
