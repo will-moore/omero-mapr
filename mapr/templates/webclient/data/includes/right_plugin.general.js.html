@@ -111,17 +111,23 @@ OME.linkify_element = function(elements) {
                         $chvalue.html($chvalue.html().replace(_val, "<a href='" + _url + "'>" + _val + "</a>"));
                     }
                 }
-                var _tkey = _key.replace("URL", "").trim();
-                if ( _key.indexOf("URL") >= 0 && $.inArray(_tkey, menu2keys) > -1 ) {
-                    var $target = $row.find("tr").filter(function() {
-                        return $(this).text() == _tkey;
+                var _tkey = _key.replace(/url/i, "").trim();
+                if ( _key.match(new RegExp("url", "i"))  ) {
+                    // Find nearest URL
+                    //var $target1 = $row.prev('tr');
+                    var $target = $row.parent().find("tr").filter(function() {
+                        var $chl = $(this).children("td:nth-child(1)");
+                        var $chv = $(this).children("td:nth-child(2)");
+                        var $chs = $row.children("td:nth-child(2)").find("span a img").attr('src');
+                        return $chl.text() == _tkey && ($chs.indexOf($chv.find("a").text()) >= 0 || $chs.indexOf($chv.text()) >= 0);
                     }).closest("tr");
-                    //var $target = $row.prev('tr');
-                    var $targetchlabel = $target.children("td:nth-child(1)");
-                    var $targetchvalue = $target.children("td:nth-child(2)");
-                    // iconify url if exists
-                    $targetchvalue.append($chvalue.html());
-                    $row.remove();
+                    if ( $target.length ) {
+                        var $targetchlabel = $target.children("td:nth-child(1)");
+                        var $targetchvalue = $target.children("td:nth-child(2)");
+                        // add icon to the target and hide
+                        $targetchvalue.append($chvalue.html());
+                        $row.hide();
+                    }
                 }
             }
 
