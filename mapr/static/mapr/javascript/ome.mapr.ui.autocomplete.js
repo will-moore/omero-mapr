@@ -29,7 +29,8 @@ $(function () {
     var oldData = jstreeInst.settings.core.data;
     
     $("#id_autocomplete").autocomplete({
-        autoFocus: true,
+        autoFocus: false,
+        delay: 1,
         source: function( request, response ) {
             $.ajax({
                 dataType: "json",
@@ -54,11 +55,10 @@ $(function () {
         minLength: 1,
         open: function() {},
         close: function() {},
-        focus: function(event,ui) {
-            $( "#id_autocomplete" ).val( ui.item.label );
-            return false;
-        },
+        focus: function(event,ui) {},
         select: function(event, ui) {
+            // keep selected value in input
+            $( "#id_autocomplete" ).val("");
             jstreeInst.deselect_all();
             jstreeInst.close_all();
             OME.clearThumbnailsPanel();
