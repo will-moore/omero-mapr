@@ -74,7 +74,7 @@ OME.linkify_element = function(elements) {
                 ns2menu[ns] = obj['label'];
             });
         });
-        var t = $("table.keyValueTable thead tr");
+        var t = elements.find("thead").find("tr");
         var $targets = t.filter(function() {
             if ($(this).attr('title') in ns2menu) {
                 var old = $(this).children("th").text();
@@ -101,7 +101,7 @@ OME.linkify_element = function(elements) {
                 var $chvalue = $row.children("td:nth-child(2)");
 
                 $chvalue.html(iconify($chvalue.text()));
-                // if label matchs mapr PK convert text value to string
+                // if label matchs mapr PK
                 var _key = $chlabel.text().trim();
                 var _val = $chvalue.text().trim();
                 if ( $.inArray(_key, menu2keys) > -1 ) {
