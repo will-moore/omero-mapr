@@ -30,17 +30,12 @@ $(function() {
         // Get the current selection
         var selected = jstreeInst.get_selected(true);
         if (selected.length > 0 ) {
-            var dtype = selected[0].type;
-            if (dtype !== "image") {
-                OME.clearThumbnailsPanel();
-                return false;
-            } else {
-                return old_update_thumbnails_panel(event, data);
-            }
+            return old_update_thumbnails_panel(event, data);
         } else {
             OME.clearThumbnailsPanel();
             return false;
         }
 
     };
+
 });

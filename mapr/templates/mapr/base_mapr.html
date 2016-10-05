@@ -36,6 +36,8 @@
 
     <script type="text/javascript">
 
+        WEBCLIENT.UI.TREE.pagination_nodes = ["screen", "acquisition", "project", "tagset",  "image"];
+
         {% if map_value %}
             WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenters' menu map_value %}";
         {% else %}
