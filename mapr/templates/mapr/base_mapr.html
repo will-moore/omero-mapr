@@ -36,7 +36,7 @@
 
     <script type="text/javascript">
 
-        WEBCLIENT.UI.TREE.pagination_nodes = ["screen", "acquisition", "project", "tagset",  "image"];
+        WEBCLIENT.UI.TREE.pagination_nodes = ["screen", "acquisition", "project", "tagset",  "image", "map", "experimenter"];
 
         {% if map_value %}
             WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenters' menu map_value %}";
@@ -46,9 +46,9 @@
 
         WEBCLIENT.URLS.tree_top_level = "{% url 'mapannotations_api_mapannotations' menu %}";
         WEBCLIENT.URLS.tree_map_level = WEBCLIENT.URLS.tree_top_level;
-        
+
         WEBCLIENT.URLS.api_tags_and_tagged = WEBCLIENT.URLS.tree_top_level;
-        
+
         WEBCLIENT.URLS.api_datasets = "{% url 'mapannotations_api_datasets' menu %}";
         WEBCLIENT.URLS.api_images = "{% url 'mapannotations_api_images' menu %}";
         WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_plates' menu %}";
@@ -72,7 +72,7 @@
 
     <script src="{% static 'mapr/javascript/ome.mapr.js'|add:url_suffix %}" type="text/javascript"></script>
     <script src="{% static 'mapr/javascript/ome.mapr.ui.autocomplete.js'|add:url_suffix %}" type="text/javascript"></script>
-    
+
     <!-- include code to handle primary 'thumbs' middle plugin -->
     <script src="{% static 'mapr/javascript/center_plugin.thumbs.js'|add:url_suffix %}" type="text/javascript"></script>
 
