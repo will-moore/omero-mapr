@@ -30,7 +30,7 @@ $(function () {
     
     $("#id_autocomplete").autocomplete({
         autoFocus: false,
-        delay: 1,
+        delay: 1000,
         source: function( request, response ) {
             $.ajax({
                 dataType: "json",
