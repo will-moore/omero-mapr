@@ -54,11 +54,7 @@
         WEBCLIENT.URLS.api_plates = "{% url 'mapannotations_api_plates' menu %}";
         WEBCLIENT.URLS.api_plate_acquisitions = WEBCLIENT.URLS.api_images;
 
-        {% if map_value %}
-            WEBCLIENT.URLS.api_paths_to_object = "{% url 'mapannotations_api_paths_to_object' menu map_value %}";
-        {% else %}
-            WEBCLIENT.URLS.api_paths_to_object = "{% url 'mapannotations_api_paths_to_object' menu %}";
-        {% endif %}
+        WEBCLIENT.URLS.api_paths_to_object = "{% url 'mapannotations_api_paths_to_object' menu %}";
 
         var MAPANNOTATIONS = {}
         MAPANNOTATIONS.URLS = {'static_webclient': "{% static 'mapr' %}/"};

@@ -71,8 +71,7 @@ urlpatterns += (
         views.api_image_list,
         name='mapannotations_api_images'),
 
-    url(r'^api/(?P<menu>%s)/(?:(?P<value>[:\.\-\w\s]+)/)?'
-        r'paths_to_object/$' % MENU_MAPR_REGEX,
+    url(r'^api/(?P<menu>%s)/paths_to_object/$' % MENU_MAPR_REGEX,
         views.api_paths_to_object,
         name='mapannotations_api_paths_to_object'),
 
