@@ -119,6 +119,8 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_query The Map annotation value to filter by using like.
@@ -176,6 +178,8 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_query The Map annotation value to filter by using like.
@@ -291,6 +295,8 @@ def marshal_screens(conn, mapann_ns=[], mapann_names=[],
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_value The Map annotation value to filter by.
@@ -362,6 +368,8 @@ def marshal_projects(conn, mapann_ns=[], mapann_names=[],
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_value The Map annotation value to filter by.
@@ -438,6 +446,8 @@ def marshal_datasets(conn, project_id,
         @type project_id L{long}
         @param mapann_value The Map annotation value to filter by.
         @type mapann_value L{string}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
@@ -514,6 +524,8 @@ def marshal_plates(conn, screen_id,
         @type screen_id L{long}
         @param mapann_value The Map annotation value to filter by.
         @type mapann_value L{string}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
@@ -590,10 +602,12 @@ def marshal_images(conn, parent, parent_id, mapann_value,
         @type conn L{omero.gateway.BlitzGateway}
         @param plate_id The Plate ID to filter by.
         @type plate_id L{long}
-        @param mapann_names The Map annotation names to filter by.
-        @type mapann_names L{string}
         @param mapann_value The Map annotation value to filter by.
         @type mapann_value L{string}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
+        @param mapann_names The Map annotation names to filter by.
+        @type mapann_names L{string}
         @param load_pixels Whether to load the X,Y,Z dimensions
         @type load_pixels Boolean
         @param group_id The Group ID to filter by or -1 for all groups,
@@ -743,6 +757,8 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_query The Map annotation value to filter by using like.
@@ -799,8 +815,8 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
     return annotations, experimenters
 
 
-def marshal_autocomplete(conn, mapann_ns=[],
-                         query=None, mapann_names=None,
+def marshal_autocomplete(conn, query=None,
+                         mapann_ns=[], mapann_names=None,
                          group_id=-1, experimenter_id=-1,
                          page=1, limit=settings.PAGE):
     ''' Marshals mapannotation values for autocomplete
@@ -809,6 +825,8 @@ def marshal_autocomplete(conn, mapann_ns=[],
         @type conn L{omero.gateway.BlitzGateway}
         @param query The Map annotation value to filter by using like.
         @type query L{string}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation name to filter by.
         @type mapann_names L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
@@ -825,7 +843,7 @@ def marshal_autocomplete(conn, mapann_ns=[],
         @type page L{long}
     '''
     if not query:
-        return ['Pattern not found']
+        return []
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=query, mapann_value=None,
