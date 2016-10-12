@@ -42,13 +42,17 @@ $(function () {
                     group: WEBCLIENT.active_group_id
                 },
                 success: function(data) {
-                    $('#id_autocomplete').removeClass('ui-autocomplete-loading');  
-                    response( $.map( data, function(item) {
-                        return item;
-                    }));
+                    $('#id_autocomplete').removeClass('ui-autocomplete-loading');
+                    if (data.length > 0) {
+                        response( $.map( data, function(item) {
+                            return item;
+                        }));
+                    } else {
+                       response([{ label: 'No results found.', value: -1 }]);
+                   }
                 },
                 error: function(data) {
-                    $('#id_autocomplete').removeClass('ui-autocomplete-loading');  
+                    $('#id_autocomplete').removeClass('ui-autocomplete-loading');
                 }
             });
         },
@@ -57,6 +61,9 @@ $(function () {
         close: function() {},
         focus: function(event,ui) {},
         select: function(event, ui) {
+            if (ui.item.value == -1) {
+                return false;
+            }
             // keep selected value in input
             $( "#id_autocomplete" ).val("");
             jstreeInst.deselect_all();
