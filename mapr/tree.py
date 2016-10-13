@@ -132,6 +132,10 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
         or -1 for all experimenters
         @type experimenter_id L{long}
     '''
+    # map value is always one
+    if mapann_value:
+        return 1
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=mapann_query, mapann_value=mapann_value,
@@ -213,62 +217,65 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
 
     qs = conn.getQueryService()
 
-    # TODO: At the moment it supports only one mapann_value
-    # it needs to support multiple values based on below query
-    #
-    # q = """
-    #     select
-    #          distinct mv.value as value
-    #      from ImageAnnotationLink ial
-    #          join ial.child a
-    #          join a.mapValue mv
-    #          join ial.parent i
-    #          left outer join i.wellSamples ws
-    #          left outer join i.datasetLinks dil
-    #      where %s AND
-    #          (
-    #              (dil is null and ws is not null)
-    #              OR
-    #              (dil is not null and ws is null)
-    #          )
-    #     """ % (" and ".join(where_clause))
-    # _m = {}
-    # logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
-    # for e in qs.projection(q, params, service_opts):
-    #     e = unwrap(e)
-    #     _m[e[0]] = {'imgCount': 0, 'childCount': 0}
+    # TODO: fix childCount
+    if not mapann_value:
+        q = """
+            select
+             mv.value as value,
+             count(distinct i.id) as imgCount
+            from ImageAnnotationLink ial
+             join ial.child a
+             join a.mapValue mv
+             join ial.parent i
+             left outer join i.wellSamples ws
+             left outer join i.datasetLinks dil
+            where %s AND
+             (
+                 (dil is null and ws is not null)
+                 OR
+                 (ws is null and dil is not null)
+             )
+            group by mv.value
+            order by count(distinct i.id) DESC
+            """ % (" and ".join(where_clause))
+        _m = {}
+        logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
+        for e in qs.projection(q, params, service_opts):
+            e = unwrap(e)
+            _m[e[0]] = {'imgCount': e[1], 'childCount': None}
 
-    _m = {mapann_value: {'imgCount': 0, 'childCount': 0}}
+    else:
+        _m = {mapann_value: {'imgCount': 0, 'childCount': 0}}
 
-    q = """
-        select count(distinct s.id) as childCount,
-               count(distinct i.id) as imgCount
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
-             join ial.parent i join i.wellSamples ws join ws.well w
-             join w.plate p join p.screenLinks sl join sl.parent s
-        where %s
-        """ % (" and ".join(where_clause))
+        q = """
+            select count(distinct s.id) as childCount,
+                   count(distinct i.id) as imgCount
+            from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+                 join ial.parent i join i.wellSamples ws join ws.well w
+                 join w.plate p join p.screenLinks sl join sl.parent s
+            where %s
+            """ % (" and ".join(where_clause))
 
-    logger.debug("COUNT HQL QUERY: %s\nPARAMS: %r" % (q, params))
-    for e in qs.projection(q, params, service_opts):
-        e = unwrap(e)
-        _m[mapann_value]['imgCount'] += e[1]
-        _m[mapann_value]['childCount'] += e[0]
+        logger.debug("COUNT HQL QUERY: %s\nPARAMS: %r" % (q, params))
+        for e in qs.projection(q, params, service_opts):
+            e = unwrap(e)
+            _m[mapann_value]['childCount'] += e[0]
+            _m[mapann_value]['imgCount'] += e[1]
 
-    q = """
-        select count(distinct p.id) as childCount,
-               count(distinct i.id) as imgCount
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
-             join ial.parent i join i.datasetLinks dsl
-             join dsl.parent ds join ds.projectLinks pl join pl.parent p
-        where %s
-        """ % (" and ".join(where_clause))
+        q = """
+            select count(distinct p.id) as childCount,
+                   count(distinct i.id) as imgCount
+            from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+                 join ial.parent i join i.datasetLinks dsl
+                 join dsl.parent ds join ds.projectLinks pl join pl.parent p
+            where %s
+            """ % (" and ".join(where_clause))
 
-    logger.debug("COUNT HQL QUERY: %s\nPARAMS: %r" % (q, params))
-    for e in qs.projection(q, params, service_opts):
-        e = unwrap(e)
-        _m[mapann_value]['imgCount'] += e[1]
-        _m[mapann_value]['childCount'] += e[0]
+        logger.debug("COUNT HQL QUERY: %s\nPARAMS: %r" % (q, params))
+        for e in qs.projection(q, params, service_opts):
+            e = unwrap(e)
+            _m[mapann_value]['childCount'] += e[0]
+            _m[mapann_value]['imgCount'] += e[1]
 
     for k, v in _m.iteritems():
         c = v["imgCount"]
