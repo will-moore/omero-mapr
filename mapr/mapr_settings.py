@@ -74,7 +74,7 @@ default_config = [
         "config": {
             "default": ["Compound Name"],
             "all": ["Compound Name"],
-            "ns": ["openmicroscopy.org/mapr/compund"],
+            "ns": ["openmicroscopy.org/mapr/compound"],
             "label": ["Compound"]
         }
     },
@@ -83,7 +83,7 @@ default_config = [
         "config": {
             "default": [],
             "all": [],
-            "ns": ["openmicroscopy.org/mapr/compund/supplementary"],
+            "ns": ["openmicroscopy.org/mapr/compound/supplementary"],
             "label": ["Compound supplementary"]
         }
     },
