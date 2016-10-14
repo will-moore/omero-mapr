@@ -30,12 +30,34 @@ default_config = [
         }
     },
     {
+        "menu": "genesupplementary",
+        "config": {
+            "default": [],
+            "all": [],
+            "ns": [
+                "openmicroscopy.org/mapr/gene/supplementary"
+            ],
+            "label": ["Gene supplementary"]
+        }
+    },
+    {
         "menu": "sirna",
         "config": {
             "default": ["siRNA Identifier"],
             "all": ["siRNA Identifier", "siRNA Pool Identifier"],
             "ns": ["openmicroscopy.org/mapr/sirna"],
             "label": ["siRNA"]
+        }
+    },
+    {
+        "menu": "sirnasupplementary",
+        "config": {
+            "default": [],
+            "all": [],
+            "ns": [
+                "openmicroscopy.org/mapr/sirna/supplementary"
+            ],
+            "label": ["siRNA supplementary"]
         }
     },
     {
@@ -54,6 +76,15 @@ default_config = [
             "all": ["Compound Name"],
             "ns": ["openmicroscopy.org/mapr/compund"],
             "label": ["Compound"]
+        }
+    },
+    {
+        "menu": "compoundsupplementary",
+        "config": {
+            "default": [],
+            "all": [],
+            "ns": ["openmicroscopy.org/mapr/compund/supplementary"],
+            "label": ["Compound supplementary"]
         }
     },
     {
