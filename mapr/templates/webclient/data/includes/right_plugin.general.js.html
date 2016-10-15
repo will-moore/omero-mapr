@@ -35,6 +35,9 @@
         width: 17px;
         height: 15px;
     }
+    .keyValueTable thead tr h1 {
+        padding: 2px 0px;
+    }
 </style>
 
 
@@ -47,14 +50,11 @@
 
 var urlRegex = /(https?|ftp|file):\/\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]/g;
 
-var iconify = function(input, label, imgsrc, target) {
+var iconify = function(input, imgsrc) {
     if (typeof imgsrc === 'undefined') {
         imgsrc = "http://www.google.com/s2/favicons?domain=$&";
     }
-    if (typeof target !== 'undefined') {
-        target = "target='_blank'"
-    }
-    return input.replace(urlRegex, "<span class='favicon'><a href='$&' " + target + " title='"+ label +"'><img src='" + imgsrc + "' /></a> " + label + "</span>");
+    return input.replace(urlRegex, " <span class='favicon'><a href='$&' target='_blank' ><img src='" + imgsrc + "' /></a></span>");
 };
 
 var isURL = function(input) {
@@ -62,46 +62,82 @@ var isURL = function(input) {
     return regex.test(input);
 };
 
+var old_linkify_element = OME.linkify_element;
 OME.linkify_element = function(elements) {
+    if ($("table.keyValueTable").is(elements) ) {
+        var mapr_menu = {% mapr_menu_config %};
 
-    var mapr_menu = {% mapr_menu_config %};
-    var menu2keys = [];
-    var keys2menu = {};
-    $.each( mapr_menu, function( i, obj ) {
-        $.merge(menu2keys, obj['all']);
-        $.each( obj['all'], function( j, d ) {
-            keys2menu[d] = i
+        // Replace namespace with label
+        var ns2menu = {};
+        $.each( mapr_menu, function( i, obj ) {
+            $.each( obj['ns'], function( j, ns ) {
+                ns2menu[ns] = obj['label'];
+            });
         });
-    });
-
-    elements.each(function() {
-        var $this = $(this);
-
-        var $chlabel = $this.children("td:nth-child(1)");
-        var $chvalue = $this.children("td:nth-child(2)");
-
-        // mapr links
-        var _key = $chlabel.text();
-        if ($.inArray(_key, menu2keys) > -1 ) {
-            if (_key in keys2menu && keys2menu[_key] !== undefined) {
-                var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/" + $chvalue.text() + "/";
-                $chvalue.html("<a href='" + _url + "'>" + $chvalue.text() + "</a>");
-                imgsrc = "{% static 'webgateway/img/ome.ico' %}";
-                $chlabel.html(iconify(_url, $chlabel.text(), imgsrc));
+        var t = elements.find("thead").find("tr");
+        var $targets = t.filter(function() {
+            if ($(this).attr('title') in ns2menu) {
+                var old = $(this).children("th").text();
+                $(this).children("th").html("<h1>" + ns2menu[$(this).attr('title')] + "</h1>");
+                $(this).closest('tr').nextAll("tr.tooltip").children('th').children('span')
+                    .append('<br/><b>NS:</b> ' + old + '');
             }
-        }  else {
-            // linkify
-            if (isURL( $chvalue.html())) {
-                $chlabel.html(iconify($chvalue.html(), $chlabel.text(), undefined, true));
-                $chvalue.html(linkify($chvalue.html()));
-            } else {
-                $chlabel.html("<span class='blank'><img src='{% static 'webgateway/img/blank_tile.png' %}'/></span> " + $chlabel.text());
-            }
-        }
-        
-    });
+        });
 
+        // linkify also mapr keys and convert URL to icons
+        var menu2keys = [];
+        var keys2menu = {};
+        $.each( mapr_menu, function( i, obj ) {
+            $.merge(menu2keys, obj['all']);
+            $.each( obj['all'], function( j, d ) {
+                keys2menu[d] = i
+            });
+        });
+
+        elements.find("tbody").find("tr").each(function() {
+            var $row = $(this);
+            if (!$row.parent().parent().hasClass("editableKeyValueTable")) {
+                var $chlabel = $row.children("td:nth-child(1)");
+                var $chvalue = $row.children("td:nth-child(2)");
+
+                $chvalue.html(iconify($chvalue.text()));
+                // if label matchs mapr PK
+                var _key = $chlabel.text().trim();
+                var _val = $chvalue.text().trim();
+                if ( $.inArray(_key, menu2keys) > -1 ) {
+                    if ( _key in keys2menu && keys2menu[_key] !== undefined ) {
+                        // create mapr url
+                        var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/" + encodeURIComponent(_val) + "/";
+                        $chvalue.html($chvalue.html().replace(_val, "<a href='" + _url + "'>" + _val + "</a>"));
+                    }
+                }
+                var _tkey = _key.replace(/url/i, "").trim();
+                if ( _key.match(new RegExp("url", "i"))  ) {
+                    // Find nearest URL
+                    //var $target1 = $row.prev('tr');
+                    var $target = $row.parent().find("tr").filter(function() {
+                        var $chl = $(this).children("td:nth-child(1)");
+                        var $chv = $(this).children("td:nth-child(2)");
+                        var $chs = $row.children("td:nth-child(2)").find("span a img").attr('src');
+                        return $chl.text() === _tkey && (($chv.find("a").text().lenght > 0 && $chs.indexOf($chv.find("a").text()) >= 0) || ($chv.text().length > 0 && $chs.indexOf($chv.text()) >= 0));
+                    }).closest("tr");
+                    if ( $target.length ) {
+                        var $targetchlabel = $target.children("td:nth-child(1)");
+                        var $targetchvalue = $target.children("td:nth-child(2)");
+                        // add icon to the target and hide
+                        $targetchvalue.append($chvalue.html());
+                        $row.hide();
+                    }
+                }
+            }
+
+        });
+    } else {
+        old_linkify_element(elements);
+    }
 };
+
+
 
 $(function () {
 

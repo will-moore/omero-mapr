@@ -30,21 +30,18 @@ from django.conf import settings
 from mapr_settings import mapr_settings
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseServerError, HttpResponseBadRequest, \
-    HttpResponseRedirect
+from django.http import HttpResponseServerError, HttpResponseBadRequest
+from django.http import JsonResponse
 
 from show import mapr_paths_to_object
 from show import MapShow as Show
 import tree as mapr_tree
 
-from omeroweb.http import HttpJsonResponse
 from omeroweb.webclient.decorators import login_required, render_response
 from omeroweb.webclient.views import get_long_or_default, get_bool_or_default
-from omeroweb.webclient.views import switch_active_group
-from omeroweb.webclient.forms import GlobalSearchForm, ContainerForm
-from omeroweb.webclient.show import IncorrectMenuError
 
 from omeroweb.webclient import tree as webclient_tree
+from omeroweb.webclient.views import _load_template as _webclient_load_template
 
 from omeroweb.webclient.views import api_paths_to_object \
     as webclient_api_paths_to_object
@@ -116,101 +113,17 @@ def _get_keys(mapr_settings, menu):
 @login_required()
 @render_response()
 def index(request, menu, value=None, conn=None, url=None, **kwargs):
-    """
-    This view handles most of the top-level pages, as specified by 'menu' E.g.
-    userdata, usertags, history, search etc.
-    Query string 'path' that specifies an object to display in the data tree
-    is parsed.
-    We also prepare the list of users in the current group, for the
-    switch-user form. Change-group form is also prepared.
-    """
-    request.session.modified = True
-    template = "mapr/base_mapr.html"
-
-    # tree support
-    show = Show(conn=conn, request=request, menu=menu, value=value)
-
-    # Constructor does no loading.  Show.first_selected must be called first
-    # in order to set up our initial state correctly.
-    try:
-        first_sel = show.first_selected
-    except IncorrectMenuError, e:
-        return HttpResponseRedirect(e.uri)
-    # We get the owner of the top level object, E.g. Project
-    # Actual api_paths_to_object() is retrieved by jsTree once loaded
-    initially_open_owner = show.initially_open_owner
-
-    # need to be sure that tree will be correct omero.group
-    if first_sel is not None:
-        switch_active_group(request, first_sel.details.group.id.val)
-
-    # search support
-    init = {}
-    global_search_form = GlobalSearchForm(data=request.POST.copy())
-
-    # get url without request string - used to refresh page after switch
-    # user/group etc
-    url = reverse(viewname="maprindex_%s" % menu)
-
-    # validate experimenter is in the active group
-    active_group = (request.session.get('active_group') or
-                    conn.getEventContext().groupId)
-    # prepare members of group...
-    leaders, members = conn.getObject(
-        "ExperimenterGroup", active_group).groupSummary()
-    userIds = [u.id for u in leaders]
-    userIds.extend([u.id for u in members])
-    users = []
-    if len(leaders) > 0:
-        users.append(("Owners", leaders))
-    if len(members) > 0:
-        users.append(("Members", members))
-    users = tuple(users)
-
-    # check any change in experimenter...
-    user_id = request.GET.get('experimenter')
-    if initially_open_owner is not None:
-        if (request.session.get('user_id', None) != -1):
-            # if we're not already showing 'All Members'...
-            user_id = initially_open_owner
-    try:
-        user_id = long(user_id)
-    except:
-        user_id = None
-        # ... or check that current user is valid in active group
-        user_id = request.session.get('user_id', None)
-        if user_id is None or int(user_id) not in userIds:
-            if user_id != -1:           # All users in group is allowed
-                user_id = conn.getEventContext().userId
-
-    request.session['user_id'] = user_id
-
-    myGroups = list(conn.getGroupsMemberOf())
-    myGroups.sort(key=lambda x: x.getName().lower())
-    groups = myGroups
-
-    new_container_form = ContainerForm()
-
-    context = {
-        'menu': menu,
-        'menu_default': ", ".join(mapr_settings.MENU_MAPR[menu]['default']),
-        'menu_all': ", ".join(mapr_settings.MENU_MAPR[menu]['all']),
-        'init': init,
-        'myGroups': myGroups,
-        'new_container_form': new_container_form,
-        'global_search_form': global_search_form
-    }
-    context['groups'] = groups
-    context['active_group'] = conn.getObject(
-        "ExperimenterGroup", long(active_group))
-    context['active_user'] = \
-        conn.getObject("Experimenter", long(user_id)) or {'id': -1}
-    context['initially_select'] = show.initially_select
-    context['isLeader'] = conn.isLeader()
-    context['current_url'] = url
-    context['page_size'] = settings.PAGE
-    context['template'] = template
+    kwargs['show'] = Show(conn=conn, request=request, menu=menu, value=value)
+    kwargs['load_template_url'] = reverse(viewname="maprindex_%s" % menu)
+    kwargs['template'] = "mapr/base_mapr.html"
+    context = _webclient_load_template(request, menu,
+                                       conn=conn, url=url, **kwargs)
+    context['active_user'] = context['active_user'] or {'id': -1}
+    context['menu_default'] = ", ".join(
+        mapr_settings.MENU_MAPR[menu]['default'])
+    context['menu_all'] = ", ".join(mapr_settings.MENU_MAPR[menu]['all'])
     context['map_value'] = value
+    context['template'] = "mapr/base_mapr.html"
 
     return context
 
@@ -257,7 +170,7 @@ def api_paths_to_object(request, menu=None, value=None, conn=None, **kwargs):
             screen_id=screen_id, plate_id=plate_id, image_id=image_id,
             experimenter_id=experimenter_id, group_id=group_id)
 
-        return HttpJsonResponse({'paths': paths})
+        return JsonResponse({'paths': paths})
     return webclient_api_paths_to_object(request, conn=conn, **kwargs)
 
 omeroweb.webclient.views.api_paths_to_object = api_paths_to_object
@@ -315,11 +228,11 @@ def api_experimenter_list(request, menu,
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'experimenter': experimenter})
+    return JsonResponse({'experimenter': experimenter})
 
 
 @login_required()
-def api_mapannotation_list(request, menu, conn=None, **kwargs):
+def api_mapannotation_list(request, menu, value=None, conn=None, **kwargs):
 
     mapann_ns = _get_ns(mapr_settings, menu)
     keys = _get_keys(mapr_settings, menu)
@@ -330,8 +243,8 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
-        mapann_value = get_str_or_default(request, 'id', None) \
-            or get_str_or_default(request, 'value', None)
+        mapann_value = value or get_str_or_default(request, 'value', None) \
+            or get_str_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         mapann_query = get_str_or_default(request, 'query', None)
         orphaned = get_bool_or_default(request, 'orphaned', False)
@@ -384,8 +297,8 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'maps': mapannotations,
-                             'screens': screens, 'projects': projects})
+    return JsonResponse({'maps': mapannotations,
+                         'screens': screens, 'projects': projects})
 
 
 @login_required()
@@ -427,7 +340,7 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'datasets': datasets})
+    return JsonResponse({'datasets': datasets})
 
 
 @login_required()
@@ -469,7 +382,7 @@ def api_plate_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'plates': plates})
+    return JsonResponse({'plates': plates})
 
 
 @login_required()
@@ -519,7 +432,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'images': images})
+    return JsonResponse({'images': images})
 
 
 @login_required()
@@ -572,7 +485,7 @@ def api_annotations(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse({'annotations': anns, 'experimenters': exps})
+    return JsonResponse({'annotations': anns, 'experimenters': exps})
 
 
 @login_required()
@@ -610,4 +523,4 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
     except IceException as e:
         return HttpResponseServerError(e.message)
 
-    return HttpJsonResponse(autocomplete)
+    return JsonResponse(list(autocomplete), safe=False)

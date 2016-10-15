@@ -35,15 +35,15 @@ reverse_lazy = lazy(reverse, str)
 # concatenate aliases to use in url regex
 MENU_MAPR_REGEX = "(%s)" % ("|".join(mapr_settings.MENU_MAPR))
 DEFAULT_MENU = mapr_settings.MENU_MAPR.iterkeys().next()
-
+VALUE_MAPR_REGEX = "[:\.\,\-\w\s]+"
 
 urlpatterns = patterns('',)
 
 # alias
 for m in mapr_settings.MENU_MAPR:
     urlpatterns += (
-        url(r'^(?i)%s/(?:(?P<value>[:\.\-\w\s]+)/)?$' % m, views.index,
-            {'menu': m},
+        url(r'^(?i)%s/(?:(?P<value>%s)/)?$' % (m, VALUE_MAPR_REGEX),
+            views.index, {'menu': m},
             name="maprindex_%s" % m),
         )
 
@@ -57,13 +57,10 @@ urlpatterns += (
             query_string=True)),
         name="maprindex"),
 
-    url(r'^api/(?P<menu>%s)/(?:(?P<value>[:\.\-\w\s]+)/)?'
-        r'experimenters/$' % MENU_MAPR_REGEX,
+    url(r'^api/(?P<menu>%s)/(?:(?P<value>%s)/)?'
+        r'count/$' % (MENU_MAPR_REGEX, VALUE_MAPR_REGEX),
         views.api_experimenter_list,
         name='mapannotations_api_experimenters'),
-    url(r'^api/(?P<menu>%s)/$' % MENU_MAPR_REGEX,
-        views.api_mapannotation_list,
-        name='mapannotations_api_mapannotations'),
     url(r'^api/(?P<menu>%s)/datasets/$' % MENU_MAPR_REGEX,
         views.api_datasets_list,
         name='mapannotations_api_datasets'),
@@ -74,8 +71,7 @@ urlpatterns += (
         views.api_image_list,
         name='mapannotations_api_images'),
 
-    url(r'^api/(?P<menu>%s)/(?:(?P<value>[:\.\-\w\s]+)/)?'
-        r'paths_to_object/$' % MENU_MAPR_REGEX,
+    url(r'^api/(?P<menu>%s)/paths_to_object/$' % MENU_MAPR_REGEX,
         views.api_paths_to_object,
         name='mapannotations_api_paths_to_object'),
 
@@ -88,6 +84,12 @@ urlpatterns += (
     url(r'^api/(?P<menu>%s)/annotations/$' % MENU_MAPR_REGEX,
         views.api_annotations,
         name='mapannotations_api_annotations'),
+
+    # must be last on the list
+    url(r'^api/(?P<menu>%s)/(?:(?P<value>%s)/)?$' %
+        (MENU_MAPR_REGEX, VALUE_MAPR_REGEX),
+        views.api_mapannotation_list,
+        name='mapannotations_api_mapannotations'),
 
     # autocomplete
     url(r'^autocomplete/(?P<menu>%s)/$' % MENU_MAPR_REGEX,

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# #!/usr/bin/env python
 #
 #
 #
@@ -24,19 +23,10 @@
 # Version: 1.0
 #
 
-import logging
-import json
 
-from django import template
-from django.utils.safestring import mark_safe
-from mapr.mapr_settings import mapr_settings
-
-register = template.Library()
-
-logger = logging.getLogger(__name__)
+from django.apps import AppConfig
 
 
-# settings.py
-@register.simple_tag
-def mapr_menu_config():
-    return mark_safe(json.dumps(mapr_settings.MENU_MAPR))
+class MaprAppConfig(AppConfig):
+    name = "mapr"
+    label = "mapr"

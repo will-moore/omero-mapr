@@ -32,7 +32,7 @@ from omeroweb.webclient.tree import parse_permissions_css
 from omeroweb.webclient.tree import _marshal_screen
 from omeroweb.webclient.tree import _marshal_plate
 from omeroweb.webclient.tree import _marshal_image
-from omeroweb.webclient.tree import _marshal_annotation
+from omeroweb.webclient.tree import _marshal_annotation, _marshal_exp_obj
 
 
 logger = logging.getLogger(__name__)
@@ -119,6 +119,8 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_query The Map annotation value to filter by using like.
@@ -130,6 +132,10 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
         or -1 for all experimenters
         @type experimenter_id L{long}
     '''
+    # map value is always one
+    if mapann_value:
+        return 1
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=mapann_query, mapann_value=mapann_value,
@@ -176,6 +182,8 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_query The Map annotation value to filter by using like.
@@ -209,61 +217,75 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
 
     qs = conn.getQueryService()
 
-    # TODO:
-    # a.details.owner.id as ownerId,
-    # a as map_details_permissions,
+    # TODO: fix childCount
+    if not mapann_value:
+        q = """
+            select
+             mv.value as value,
+             count(distinct i.id) as imgCount
+            from ImageAnnotationLink ial
+             join ial.child a
+             join a.mapValue mv
+             join ial.parent i
+             left outer join i.wellSamples ws
+             left outer join i.datasetLinks dil
+            where %s AND
+             (
+                 (dil is null and ws is not null)
+                 OR
+                 (ws is null and dil is not null)
+             )
+            group by mv.value
+            order by count(distinct i.id) DESC
+            """ % (" and ".join(where_clause))
+        _m = {}
+        logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
+        for e in qs.projection(q, params, service_opts):
+            e = unwrap(e)
+            _m[e[0]] = {'imgCount': e[1], 'childCount': None}
 
-    q = """
-        select new map( mv.value as value,
-               count(distinct s.id) as childCount,
-               count(distinct i.id) as imgCount)
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
-             join ial.parent i join i.wellSamples ws join ws.well w
-             join w.plate p join p.screenLinks sl join sl.parent s
-        where %s
-        group by mv.value
-        order by count(i.id) DESC
-        """ % (" and ".join(where_clause))
+    else:
+        _m = {mapann_value: {'imgCount': 0, 'childCount': 0}}
 
-    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
-    for e in qs.projection(q, params, service_opts):
-        e = unwrap(e)
-        c = e[0]["imgCount"]
-        e = [e[0]["value"],
-             "%s (%d)" % (e[0]["value"], e[0]["imgCount"]),
+        q = """
+            select count(distinct s.id) as childCount,
+                   count(distinct i.id) as imgCount
+            from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+                 join ial.parent i join i.wellSamples ws join ws.well w
+                 join w.plate p join p.screenLinks sl join sl.parent s
+            where %s
+            """ % (" and ".join(where_clause))
+
+        logger.debug("COUNT HQL QUERY: %s\nPARAMS: %r" % (q, params))
+        for e in qs.projection(q, params, service_opts):
+            e = unwrap(e)
+            _m[mapann_value]['childCount'] += e[0]
+            _m[mapann_value]['imgCount'] += e[1]
+
+        q = """
+            select count(distinct p.id) as childCount,
+                   count(distinct i.id) as imgCount
+            from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+                 join ial.parent i join i.datasetLinks dsl
+                 join dsl.parent ds join ds.projectLinks pl join pl.parent p
+            where %s
+            """ % (" and ".join(where_clause))
+
+        logger.debug("COUNT HQL QUERY: %s\nPARAMS: %r" % (q, params))
+        for e in qs.projection(q, params, service_opts):
+            e = unwrap(e)
+            _m[mapann_value]['childCount'] += e[0]
+            _m[mapann_value]['imgCount'] += e[1]
+
+    for k, v in _m.iteritems():
+        c = v["imgCount"]
+        e = [k,
+             "%s (%d)" % (k, v["imgCount"]),
              None,
              experimenter_id,  # e[0]["ownerId"],
              {},  # e[0]["map_details_permissions"],
              None,  # e[0]["ns"],
-             e[0]["childCount"]]
-        mt = _marshal_map(conn, e[0:7])
-        mt.update({'extra': {'counter': c}})
-        mapannotations.append(mt)
-
-    q = """
-        select new map( mv.value as value,
-               a.ns as ns,
-               count(distinct p.id) as childCount,
-               count(distinct i.id) as imgCount)
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
-             join ial.parent i join i.datasetLinks dsl
-             join dsl.parent ds join ds.projectLinks pl join pl.parent p
-        where %s
-        group by mv.value, a.ns
-        order by count(i.id) DESC
-        """ % (" and ".join(where_clause))
-
-    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
-    for e in qs.projection(q, params, service_opts):
-        e = unwrap(e)
-        c = e[0]["imgCount"]
-        e = [e[0]["value"],
-             "%s (%d)" % (e[0]["value"], e[0]["imgCount"]),
-             None,
-             experimenter_id,  # e[0]["ownerId"],
-             {},  # e[0]["map_details_permissions"],
-             e[0]["ns"],
-             e[0]["childCount"]]
+             v["childCount"]]
         mt = _marshal_map(conn, e[0:7])
         mt.update({'extra': {'counter': c}})
         mapannotations.append(mt)
@@ -280,6 +302,8 @@ def marshal_screens(conn, mapann_ns=[], mapann_names=[],
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_value The Map annotation value to filter by.
@@ -351,6 +375,8 @@ def marshal_projects(conn, mapann_ns=[], mapann_names=[],
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_value The Map annotation value to filter by.
@@ -427,6 +453,8 @@ def marshal_datasets(conn, project_id,
         @type project_id L{long}
         @param mapann_value The Map annotation value to filter by.
         @type mapann_value L{string}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
@@ -503,6 +531,8 @@ def marshal_plates(conn, screen_id,
         @type screen_id L{long}
         @param mapann_value The Map annotation value to filter by.
         @type mapann_value L{string}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
@@ -579,10 +609,12 @@ def marshal_images(conn, parent, parent_id, mapann_value,
         @type conn L{omero.gateway.BlitzGateway}
         @param plate_id The Plate ID to filter by.
         @type plate_id L{long}
-        @param mapann_names The Map annotation names to filter by.
-        @type mapann_names L{string}
         @param mapann_value The Map annotation value to filter by.
         @type mapann_value L{string}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
+        @param mapann_names The Map annotation names to filter by.
+        @type mapann_names L{string}
         @param load_pixels Whether to load the X,Y,Z dimensions
         @type load_pixels Boolean
         @param group_id The Group ID to filter by or -1 for all groups,
@@ -732,6 +764,8 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
 
         @param conn OMERO gateway.
         @type conn L{omero.gateway.BlitzGateway}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
         @param mapann_query The Map annotation value to filter by using like.
@@ -771,6 +805,7 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
         select distinct a
             from Annotation a
             join fetch a.details.creationEvent
+            join fetch a.details.owner
             join a.mapValue mv where %s
             order by a.ns asc
         """ % (" and ".join(where_clause))
@@ -778,13 +813,17 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for ann in qs.findAllByQuery(q, params, service_opts):
         d = _marshal_annotation(conn, ann, None)
+        exp = _marshal_exp_obj(ann.details.owner)
+        experimenters[exp['id']] = exp
         annotations.append(d)
+
+    experimenters = experimenters.values()
 
     return annotations, experimenters
 
 
-def marshal_autocomplete(conn, mapann_ns=[],
-                         query=None, mapann_names=None,
+def marshal_autocomplete(conn, query=None,
+                         mapann_ns=[], mapann_names=None,
                          group_id=-1, experimenter_id=-1,
                          page=1, limit=settings.PAGE):
     ''' Marshals mapannotation values for autocomplete
@@ -793,6 +832,8 @@ def marshal_autocomplete(conn, mapann_ns=[],
         @type conn L{omero.gateway.BlitzGateway}
         @param query The Map annotation value to filter by using like.
         @type query L{string}
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
         @param mapann_names The Map annotation name to filter by.
         @type mapann_names L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
@@ -809,7 +850,7 @@ def marshal_autocomplete(conn, mapann_ns=[],
         @type page L{long}
     '''
     if not query:
-        return ['Pattern not found']
+        return []
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=query, mapann_value=None,
