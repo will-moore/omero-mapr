@@ -52,12 +52,12 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
     where_clause = []
 
     if mapann_names is not None and len(mapann_names) > 0:
-        manlist = [rstring(str(n)) for n in mapann_names]
+        manlist = [rstring(unicode(n)) for n in mapann_names]
         params.add("filter", rlist(manlist))
         where_clause.append('mv.name in (:filter)')
 
     if mapann_ns is not None and len(mapann_ns) > 0:
-        mnslist = [rstring(str(n)) for n in mapann_ns]
+        mnslist = [rstring(unicode(n)) for n in mapann_ns]
         params.add("ns", rlist(mnslist))
         where_clause.append('a.ns in (:ns)')
 
@@ -67,7 +67,9 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
 
     if mapann_query:
         # query starts from search terms
-        params.addString("query", rstring("%s%%" % str(mapann_query).lower()))
+        params.addString(
+            "query",
+            rstring("%%%s%%" % unicode(mapann_query).lower()))
         where_clause.append('lower(mv.value) like :query')
 
     if mapann_value:
