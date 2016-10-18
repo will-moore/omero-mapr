@@ -92,7 +92,7 @@ urlpatterns += (
         name='mapannotations_api_mapannotations'),
 
     # autocomplete
-    url(r'^autocomplete/(?P<menu>%s)/$' % MENU_MAPR_REGEX,
+    url(r'^api/autocomplete/(?P<menu>%s)/$' % MENU_MAPR_REGEX,
         views.mapannotations_autocomplete,
         name='mapannotations_autocomplete'),
 
