@@ -134,10 +134,6 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
         or -1 for all experimenters
         @type experimenter_id L{long}
     '''
-    # map value is always one
-    if mapann_value:
-        return 1
-
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=mapann_query, mapann_value=mapann_value,
@@ -280,17 +276,18 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
             _m[mapann_value]['imgCount'] += e[1]
 
     for k, v in _m.iteritems():
-        c = v["imgCount"]
-        e = [k,
-             "%s (%d)" % (k, v["imgCount"]),
-             None,
-             experimenter_id,  # e[0]["ownerId"],
-             {},  # e[0]["map_details_permissions"],
-             None,  # e[0]["ns"],
-             v["childCount"]]
-        mt = _marshal_map(conn, e[0:7])
-        mt.update({'extra': {'counter': c}})
-        mapannotations.append(mt)
+        if v["imgCount"] > 0:
+            c = v["imgCount"]
+            e = [k,
+                 "%s (%d)" % (k, v["imgCount"]),
+                 None,
+                 experimenter_id,  # e[0]["ownerId"],
+                 {},  # e[0]["map_details_permissions"],
+                 None,  # e[0]["ns"],
+                 v["childCount"]]
+            mt = _marshal_map(conn, e[0:7])
+            mt.update({'extra': {'counter': c}})
+            mapannotations.append(mt)
 
     return mapannotations
 

@@ -26,12 +26,13 @@ from copy import deepcopy
 
 from django.conf import settings
 from mapr_settings import mapr_settings
-from django.core.urlresolvers import reverse
 
 from omero.rtypes import rint, rlong, unwrap
 
 import omeroweb.webclient.show as omeroweb_show
 import tree as mapr_tree
+
+from omeroweb.utils import reverse_with_params
 
 
 class MapShow(omeroweb_show.Show):
@@ -63,9 +64,12 @@ class MapShow(omeroweb_show.Show):
         if (first_obj in mapr_settings.MENU_MAPR.keys() and
                 self.menu not in mapr_settings.MENU_MAPR):
             # redirect to menu/value/
+            link = {
+                "viewname": "maprindex_%s" % first_obj,
+                "query_string": {'value': m.group('value')}
+            }
             raise omeroweb_show.IncorrectMenuError(
-                reverse(viewname="maprindex_%s" % first_obj,
-                        args=[m.group('value')])
+                reverse_with_params(**link)
             )
         # if in mapr app hierachy is different
         if self.menu in mapr_settings.MENU_MAPR:
