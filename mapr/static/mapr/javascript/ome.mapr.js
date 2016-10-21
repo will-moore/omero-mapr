@@ -36,9 +36,9 @@ $(function () {
         if (MAPANNOTATIONS.CTX.value.length > 0) {
             payload['value'] = MAPANNOTATIONS.CTX.value;
         }
-        if (MAPANNOTATIONS.CTX.query.length > 0) {
-            payload['query'] = MAPANNOTATIONS.CTX.query;
-        }
+        //if (MAPANNOTATIONS.CTX.query) {
+        //    payload['query'] = MAPANNOTATIONS.CTX.query;
+        //}
         oldData.apply(jstreeInst, [node, callback, payload]);
     }
 

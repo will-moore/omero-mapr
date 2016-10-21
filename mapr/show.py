@@ -138,7 +138,7 @@ class MapShow(omeroweb_show.Show):
 omeroweb_show.Show = MapShow
 
 
-def mapr_paths_to_object(conn, mapann_ns=[], mapann_query=None,
+def mapr_paths_to_object(conn, mapann_ns=[],
                          mapann_names=[], mapann_value=None,
                          screen_id=None, plate_id=None, image_id=None,
                          experimenter_id=None, group_id=None,
@@ -147,7 +147,7 @@ def mapr_paths_to_object(conn, mapann_ns=[], mapann_query=None,
     qs = conn.getQueryService()
     params, where_clause = mapr_tree._set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        mapann_query=mapann_query, mapann_value=mapann_value,
+        query=False, mapann_value=mapann_value,
         params=None, experimenter_id=experimenter_id,
         page=page_size, limit=limit)
 

@@ -79,7 +79,7 @@
     
     <script type="text/javascript">
 
-        WEBCLIENT.UI.TREE.pagination_nodes = ["screen", "acquisition", "project", "tagset",  "image", "map"];
+        WEBCLIENT.UI.TREE.pagination_nodes = ["tagset", "image", "map"];
 
         WEBCLIENT.URLS.api_experimenter = "{% url 'mapannotations_api_experimenters' menu %}";
 
@@ -100,7 +100,7 @@
         MAPANNOTATIONS.URLS.autocomplete = "{% url 'mapannotations_autocomplete' menu %}";
         MAPANNOTATIONS.URLS.autocomplete_default = "{% url 'mapannotations_api_experimenters' menu %}";
 
-        MAPANNOTATIONS.CTX = {'label': "{{ menu }}", 'value': "{{ map_value }}", 'query': "{{ map_query }}"};
+        MAPANNOTATIONS.CTX = {'label': "{{ menu }}", 'value': "{{ map_value }}", 'query': "{{ map_query|lower }}"};
 
         payload = {};
         if (MAPANNOTATIONS.CTX.value.length > 0) {
