@@ -39,9 +39,33 @@ logger = logging.getLogger(__name__)
 
 
 def _set_parameters(mapann_ns=[], mapann_names=[],
-                    mapann_query=None, mapann_value=None,
+                    mapann_value=None, mapann_query=None,
                     params=None, experimenter_id=-1,
-                    page=1, limit=settings.PAGE):
+                    page=None, limit=settings.PAGE):
+
+    ''' Helper to map ParametersI
+
+        @param mapann_ns The Map annotation namespace to filter by.
+        @type mapann_ns L{string}
+        @param mapann_names The Map annotation names to filter by.
+        @type mapann_names L{string}
+        @param mapann_value The Map annotation value to filter by.
+        @type mapann_value L{string}
+        @param mapann_query The Map annotation value pattern to filter by.
+        @type mapann_query L{string}
+        @param params Instance of ParametersI
+        @type params L{omero.sys.ParametersI}
+        @param experimenter_id The Experimenter (user) ID to filter by
+        or -1 for all experimenters
+        @type experimenter_id L{long}
+        @param page Page number of results to get. `None` or 0 for no paging
+        defaults to None
+        @type page L{long}
+        @param limit The limit of results per page to get
+        defaults to the value set in settings.PAGE
+        @type page L{long}
+    '''
+
     if params is None:
         params = omero.sys.ParametersI()
 
@@ -71,8 +95,7 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
             "query",
             rstring("%%%s%%" % unicode(mapann_query).lower()))
         where_clause.append('lower(mv.value) like :query')
-
-    if mapann_value:
+    elif mapann_value:
         params.addString("value", mapann_value)
         where_clause.append('mv.value  = :value')
 
@@ -115,8 +138,7 @@ def _marshal_map(conn, row):
 
 def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
                          mapann_value=None, mapann_query=None,
-                         group_id=-1, experimenter_id=-1,
-                         page=1, limit=settings.PAGE):
+                         group_id=-1, experimenter_id=-1):
     ''' Count mapannotiation values
 
         @param conn OMERO gateway.
@@ -125,7 +147,9 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
         @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
-        @param mapann_query The Map annotation value to filter by using like.
+        @param mapann_value The Map annotation value to filter by.
+        @type mapann_value L{string}
+        @param mapann_query The Map annotation value pattern to filter by.
         @type mapann_query L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1
@@ -134,11 +158,12 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
         or -1 for all experimenters
         @type experimenter_id L{long}
     '''
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_query=mapann_query, mapann_value=mapann_value,
         params=None, experimenter_id=experimenter_id,
-        page=page, limit=limit)
+        page=None, limit=None)
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
 
@@ -184,7 +209,9 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
         @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
-        @param mapann_query The Map annotation value to filter by using like.
+        @param mapann_value The Map annotation value to filter by.
+        @type mapann_value L{string}
+        @param mapann_query The Map annotation value pattern to filter by.
         @type mapann_query L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1
@@ -199,10 +226,11 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
         defaults to the value set in settings.PAGE
         @type page L{long}
     '''
+
     mapannotations = []
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        mapann_query=mapann_query, mapann_value=mapann_value,
+        mapann_value=mapann_value, mapann_query=mapann_query,
         params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
@@ -240,7 +268,7 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
         logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
         for e in qs.projection(q, params, service_opts):
             e = unwrap(e)
-            _m[e[0]] = {'imgCount': e[1], 'childCount': None}
+            _m[e[0]] = {'imgCount': e[1], 'childCount': 2}  # TODO
 
     else:
         _m = {mapann_value: {'imgCount': 0, 'childCount': 0}}
@@ -307,6 +335,8 @@ def marshal_screens(conn, mapann_ns=[], mapann_names=[],
         @type mapann_names L{string}
         @param mapann_value The Map annotation value to filter by.
         @type mapann_value L{string}
+        @param mapann_query The Map annotation value pattern to filter by.
+        @type mapann_query L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1
         @type group_id L{long}
@@ -320,6 +350,7 @@ def marshal_screens(conn, mapann_ns=[], mapann_names=[],
         defaults to the value set in settings.PAGE
         @type page L{long}
     '''
+
     screens = []
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
@@ -359,7 +390,10 @@ def marshal_screens(conn, mapann_ns=[], mapann_names=[],
              e[0]["screen_details_permissions"],
              e[0]["childCount"]]
         ms = _marshal_screen(conn, e[0:5])
-        ms.update({'extra': {'value': mapann_value}})
+        if mapann_query is not None:
+            ms.update({'extra': {'query': mapann_query}})
+        if mapann_value is not None:
+            ms.update({'extra': {'value': mapann_value}})
         screens.append(ms)
 
     return screens
@@ -380,6 +414,8 @@ def marshal_projects(conn, mapann_ns=[], mapann_names=[],
         @type mapann_names L{string}
         @param mapann_value The Map annotation value to filter by.
         @type mapann_value L{string}
+        @param mapann_query The Map annotation value pattern to filter by.
+        @type mapann_query L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1
         @type group_id L{long}
@@ -393,6 +429,7 @@ def marshal_projects(conn, mapann_ns=[], mapann_names=[],
         defaults to the value set in settings.PAGE
         @type page L{long}
     '''
+
     projects = []
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
@@ -433,14 +470,18 @@ def marshal_projects(conn, mapann_ns=[], mapann_names=[],
              e[0]["project_details_permissions"],
              e[0]["childCount"]]
         ms = _marshal_screen(conn, e[0:5])
-        ms.update({'extra': {'value': mapann_value}})
+        if mapann_query is not None:
+            ms.update({'extra': {'query': mapann_query}})
+        if mapann_value is not None:
+            ms.update({'extra': {'value': mapann_value}})
         projects.append(ms)
 
     return projects
 
 
 def marshal_datasets(conn, project_id,
-                     mapann_value, mapann_ns=[], mapann_names=[],
+                     mapann_value=None, mapann_query=None,
+                     mapann_ns=[], mapann_names=[],
                      group_id=-1, experimenter_id=-1,
                      page=1, limit=settings.PAGE):
 
@@ -472,7 +513,7 @@ def marshal_datasets(conn, project_id,
     datasets = []
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        mapann_query=None, mapann_value=mapann_value,
+        mapann_query=mapann_query, mapann_value=mapann_value,
         params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
@@ -511,14 +552,20 @@ def marshal_datasets(conn, project_id,
              e[0]["dataset_details_permissions"],
              e[0]["childCount"]]
         mp = _marshal_plate(conn, e[0:5])
-        mp.update({'extra': {'value': mapann_value, 'node': 'dataset'}})
+        extra = {'extra': {'node': 'dataset'}}
+        if mapann_query is not None:
+            extra['query'] = mapann_query
+        if mapann_value is not None:
+            extra['value'] = mapann_value
+        mp.update(extra)
         datasets.append(mp)
 
     return datasets
 
 
 def marshal_plates(conn, screen_id,
-                   mapann_value, mapann_ns=[], mapann_names=[],
+                   mapann_value=None, mapann_query=None,
+                   mapann_ns=[], mapann_names=[],
                    group_id=-1, experimenter_id=-1,
                    page=1, limit=settings.PAGE):
 
@@ -550,7 +597,7 @@ def marshal_plates(conn, screen_id,
     plates = []
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        mapann_query=None, mapann_value=mapann_value,
+        mapann_query=mapann_query, mapann_value=mapann_value,
         params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
@@ -589,13 +636,19 @@ def marshal_plates(conn, screen_id,
              e[0]["plate_details_permissions"],
              e[0]["childCount"]]
         mp = _marshal_plate(conn, e[0:5])
-        mp.update({'extra': {'value': mapann_value, 'node': 'plate'}})
+        extra = {'extra': {'node': 'plate'}}
+        if mapann_query is not None:
+            extra['query'] = mapann_query
+        if mapann_value is not None:
+            extra['value'] = mapann_value
+        mp.update(extra)
         plates.append(mp)
 
     return plates
 
 
-def marshal_images(conn, parent, parent_id, mapann_value,
+def marshal_images(conn, parent, parent_id,
+                   mapann_value=None, mapann_query=None,
                    mapann_ns=[], mapann_names=[],
                    load_pixels=False,
                    group_id=-1, experimenter_id=-1,
@@ -632,7 +685,7 @@ def marshal_images(conn, parent, parent_id, mapann_value,
     images = []
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        mapann_query=None, mapann_value=mapann_value,
+        mapann_query=mapann_query, mapann_value=mapann_value,
         params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
@@ -767,7 +820,7 @@ def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
         @type mapann_ns L{string}
         @param mapann_names The Map annotation names to filter by.
         @type mapann_names L{string}
-        @param mapann_query The Map annotation value to filter by using like.
+        @param mapann_query The Map annotation value pattern to filter by.
         @type mapann_query L{string}
         @param group_id The Group ID to filter by or -1 for all groups,
         defaults to -1

@@ -238,7 +238,7 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
         if mapann_value is not None or mapann_query is not None:
             if mapann_query:
                 experimenter['extra'] = {'query': mapann_query}
-            if mapann_value:
+            elif mapann_value:
                 experimenter['extra'] = {'value': mapann_value}
             # count children
             experimenter['childCount'] = mapr_tree.count_mapannotations(
@@ -261,7 +261,7 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
 
 
 @login_required()
-def api_mapannotation_list(request, menu, value=None, conn=None, **kwargs):
+def api_mapannotation_list(request, menu, conn=None, **kwargs):
 
     mapann_ns = _get_ns(mapr_settings, menu)
     keys = _get_keys(mapr_settings, menu)
@@ -272,8 +272,7 @@ def api_mapannotation_list(request, menu, value=None, conn=None, **kwargs):
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
-        mapann_value = value \
-            or get_unicode_or_default(request, 'value', None) \
+        mapann_value = get_unicode_or_default(request, 'value', None) \
             or get_unicode_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         mapann_query = get_unicode_or_default(request, 'query', None)
@@ -345,8 +344,9 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
         project_id = get_unicode_or_default(request, 'id', None)
-        mapann_names = get_list_or_default(request, 'name', keys)
         mapann_value = get_unicode_or_default(request, 'value', None)
+        mapann_names = get_list_or_default(request, 'name', keys)
+        mapann_query = get_unicode_or_default(request, 'query', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -359,6 +359,7 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
             mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             mapann_value=mapann_value,
+            mapann_query=mapann_query,
             group_id=group_id,
             experimenter_id=experimenter_id,
             page=page,
@@ -387,8 +388,9 @@ def api_plate_list(request, menu, conn=None, **kwargs):
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
         screen_id = get_unicode_or_default(request, 'id', None)
-        mapann_names = get_list_or_default(request, 'name', keys)
         mapann_value = get_unicode_or_default(request, 'value', None)
+        mapann_names = get_list_or_default(request, 'name', keys)
+        mapann_query = get_unicode_or_default(request, 'query', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -401,6 +403,7 @@ def api_plate_list(request, menu, conn=None, **kwargs):
             mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             mapann_value=mapann_value,
+            mapann_query=mapann_query,
             group_id=group_id,
             experimenter_id=experimenter_id,
             page=page,
@@ -435,6 +438,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
         parent_id = get_long_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         mapann_value = get_unicode_or_default(request, 'value', None)
+        mapann_query = get_unicode_or_default(request, 'query', None)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -448,6 +452,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
             mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             mapann_value=mapann_value,
+            mapann_query=mapann_query,
             load_pixels=load_pixels,
             group_id=group_id,
             experimenter_id=experimenter_id,
