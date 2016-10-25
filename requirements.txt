@@ -1,2 +1,3 @@
 omego
 requests
+django-redis>4.4

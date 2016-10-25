@@ -41,6 +41,8 @@ from django.http import Http404
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
+from django_redis import get_redis_connection
+
 from show import mapr_paths_to_object
 from show import MapShow as Show
 import tree as mapr_tree
@@ -586,6 +588,7 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
 @login_required()
 def mapannotations_favicon(request, conn=None, **kwargs):
 
+    icon = None
     favdomain = "{0.scheme}://{0.netloc}/".format(
         urlparse(request.GET.get('u', None)))
     if favdomain is not None:
@@ -594,14 +597,22 @@ def mapannotations_favicon(request, conn=None, **kwargs):
             validate(favdomain)
         except ValidationError:
             return HttpResponseBadRequest('Invalid url')
-        try:
-            r = requests.get(
-                "%s%s" % (mapr_settings.FAVICON_WEBSERVICE, favdomain),
-                stream=True)
-            if r.status_code == 200:
-                return HttpJPEGResponse(r.content)
-        finally:
-            r.connection.close()
+
+        _cache_key = "favicon.%s" % favdomain
+
+        cache = get_redis_connection("default")
+        icon = cache.hget('favdomain', _cache_key)
+        if icon is None:
+            try:
+                r = requests.get(
+                    "%s%s" % (mapr_settings.FAVICON_WEBSERVICE, favdomain),
+                    stream=True)
+                if r.status_code == 200:
+                    icon = r.content
+                    cache.hset('favdomain', _cache_key, icon)
+            finally:
+                r.connection.close()
+        return HttpJPEGResponse(icon)
 
     with Image.open(mapr_settings.DEFAULT_FAVICON) as img:
         img.thumbnail((16, 16), Image.ANTIALIAS)
