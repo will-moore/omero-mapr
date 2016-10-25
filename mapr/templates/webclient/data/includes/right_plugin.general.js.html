@@ -48,7 +48,7 @@
  * It loads appropriate data into the right-hand 'general' tab on selection changes in the jsTree.
 **/
 
-var urlRegex = /(https?|ftp|file):\/\/[!-~]*/g;
+var urlRegex = new RegExp("(https?|ftp|file):\/\/[!-~]*", "igm");
 
 var iconify = function(input, imgsrc) {
     if (typeof imgsrc === 'undefined') {
@@ -58,12 +58,11 @@ var iconify = function(input, imgsrc) {
     function replacer(match){
         return ' <span class="favicon"><a href="' + match + '" target="_blank" ><img src="' + imgsrc + encodeURIComponent(decodeURIComponent(match)) + '" /></a></span>';
     };
-    return input.replace(new RegExp(urlRegex, "gim"), replacer);
+    return input.replace(urlRegex, replacer);
 };
 
 var isURL = function(input) {
-    var regex = new RegExp(urlRegex, "gim");
-    return regex.test(input);
+    return urlRegex.test(input);
 };
 
 var old_linkify_element = OME.linkify_element;
