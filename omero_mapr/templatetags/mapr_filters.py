@@ -25,18 +25,17 @@
 #
 
 import logging
-import json
 
 from django import template
-from django.utils.safestring import mark_safe
-from mapr.mapr_settings import mapr_settings
+from ..mapr_settings import mapr_settings
 
 register = template.Library()
 
 logger = logging.getLogger(__name__)
 
 
-# settings.py
-@register.simple_tag
-def mapr_menu_config():
-    return mark_safe(json.dumps(mapr_settings.MENU_MAPR))
+# See https://code.djangoproject.com/ticket/361
+@register.filter
+def menutolabel(value):
+    "Subtracts the arg from the value"
+    return mapr_settings.MENU_MAPR[value]['label']

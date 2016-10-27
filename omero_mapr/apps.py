@@ -28,5 +28,5 @@ from django.apps import AppConfig
 
 
 class MaprAppConfig(AppConfig):
-    name = "mapr"
+    name = "omero_mapr"
     label = "mapr"
