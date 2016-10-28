@@ -20,7 +20,6 @@
 #
 # Version: 1.0
 
-
 import django
 from django.conf import settings
 from omeroweb.settings import process_custom_settings, report_settings

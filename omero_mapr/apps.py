@@ -21,8 +21,6 @@
 # Author: Aleksandra Tarkowska <A(dot)Tarkowska(at)dundee(dot)ac(dot)uk>, 2008.
 #
 # Version: 1.0
-#
-
 
 from django.apps import AppConfig
 

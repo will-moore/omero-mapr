@@ -8,7 +8,7 @@
 MAPR
 ====
 
-An OMERO.web app allowing to browse the data through attributes lineked to the image
+An OMERO.web app allowing to browse the data through attributes linked to the image
 
 Requirements
 ============

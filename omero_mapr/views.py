@@ -20,7 +20,6 @@
 #
 # Version: 1.0
 
-
 import logging
 import traceback
 import requests
@@ -192,17 +191,11 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
         try:
             experimenter_id = get_long_or_default(request, 'experimenter',
                                                   None)
-            # project_id = get_long_or_default(request, 'project', None)
-            # dataset_id = get_long_or_default(request, 'dataset', None)
+            project_id = get_long_or_default(request, 'project', None)
+            dataset_id = get_long_or_default(request, 'dataset', None)
             image_id = get_long_or_default(request, 'image', None)
             screen_id = get_long_or_default(request, 'screen', None)
             plate_id = get_long_or_default(request, 'plate', None)
-            acquisition_id = get_long_or_default(request, 'run', None)
-            # acquisition will override 'run' if both are specified as they are
-            # the same thing
-            acquisition_id = get_long_or_default(request, 'acquisition',
-                                                 acquisition_id)
-            # well_id = request.GET.get('well', None)
             group_id = get_long_or_default(request, 'group', None)
         except ValueError:
             return HttpResponseBadRequest('Invalid parameter value')
@@ -210,7 +203,9 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
         paths = mapr_paths_to_object(
             conn=conn, mapann_ns=mapann_ns,
             mapann_value=mapann_value, mapann_names=mapann_names,
-            screen_id=screen_id, plate_id=plate_id, image_id=image_id,
+            screen_id=screen_id, plate_id=plate_id,
+            project_id=project_id, dataset_id=dataset_id,
+            image_id=image_id,
             experimenter_id=experimenter_id, group_id=group_id)
 
         return JsonResponse({'paths': paths})

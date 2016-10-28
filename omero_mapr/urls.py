@@ -20,7 +20,6 @@
 #
 # Version: 1.0
 
-
 from . import views
 from django.conf.urls import url, patterns
 from django.core.urlresolvers import reverse

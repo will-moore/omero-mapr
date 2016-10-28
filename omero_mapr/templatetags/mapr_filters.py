@@ -34,7 +34,6 @@ register = template.Library()
 logger = logging.getLogger(__name__)
 
 
-# See https://code.djangoproject.com/ticket/361
 @register.filter
 def menutolabel(value):
     "Subtracts the arg from the value"

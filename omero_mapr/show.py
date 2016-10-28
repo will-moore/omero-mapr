@@ -20,6 +20,7 @@
 #
 # Version: 1.0
 
+import logging
 import omero
 
 from copy import deepcopy
@@ -33,6 +34,9 @@ import omeroweb.webclient.show as omeroweb_show
 import tree as mapr_tree
 
 from omeroweb.utils import reverse_with_params
+
+
+logger = logging.getLogger(__name__)
 
 
 class MapShow(omeroweb_show.Show):
@@ -131,6 +135,7 @@ class MapShow(omeroweb_show.Show):
                 where mv.value = :mvalue
             """
             qs = self.conn.getQueryService()
+            logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
             m = qs.findByQuery(q, params, service_opts)
             # hardcode to always tell to load all users
             return omero.gateway.MapAnnotationWrapper(self.conn, m)
@@ -140,7 +145,9 @@ omeroweb_show.Show = MapShow
 
 def mapr_paths_to_object(conn, mapann_ns=[],
                          mapann_names=[], mapann_value=None,
-                         screen_id=None, plate_id=None, image_id=None,
+                         screen_id=None, plate_id=None,
+                         project_id=None, dataset_id=None,
+                         image_id=None,
                          experimenter_id=None, group_id=None,
                          page_size=None, limit=settings.PAGE):
 
@@ -157,8 +164,8 @@ def mapr_paths_to_object(conn, mapann_ns=[],
         service_opts.setOmeroGroup(group_id)
 
     q = '''
-        select
-            distinct new map (mv.value as map_value,
+        SELECT distinct new map(
+            mv.value as map_value,
             i.details.owner.id as owner,
         '''
 
@@ -167,26 +174,51 @@ def mapr_paths_to_object(conn, mapann_ns=[],
         q_select.append(" sl.parent.id as screen_id ")
     elif plate_id:
         q_select.append(" sl.parent.id as screen_id ")
-        q_select.append(" p.id as plate_id")
+        q_select.append(" pl.id as plate_id")
+    elif project_id:
+        q_select.append(" pdl.parent.id as project_id ")
+    elif dataset_id:
+        q_select.append(" pdl.parent.id as project_id ")
+        q_select.append(" ds.id as dataset_id")
     elif image_id:
-        q_select.append(" sl.parent.id as screen_id ")
-        q_select.append(" p.id as plate_id ")
+        q_select.append(" COALESCE(sl.parent.id,null) as screen_id ")
+        q_select.append(" COALESCE(pdl.parent.id,null) as project_id ")
+        q_select.append(" COALESCE(pl.id,null) as plate_id ")
+        q_select.append(" COALESCE(ds.id,null) as dataset_id ")
         q_select.append(" i.id as image_id ")
 
     if q_select:
         q += ", ".join(q_select) + ", "
 
     q += ''' count(i.id) as imgCount)
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+        FROM ImageAnnotationLink ial
+            join ial.child a
+            join a.mapValue mv
             join ial.parent i
             left outer join i.details.owner
-            join i.wellSamples ws
-            join ws.well w
-            join w.plate p
-            join p.screenLinks sl
+            left outer join i.wellSamples ws
+                left outer join ws.well w
+                left outer join w.plate pl
+                left outer join pl.screenLinks sl
+            left outer join i.datasetLinks dil
+                left outer join dil.parent ds
+                left outer join ds.projectLinks pdl
+        WHERE
+             (
+                 (dil is null
+                     and ds is null and pdl is null
+                  and ws is not null
+                      and w is not null and pl is not null
+                      and sl is not null)
+                 OR
+                 (ws is null
+                     and w is null and pl is null and sl is null
+                  and dil is not null
+                     and ds is not null and pdl is not null )
+             )
+             AND
         '''
 
-    q += " where 1=1 and "
     if image_id:
         q += " i.id = :iid and "
         params.add('iid', rlong(image_id))
@@ -194,8 +226,14 @@ def mapr_paths_to_object(conn, mapann_ns=[],
         q += " sl.parent.id = :sid and "
         params.add('sid', rlong(screen_id))
     elif plate_id:
-        q += " p.id = :pid and "
+        q += " pl.id = :pid and "
         params.add('pid', rlong(plate_id))
+    elif project_id:
+        q += " pdl.parent.id = :pid and "
+        params.add('pid', rlong(project_id))
+    elif dataset_id:
+        q += " ds.id = :did and "
+        params.add('did', rlong(dataset_id))
 
     if len(where_clause) > 0:
         q += ' and '.join(where_clause)
@@ -206,10 +244,17 @@ def mapr_paths_to_object(conn, mapann_ns=[],
         q_groupby.append(" sl.parent.id ")
     elif plate_id:
         q_groupby.append(" sl.parent.id ")
-        q_groupby.append(" p.id ")
+        q_groupby.append(" pl.id ")
+    elif project_id:
+        q_groupby.append(" pdl.parent.id ")
+    elif dataset_id:
+        q_groupby.append(" pdl.parent.id ")
+        q_groupby.append(" ds.id ")
     elif image_id:
-        q_groupby.append(" sl.parent.id ")
-        q_groupby.append(" p.id ")
+        q_groupby.append(" COALESCE(sl.parent.id,null) ")
+        q_groupby.append(" COALESCE(pdl.parent.id,null) ")
+        q_groupby.append(" COALESCE(pl.id,null) ")
+        q_groupby.append(" COALESCE(ds.id,null) ")
         q_groupby.append(" i.id ")
 
     if q_groupby:
@@ -218,6 +263,7 @@ def mapr_paths_to_object(conn, mapann_ns=[],
     # Hierarchies for this object
     paths = []
 
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in unwrap(qs.projection(q, params, service_opts)):
         path = []
 
@@ -233,29 +279,47 @@ def mapr_paths_to_object(conn, mapann_ns=[],
 
         try:
             mapValue = e[0]["map_value"]
-            ds = {
+            path.append({
                 'type': 'map',
                 'id': mapValue,
-            }
-            path.append(ds)
-        except:
-            pass
-
-        try:
-            path.append({
-                'type': 'screen',
-                'id': e[0]["screen_id"]
             })
         except:
             pass
 
         try:
-            plateId = e[0]["plate_id"]
-            ds = {
-                'type': 'plate',
-                'id': plateId,
-            }
-            path.append(ds)
+            if e[0]["screen_id"] is not None:
+                path.append({
+                    'type': 'screen',
+                    'id': e[0]["screen_id"]
+                })
+        except:
+            pass
+
+        try:
+            if e[0]["plate_id"] is not None:
+                plateId = e[0]["plate_id"]
+                path.append({
+                    'type': 'plate',
+                    'id': plateId,
+                })
+        except:
+            pass
+
+        try:
+            if e[0]["project_id"] is not None:
+                path.append({
+                    'type': 'project',
+                    'id': e[0]["project_id"]
+                })
+        except:
+            pass
+
+        try:
+            if e[0]["dataset_id"] is not None:
+                path.append({
+                    'type': 'dataset',
+                    'id': e[0]["dataset_id"],
+                })
         except:
             pass
 

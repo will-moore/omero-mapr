@@ -36,7 +36,6 @@ register = template.Library()
 logger = logging.getLogger(__name__)
 
 
-# settings.py
 @register.simple_tag
 def mapr_menu_config():
     return mark_safe(json.dumps(mapr_settings.MENU_MAPR))
