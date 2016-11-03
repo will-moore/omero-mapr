@@ -45,7 +45,7 @@ $(function () {
     // custom type map
     jstreeInst.settings.types['#'].valid_children = ['map'];
     jstreeInst.settings.types['map'] = {
-        'icon': WEBCLIENT.URLS.static_webclient + 'image/left_sidebar_icon_tag.png',
+        'icon': WEBCLIENT.URLS.static_webclient + 'image/left_sidebar_icon_map.png',
         'valid_children': ['project', 'screen'],
         'draggable': false
     }

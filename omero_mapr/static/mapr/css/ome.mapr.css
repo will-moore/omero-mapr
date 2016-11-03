@@ -8,12 +8,6 @@
 #id_autocomplete {
     margin-top: -2px;
 }
-#id_autocomplete:active {
-    box-shadow: 0 0 10px #ffffff
-}
-#id_autocomplete:focus {
-    box-shadow: 0 0 10px #ffffff
-}
 
 ul.ui-autocomplete{
     background: #ffffff;
@@ -36,4 +30,8 @@ ul.ui-autocomplete{
 
 .autocompletesearch label{
     top:3px;
+}
+
+input[type='text'].ui-autocomplete-loading {
+    background: url('../../webgateway/img/spinner.gif') no-repeat right center;
 }
