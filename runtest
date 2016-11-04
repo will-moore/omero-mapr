@@ -1,0 +1,40 @@
+#!/bin/bash
+
+set -e -u -x
+
+distpath=".."
+rm -rf ${distpath}/OmeroPy ${distpath}/omerovenv
+
+SERVER_HOST=${1:-"localhost"}
+SERVER_PORT=${2:-"4064"}
+
+virtualenv ${distpath}/omerovenv
+
+set +u
+source ${distpath}/omerovenv/bin/activate
+set -u
+
+pip install -r requirements-test.txt
+
+omego download --ice 3.6 --branch OMERO-DEV-merge-build py --unzipdir ${distpath}
+
+ZIP=$(ls OMERO.py*.zip)
+DIST=${ZIP%.zip}
+rm -f $ZIP
+mv ${distpath}/$DIST ${distpath}/OmeroPy
+
+pip install -r ${distpath}/OmeroPy/share/web/requirements-py27-trial.txt
+pip install .
+pip install -e ${distpath}/omero-pytests.git
+${distpath}/OmeroPy/bin/omero config set omero.web.apps '["omero_mapr"]'
+${distpath}/OmeroPy/bin/omero config set omero.web.server_list '[["'${SERVER_HOST}'", '${SERVER_PORT}', "'${SERVER_HOST}'"]]'
+
+sed -i '' "s/^\(omero\.host\s*=\s*\).*\$/\1$SERVER_HOST/" ${distpath}/OmeroPy/etc/ice.config
+sed -i '' "s/^\(omero\.port\s*=\s*\).*\$/\1$SERVER_PORT/" ${distpath}/OmeroPy/etc/ice.config
+
+export PYTHONPATH=.:${distpath}/OmeroPy/lib/python:${distpath}/OmeroPy/lib/python/omeroweb
+export ICE_CONFIG=${distpath}/OmeroPy/etc/ice.config
+
+pytest test
+
+deactivate
