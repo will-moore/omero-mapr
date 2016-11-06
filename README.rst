@@ -45,9 +45,10 @@ Testing
 Testing MAPR requires OMERO.server running.
 Run tests (includes self-contained OMERO.server, requires docker)::
 
-    docker-compose -f docker/docker-compose.yml up --build
+    docker-compose -f docker/docker-compose.yml up --build --abort-on-container-exit
+    docker-compose -f docker/docker-compose.yml rm -fv
 
-Run test against remote server
+Run test against remote server::
 
     ./runtest $host $port
 
