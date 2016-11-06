@@ -1,2 +1,2 @@
-pytest
-pytest-django
+pytest>=3.0.0
+pytest-django>=3.0.0
