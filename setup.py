@@ -24,8 +24,8 @@ import os
 from setuptools import setup, find_packages
 
 
-def get_requirements():
-    with open('requirements.txt') as f:
+def get_requirements(filename='requirements.txt'):
+    with open(filename) as f:
         rv = f.read().splitlines()
     return rv
 
@@ -69,6 +69,7 @@ setup(
     url="https://github.com/ome/omero-mapr",
     download_url='https://github.com/ome/omero-mapr/tarball/%s' % VERSION,  # NOQA
     install_requires=get_requirements(),
+    tests_require=get_requirements('requirements-test.txt'),
     include_package_data=True,
     zip_safe=False,
 )

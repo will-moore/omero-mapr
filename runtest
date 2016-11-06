@@ -2,39 +2,58 @@
 
 set -e -u -x
 
-distpath=".."
-rm -rf ${distpath}/OmeroPy ${distpath}/omerovenv
-
 SERVER_HOST=${1:-"localhost"}
 SERVER_PORT=${2:-"4064"}
 
-virtualenv ${distpath}/omerovenv
+maprsrcpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+distpath=${maprsrcpath}/..
+rm -rf ${distpath}/OmeroPy ${distpath}/omerovenv ${distpath}/omero-pytests
+
+# create virtualenv
+virtualenv ${distpath}/omerovenv
 set +u
 source ${distpath}/omerovenv/bin/activate
 set -u
 
-pip install -r requirements-test.txt
+pip install omego
 
-omego download --ice 3.6 --branch OMERO-DEV-merge-build py --unzipdir ${distpath}
+# download OMERO.py
+(cd ${distpath} && omego download --ice 3.6 --branch OMERO-DEV-merge-build py)
+zip=$(ls ${distpath}/OMERO.py*.zip)
+dist=${zip%.zip}
+rm -rf ${zip}
+mv $dist ${distpath}/OmeroPy
 
-ZIP=$(ls OMERO.py*.zip)
-DIST=${ZIP%.zip}
-rm -f $ZIP
-mv ${distpath}/$DIST ${distpath}/OmeroPy
-
+# instal OMERO.web prerequisites
 pip install -r ${distpath}/OmeroPy/share/web/requirements-py27-trial.txt
-pip install .
-pip install -e ${distpath}/omero-pytests.git
+
+# install omero-pytests
+git clone https://github.com/aleksandra-tarkowska/omero-pytests.git ${distpath}/omero-pytests
+pip install ${distpath}/omero-pytests
+
+# install mapr
+pip install ${maprsrcpath}
 ${distpath}/OmeroPy/bin/omero config set omero.web.apps '["omero_mapr"]'
 ${distpath}/OmeroPy/bin/omero config set omero.web.server_list '[["'${SERVER_HOST}'", '${SERVER_PORT}', "'${SERVER_HOST}'"]]'
 
-sed -i '' "s/^\(omero\.host\s*=\s*\).*\$/\1$SERVER_HOST/" ${distpath}/OmeroPy/etc/ice.config
-sed -i '' "s/^\(omero\.port\s*=\s*\).*\$/\1$SERVER_PORT/" ${distpath}/OmeroPy/etc/ice.config
+# prepare ice.config
+sed -i "s/^\(omero\.host\s*=\s*\).*\$/\1$SERVER_HOST/" ${distpath}/OmeroPy/etc/ice.config
+sed -i "s/^\(omero\.port\s*=\s*\).*\$/\1$SERVER_PORT/" ${distpath}/OmeroPy/etc/ice.config
 
-export PYTHONPATH=.:${distpath}/OmeroPy/lib/python:${distpath}/OmeroPy/lib/python/omeroweb
+# setup paths to OMERO.py
+export PYTHONPATH=${distpath}/OmeroPy/lib/python:${distpath}/OmeroPy/lib/python/omeroweb:${PYTHONPATH:-}
 export ICE_CONFIG=${distpath}/OmeroPy/etc/ice.config
 
-pytest test
+until ${distpath}/OmeroPy/bin/omero login -s $SERVER_HOST -p $SERVER_PORT -u root -w omero ; do
+  >&2 echo "OMERO.server is unavailable - sleeping"
+  sleep 5
+done
 
+pip install -r ${maprsrcpath}/requirements-test.txt
+
+# run tests
+(cd ${maprsrcpath} && py.test tests)
+
+# deactivate
 deactivate

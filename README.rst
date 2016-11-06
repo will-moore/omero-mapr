@@ -32,11 +32,24 @@ plug in the app to OMERO.web
 
     $ bin/omero config append omero.web.apps '"omero_mapr"'
 
-    $ bin/omero config set omero.web.ui.top_links '[["IDR", {"viewname": "webindex", "query_string": {"experimenter": -1}}, {"title": "Image Data Repository"}], ["Genes", {"viewname": "maprindex_gene", "query_string": {"experimenter": -1}}, {"title": "Genes browser"}], ["Phenotypes", {"viewname": "maprindex_phenotype", "query_string": {"experimenter": -1}}, {"title": "Phenotypes browser"}], ["siRNA", {"viewname": "maprindex_sirna", "query_string": {"experimenter": -1}}, {"title": "siRNA browser"}], ["Compound", {"viewname": "maprindex_compound", "query_string": {"experimenter": -1}}, {"title": "Compound browser"}], ["Organism", {"viewname": "maprindex_organism", "query_string": {"experimenter": -1}}, {"title": "Organism browser"}]]'
+    $ bin/omero config append omero.web.ui.top_links '["Key1", {"viewname": "maprindex_key1", "query_string": {"experimenter": -1}}, {"title": "Key1 browser"}]'
+
+    $ bin/omero config append omero.web.mapr.config '{"menu": "key1", "config": {"default": ["Key1"], "all": ["Key1", "Key2"], "ns": ["openmicroscopy.org/mapr/key1"], "label": "Key1"}}'
 
 
 Now restart OMERO.web as normal.
 
+Testing
+=======
+
+Testing MAPR requires OMERO.server running.
+Run tests (includes self-contained OMERO.server, requires docker)::
+
+    docker-compose -f docker/docker-compose.yml up --build
+
+Run test against remote server
+
+    ./runtest $host $port
 
 License
 -------

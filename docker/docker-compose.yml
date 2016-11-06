@@ -1,0 +1,26 @@
+version: '2'
+services:
+  pg95:
+    image: postgres
+
+  omeroserver:
+    build:
+      context: ./omeroserver
+      dockerfile: Dockerfile
+    links:
+      - pg95
+    env_file:
+      - server.env
+    ports:
+      - "4064:4064"
+      - "4063:4063"
+
+  maprtest:
+    build:
+      context: ./maprtest
+      dockerfile: Dockerfile
+    links:
+      - omeroserver
+    volumes:
+      - ../.:/home/omero/mapr.git
+    command: /home/omero/mapr.git/runtest omeroserver 4064
