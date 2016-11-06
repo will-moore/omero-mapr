@@ -69,7 +69,9 @@ setup(
     url="https://github.com/ome/omero-mapr",
     download_url='https://github.com/ome/omero-mapr/tarball/%s' % VERSION,  # NOQA
     install_requires=get_requirements(),
+    setup_requires=['pytest-runner'],
     tests_require=get_requirements('requirements-test.txt'),
     include_package_data=True,
     zip_safe=False,
+    test_suite="tests",
 )

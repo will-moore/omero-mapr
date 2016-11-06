@@ -33,7 +33,7 @@ git clone https://github.com/aleksandra-tarkowska/omero-pytests.git ${distpath}/
 pip install ${distpath}/omero-pytests
 
 # install mapr
-pip install ${maprsrcpath}
+pip install -e ${maprsrcpath}
 ${distpath}/OmeroPy/bin/omero config set omero.web.apps '["omero_mapr"]'
 ${distpath}/OmeroPy/bin/omero config set omero.web.server_list '[["'${SERVER_HOST}'", '${SERVER_PORT}', "'${SERVER_HOST}'"]]'
 
@@ -50,10 +50,8 @@ until ${distpath}/OmeroPy/bin/omero login -s $SERVER_HOST -p $SERVER_PORT -u roo
   sleep 5
 done
 
-pip install -r ${maprsrcpath}/requirements-test.txt
-
 # run tests
-(cd ${maprsrcpath} && py.test tests)
+(cd ${maprsrcpath} && python setup.py test)
 
 # deactivate
 deactivate
