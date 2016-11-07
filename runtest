@@ -11,7 +11,7 @@ distpath=${maprsrcpath}/..
 rm -rf ${distpath}/OmeroPy ${distpath}/omerovenv ${distpath}/omero-pytests
 
 # create virtualenv
-virtualenv ${distpath}/omerovenv
+virtualenv ${distpath}/omerovenv --system-site-packages
 set +u
 source ${distpath}/omerovenv/bin/activate
 set -u
@@ -26,7 +26,7 @@ rm -rf ${zip}
 mv $dist ${distpath}/OmeroPy
 
 # instal OMERO.web prerequisites
-pip install -r ${distpath}/OmeroPy/share/web/requirements-py27-trial.txt
+pip install -r ${distpath}/OmeroPy/share/web/requirements-py27-nginx.txt
 
 # install omero-pytests
 git clone https://github.com/aleksandra-tarkowska/omero-pytests.git ${distpath}/omero-pytests
@@ -52,6 +52,3 @@ done
 
 # run tests
 (cd ${maprsrcpath} && python setup.py test)
-
-# deactivate
-deactivate

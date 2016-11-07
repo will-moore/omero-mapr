@@ -1,26 +1,21 @@
 version: '2'
 services:
-  pg95:
+  postgres:
     image: postgres
 
   omeroserver:
-    build:
-      context: ./omeroserver
-      dockerfile: Dockerfile
+    image: olat/omero-test-daemon-c7
     links:
-      - pg95
-    env_file:
-      - server.env
-    ports:
-      - "4064:4064"
-      - "4063:4063"
+      - postgres
 
   maprtest:
-    build:
-      context: ./maprtest
-      dockerfile: Dockerfile
+    image: olat/omero-test-daemon-c7
     links:
       - omeroserver
+    environment:
+      - COMPONENT=py
+      - SERVER_HOST=omeroserver
+      - SERVER_PORT=4064
     volumes:
       - ../.:/home/omero/mapr.git
     command: /home/omero/mapr.git/runtest omeroserver 4064
