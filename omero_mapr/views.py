@@ -187,26 +187,27 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
         return HttpResponseBadRequest('Invalid parameter value')
 
     if menu in mapr_settings.MENU_MAPR:
+        paths = []
+        if mapann_value is not None:
+            try:
+                experimenter_id = get_long_or_default(request, 'experimenter',
+                                                      None)
+                project_id = get_long_or_default(request, 'project', None)
+                dataset_id = get_long_or_default(request, 'dataset', None)
+                image_id = get_long_or_default(request, 'image', None)
+                screen_id = get_long_or_default(request, 'screen', None)
+                plate_id = get_long_or_default(request, 'plate', None)
+                group_id = get_long_or_default(request, 'group', None)
+            except ValueError:
+                return HttpResponseBadRequest('Invalid parameter value')
 
-        try:
-            experimenter_id = get_long_or_default(request, 'experimenter',
-                                                  None)
-            project_id = get_long_or_default(request, 'project', None)
-            dataset_id = get_long_or_default(request, 'dataset', None)
-            image_id = get_long_or_default(request, 'image', None)
-            screen_id = get_long_or_default(request, 'screen', None)
-            plate_id = get_long_or_default(request, 'plate', None)
-            group_id = get_long_or_default(request, 'group', None)
-        except ValueError:
-            return HttpResponseBadRequest('Invalid parameter value')
-
-        paths = mapr_paths_to_object(
-            conn=conn, mapann_ns=mapann_ns,
-            mapann_value=mapann_value, mapann_names=mapann_names,
-            screen_id=screen_id, plate_id=plate_id,
-            project_id=project_id, dataset_id=dataset_id,
-            image_id=image_id,
-            experimenter_id=experimenter_id, group_id=group_id)
+            paths = mapr_paths_to_object(
+                conn=conn, mapann_ns=mapann_ns,
+                mapann_value=mapann_value, mapann_names=mapann_names,
+                screen_id=screen_id, plate_id=plate_id,
+                project_id=project_id, dataset_id=dataset_id,
+                image_id=image_id,
+                experimenter_id=experimenter_id, group_id=group_id)
 
         return JsonResponse({'paths': paths})
     return webclient_api_paths_to_object(request, conn=conn, **kwargs)

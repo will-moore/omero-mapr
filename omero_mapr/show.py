@@ -143,8 +143,8 @@ class MapShow(omeroweb_show.Show):
 omeroweb_show.Show = MapShow
 
 
-def mapr_paths_to_object(conn, mapann_ns=[],
-                         mapann_names=[], mapann_value=None,
+def mapr_paths_to_object(conn, mapann_value,
+                         mapann_ns=[], mapann_names=[],
                          screen_id=None, plate_id=None,
                          project_id=None, dataset_id=None,
                          image_id=None,
