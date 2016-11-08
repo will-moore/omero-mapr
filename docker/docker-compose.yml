@@ -4,14 +4,14 @@ services:
     image: postgres
 
   omeroserver:
-    image: openmicroscopy/omero-test-daemon-c7
+    image: openmicroscopy/omero-test-daemon-c7:0.1.0
     links:
       - postgres
     environment:
       - OMEROBUILD=${OMEROBUILD}
 
   maprtest:
-    image: openmicroscopy/omero-test-daemon-c7
+    image: openmicroscopy/omero-test-daemon-c7:0.1.0
     links:
       - omeroserver
     environment:
