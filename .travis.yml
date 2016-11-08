@@ -16,8 +16,8 @@ before_install:
   - docker-compose -v
 
 before_script:
-  - pip install flake8
-  - flake8 -v .
+  - pip install flake8 pycodestyle pep8-naming
+  - flake8 --version
   - python setup.py sdist install
 
 script:

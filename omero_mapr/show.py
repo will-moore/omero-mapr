@@ -128,12 +128,11 @@ class MapShow(omeroweb_show.Show):
             f.limit = rint(1)
             params.theFilter = f
 
-            q = """
-                select distinct (a)
-                from ImageAnnotationLink ial join ial.child a
-                join a.mapValue mv
-                where mv.value = :mvalue
-            """
+            q = ("SELECT distinct (a)"
+                 "FROM ImageAnnotationLink ial JOIN ial.child a"
+                 "JOIN a.mapValue mv"
+                 "WHERE mv.value = :mvalue")
+
             qs = self.conn.getQueryService()
             logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
             m = qs.findByQuery(q, params, service_opts)
@@ -164,82 +163,78 @@ def mapr_paths_to_object(conn, mapann_value,
     if group_id is not None:
         service_opts.setOmeroGroup(group_id)
 
-    q = '''
-        SELECT distinct new map(
-            mv.value as map_value,
-            i.details.owner.id as owner,
-        '''
+    q = []
+    q.append(" SELECT distinct new map( "
+             " mv.value as map_value, "
+             " i.details.owner.id as owner, ")
 
     q_select = []
-    if screen_id:
-        q_select.append(" sl.parent.id as screen_id ")
-    elif plate_id:
-        q_select.append(" sl.parent.id as screen_id ")
-        q_select.append(" pl.id as plate_id")
-    elif project_id:
-        q_select.append(" pdl.parent.id as project_id ")
-    elif dataset_id:
-        q_select.append(" pdl.parent.id as project_id ")
-        q_select.append(" ds.id as dataset_id")
+    if screen_id or plate_id:
+        q_select.append(" sl.parent.id as screen_id, ")
+        if plate_id:
+            q_select.append(" pl.id as plate_id, ")
+    elif project_id or dataset_id:
+        q_select.append(" pdl.parent.id as project_id,  ")
+        if dataset_id:
+            q_select.append(" ds.id as dataset_id, ")
     elif image_id:
-        q_select.append(" COALESCE(sl.parent.id,null) as screen_id ")
-        q_select.append(" COALESCE(pdl.parent.id,null) as project_id ")
-        q_select.append(" COALESCE(pl.id,null) as plate_id ")
-        q_select.append(" COALESCE(ds.id,null) as dataset_id ")
-        q_select.append(" i.id as image_id ")
+        q_select.append(" COALESCE(sl.parent.id,null) as screen_id, "
+                        " COALESCE(pdl.parent.id,null) as project_id, "
+                        " COALESCE(pl.id,null) as plate_id, "
+                        " COALESCE(ds.id,null) as dataset_id "
+                        " i.id as image_id, ")
 
     if q_select:
-        q += ", ".join(q_select) + ", "
+        q.append(" ".join(q_select))
 
-    q += ''' count(i.id) as imgCount)
-        FROM ImageAnnotationLink ial
-            join ial.child a
-            join a.mapValue mv
-            join ial.parent i
-            left outer join i.details.owner
-            left outer join i.wellSamples ws
-                left outer join ws.well w
-                left outer join w.plate pl
-                left outer join pl.screenLinks sl
-            left outer join i.datasetLinks dil
-                left outer join dil.parent ds
-                left outer join ds.projectLinks pdl
-        WHERE
-             (
-                 (dil is null
-                     and ds is null and pdl is null
-                  and ws is not null
-                      and w is not null and pl is not null
-                      and sl is not null)
-                 OR
-                 (ws is null
-                     and w is null and pl is null and sl is null
-                  and dil is not null
-                     and ds is not null and pdl is not null )
-             )
-             AND
-        '''
+    q.append(" count(i.id) as imgCount) "
+             " FROM ImageAnnotationLink ial "
+             " join ial.child a "
+             " join a.mapValue mv "
+             " join ial.parent i "
+             " left outer join i.details.owner "
+             " left outer join i.wellSamples ws "
+             " left outer join ws.well w "
+             " left outer join w.plate pl "
+             " left outer join pl.screenLinks sl "
+             " left outer join i.datasetLinks dil "
+             " left outer join dil.parent ds "
+             " left outer join ds.projectLinks pdl "
+             " WHERE ( "
+             " (dil is null "
+             " and ds is null and pdl is null "
+             " and ws is not null "
+             " and w is not null and pl is not null "
+             " and sl is not null) "
+             " OR "
+             " (ws is null "
+             " and w is null and pl is null and sl is null "
+             " and dil is not null "
+             " and ds is not null and pdl is not null ) "
+             " ) "
+             " AND ")
 
     if image_id:
-        q += " i.id = :iid and "
+        q.append(" i.id = :iid and ")
         params.add('iid', rlong(image_id))
     elif screen_id:
-        q += " sl.parent.id = :sid and "
+        q.append(" sl.parent.id = :sid and ")
         params.add('sid', rlong(screen_id))
     elif plate_id:
-        q += " pl.id = :pid and "
+        q.append(" pl.id = :pid and ")
         params.add('pid', rlong(plate_id))
     elif project_id:
-        q += " pdl.parent.id = :pid and "
+        q.append(" pdl.parent.id = :pid and ")
         params.add('pid', rlong(project_id))
     elif dataset_id:
-        q += " ds.id = :did and "
+        q.append(" ds.id = :did and ")
         params.add('did', rlong(dataset_id))
 
     if len(where_clause) > 0:
-        q += ' and '.join(where_clause)
+        q.append(" and ".join(where_clause))
 
-    q += " group by mv.value, i.details.owner.id "
+    q.append(" group by mv.value, i.details.owner.id ")
+
     q_groupby = []
     if screen_id:
         q_groupby.append(" sl.parent.id ")
@@ -259,16 +254,18 @@ def mapr_paths_to_object(conn, mapann_value,
         q_groupby.append(" i.id ")
 
     if q_groupby:
-        q += ", " + ", ".join(q_groupby)
+        q.append(", " + ", ".join(q_groupby))
+
+    query = "".join(q)
 
     # Hierarchies for this object
     paths = []
 
-    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
-    for e in unwrap(qs.projection(q, params, service_opts)):
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (query, params))
+    for e in unwrap(qs.projection(query, params, service_opts)):
         path = []
 
-        # Experimenter is always found
+        # Experimenter is always present
         try:
             experimenter_id = e[0]["owner"]
         except:
@@ -279,10 +276,10 @@ def mapr_paths_to_object(conn, mapann_value,
         })
 
         try:
-            mapValue = e[0]["map_value"]
+            map_value = e[0]["map_value"]
             path.append({
                 'type': 'map',
-                'id': mapValue,
+                'id': map_value,
             })
         except:
             pass
@@ -298,10 +295,10 @@ def mapr_paths_to_object(conn, mapann_value,
 
         try:
             if e[0]["plate_id"] is not None:
-                plateId = e[0]["plate_id"]
+                plate_id = e[0]["plate_id"]
                 path.append({
                     'type': 'plate',
-                    'id': plateId,
+                    'id': plate_id,
                 })
         except:
             pass
@@ -324,7 +321,7 @@ def mapr_paths_to_object(conn, mapann_value,
         except:
             pass
 
-        # Image always present
+        # Image is always present
         try:
             path.append({
                 'type': 'image',

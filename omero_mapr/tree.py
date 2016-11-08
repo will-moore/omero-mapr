@@ -78,27 +78,27 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
 
     if mapann_names is not None and len(mapann_names) > 0:
         manlist = [rstring(unicode(n)) for n in mapann_names]
-        params.add("filter", rlist(manlist))
-        where_clause.append('mv.name in (:filter)')
+        params.add('filter', rlist(manlist))
+        where_clause.append("mv.name in (:filter)")
 
     if mapann_ns is not None and len(mapann_ns) > 0:
         mnslist = [rstring(unicode(n)) for n in mapann_ns]
         params.add("ns", rlist(mnslist))
-        where_clause.append('a.ns in (:ns)')
+        where_clause.append("a.ns in (:ns)")
 
     if experimenter_id is not None and experimenter_id != -1:
         params.addId(experimenter_id)
-        where_clause.append('a.details.owner.id = :id')
+        where_clause.append("a.details.owner.id = :id")
 
     if mapann_value:
         if query:
             params.addString(
                 "query",
                 rstring("%%%s%%" % unicode(mapann_value).lower()))
-            where_clause.append('lower(mv.value) like :query')
+            where_clause.append("lower(mv.value) like :query")
         else:
-            params.addString("value", mapann_value)
-            where_clause.append('mv.value  = :value')
+            params.addString('value', mapann_value)
+            where_clause.append("mv.value  = :value")
 
     return params, where_clause
 
@@ -374,13 +374,13 @@ def marshal_screens(conn, mapann_value, query=False,
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
-        v = e[0]["value"]
-        c = e[0]["imgCount"]
-        e = [e[0]["id"],
-             "%s (%d)" % (e[0]["name"], c),
-             e[0]["ownerId"],
-             e[0]["screen_details_permissions"],
-             e[0]["childCount"]]
+        v = e[0]['value']
+        c = e[0]['imgCount']
+        e = [e[0]['id'],
+             "%s (%d)" % (e[0]['name'], c),
+             e[0]['ownerId'],
+             e[0]['screen_details_permissions'],
+             e[0]['childCount']]
         ms = _marshal_screen(conn, e[0:5])
         extra = {'extra': {'counter': c}}
         if mapann_value is not None:
@@ -460,13 +460,13 @@ def marshal_projects(conn, mapann_value, query=False,
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
-        v = e[0]["value"]
-        c = e[0]["imgCount"]
-        e = [e[0]["id"],
+        v = e[0]['value']
+        c = e[0]['imgCount']
+        e = [e[0]['id'],
              "%s (%d)" % (e[0]["name"], c),
-             e[0]["ownerId"],
-             e[0]["project_details_permissions"],
-             e[0]["childCount"]]
+             e[0]['ownerId'],
+             e[0]['project_details_permissions'],
+             e[0]['childCount']]
         ms = _marshal_screen(conn, e[0:5])
         extra = {'extra': {'counter': c}}
         if mapann_value is not None:
@@ -552,12 +552,12 @@ def marshal_datasets(conn, project_id,
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
-        v = e[0]["value"]
-        e = [e[0]["id"],
-             e[0]["name"],
-             e[0]["ownerId"],
-             e[0]["dataset_details_permissions"],
-             e[0]["childCount"]]
+        v = e[0]['value']
+        e = [e[0]['id'],
+             e[0]['name'],
+             e[0]['ownerId'],
+             e[0]['dataset_details_permissions'],
+             e[0]['childCount']]
         mp = _marshal_plate(conn, e[0:5])
         extra = {'extra': {'node': 'dataset'}}
         if mapann_value is not None:
@@ -644,12 +644,12 @@ def marshal_plates(conn, screen_id,
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
-        v = e[0]["value"]
-        e = [e[0]["id"],
-             e[0]["name"],
-             e[0]["ownerId"],
-             e[0]["plate_details_permissions"],
-             e[0]["childCount"]]
+        v = e[0]['value']
+        e = [e[0]['id'],
+             e[0]['name'],
+             e[0]['ownerId'],
+             e[0]['plate_details_permissions'],
+             e[0]['childCount']]
         mp = _marshal_plate(conn, e[0:5])
         extra = {'extra': {'node': 'plate'}}
         if mapann_value is not None:
@@ -720,20 +720,18 @@ def marshal_images(conn, parent, parent_id,
 
     qs = conn.getQueryService()
 
-    extraValues = ""
+    extra_values = []
     if load_pixels:
-        extraValues = """
-             ,
-             pix.sizeX as sizeX,
-             pix.sizeY as sizeY,
-             pix.sizeZ as sizeZ
-             """
+        extra_values.append(
+            " , "
+            " pix.sizeX as sizeX, "
+            " pix.sizeY as sizeY, "
+            " pix.sizeZ as sizeZ ")
 
     if date:
-        extraValues += """,
-            image.details.creationEvent.time as date,
-            image.acquisitionDate as acqDate
-            """
+        extra_values.append(
+            " image.details.creationEvent.time as date, "
+            "image.acquisitionDate as acqDate")
 
     q = """
         select new map(image.id as id,
@@ -742,7 +740,7 @@ def marshal_images(conn, parent, parent_id,
             image as image_details_permissions,
             image.fileset.id as filesetId %s)
         from Image image
-        """ % extraValues
+        """ % "".join(extra_values)
 
     if load_pixels:
         # We use 'left outer join', since we still want images if no pixels
@@ -797,20 +795,16 @@ def marshal_images(conn, parent, parent_id,
             kwargs['date'] = e['date']
 
         im = _marshal_image(**kwargs)
-        # TODO ad mv.value to marshal
-        # if mapann_value is not None:
-        #    extra = {'extra': {'value': v}}
-        # im.update(extra)
         images.append(im)
 
     # Load thumbnails separately
     # We want version of most recent thumbnail (max thumbId) owned by user
     if thumb_version and len(images) > 0:
-        userId = conn.getUserId()
+        user_id = conn.getUserId()
         iids = [i['id'] for i in images]
         params = omero.sys.ParametersI()
         params.addIds(iids)
-        params.add('thumbOwner', wrap(userId))
+        params.add('thumbOwner', wrap(user_id))
         q = """select image.id, thumbs.version from Image image
             join image.pixels pix join pix.thumbnails thumbs
             where image.id in (:ids)
@@ -821,15 +815,15 @@ def marshal_images(conn, parent, parent_id,
                 and t.details.owner.id = :thumbOwner
             )
             """
-        thumbVersions = {}
+        thumb_versions = {}
         logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
         for t in qs.projection(q, params, service_opts):
             iid, tv = unwrap(t)
-            thumbVersions[iid] = tv
+            thumb_versions[iid] = tv
         # For all images, set thumb version if we have it...
         for i in images:
-            if i['id'] in thumbVersions:
-                i['thumbVersion'] = thumbVersions[i['id']]
+            if i['id'] in thumb_versions:
+                i['thumbVersion'] = thumb_versions[i['id']]
 
     return images
 

@@ -27,55 +27,7 @@ import json
 import omero
 from django.core.urlresolvers import reverse
 
-from django.test import Client
-
-from omero_pytests import ITest
-
-
-class IWebTest(ITest):
-    """
-    Abstract class derived from ITest which implements helpers for creating
-    Django clients using django.test
-    """
-
-    @classmethod
-    def setup_class(cls):
-        """Returns a logged in Django test client."""
-        super(IWebTest, cls).setup_class()
-        cls.django_clients = []
-        omeName = cls.ctx.userName
-        cls.django_client = cls.new_django_client(omeName, omeName)
-        rootpass = cls.root.ic.getProperties().getProperty('omero.rootpass')
-        cls.django_root_client = cls.new_django_client("root", rootpass)
-
-    @classmethod
-    def teardown_class(cls):
-        logout_url = reverse('weblogout')
-        for client in cls.django_clients:
-            data = {'csrfmiddlewaretoken': client.cookies['csrftoken'].value}
-            response = client.post(logout_url, data=data)
-            assert response.status_code == 302
-        super(IWebTest, cls).teardown_class()
-
-    @classmethod
-    def new_django_client(cls, name, password):
-        django_client = Client(enforce_csrf_checks=True)
-        login_url = reverse('weblogin')
-
-        response = django_client.get(login_url)
-        assert response.status_code == 200
-        csrf_token = django_client.cookies['csrftoken'].value
-
-        data = {
-            'server': 1,
-            'username': name,
-            'password': password,
-            'csrfmiddlewaretoken': csrf_token
-        }
-        response = django_client.post(login_url, data)
-        assert response.status_code == 302
-        cls.django_clients.append(django_client)
-        return django_client
+from omeroweb.testlib import IWebTest
 
 
 class TestMapr(IWebTest):
