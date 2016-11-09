@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# #!/usr/bin/env python
 #
 #
 #
@@ -23,10 +24,17 @@
 # Version: 1.0
 #
 
+import logging
 
-from django.apps import AppConfig
+from django import template
+from ..mapr_settings import mapr_settings
+
+register = template.Library()
+
+logger = logging.getLogger(__name__)
 
 
-class MaprAppConfig(AppConfig):
-    name = "mapr"
-    label = "mapr"
+@register.filter
+def menutolabel(value):
+    "Subtracts the arg from the value"
+    return mapr_settings.MENU_MAPR[value]['label']

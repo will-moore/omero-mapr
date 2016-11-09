@@ -8,17 +8,19 @@
 MAPR
 ====
 
-An OMERO.web app allowing to browse the data through attributes lineked to the image
+An OMERO.web app allowing to browse the data through attributes linked to the image
 
+Requirements
+============
 
-Installation
-------------
+* OMERO 5.3 or newer.
 
-Install OMERO.web
+Installing from Pypi
+====================
 
-This app installs into the OMERO.web framework.
+This section assumes that an OMERO.web is already installed.
 
-To install:
+Install the app using `pip <https://pip.pypa.io/en/stable/>`_:
 
 ::
 
@@ -28,11 +30,12 @@ plug in the app to OMERO.web
 
 ::
 
-    $ bin/omero config append omero.web.apps '"mapr"'
+    $ bin/omero config append omero.web.apps '"omero_mapr"'
 
-Restart webclient
+    $ bin/omero config set omero.web.ui.top_links '[["IDR", {"viewname": "webindex", "query_string": {"experimenter": -1}}, {"title": "Image Data Repository"}], ["Genes", {"viewname": "maprindex_gene", "query_string": {"experimenter": -1}}, {"title": "Genes browser"}], ["Phenotypes", {"viewname": "maprindex_phenotype", "query_string": {"experimenter": -1}}, {"title": "Phenotypes browser"}], ["siRNA", {"viewname": "maprindex_sirna", "query_string": {"experimenter": -1}}, {"title": "siRNA browser"}], ["Compound", {"viewname": "maprindex_compound", "query_string": {"experimenter": -1}}, {"title": "Compound browser"}], ["Organism", {"viewname": "maprindex_organism", "query_string": {"experimenter": -1}}, {"title": "Organism browser"}]]'
 
-Browse to https://yourserver/mapr/
+
+Now restart OMERO.web as normal.
 
 
 License

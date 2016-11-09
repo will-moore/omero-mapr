@@ -1,7 +1,30 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2016 University of Dundee.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Author: Aleksandra Tarkowska <A(dot)Tarkowska(at)dundee(dot)ac(dot)uk>,
+#
+# Version: 1.0
+
 import django
 from django.conf import settings
 from omeroweb.settings import process_custom_settings, report_settings
 import sys
+import os
 import json
 
 
@@ -26,7 +49,7 @@ default_config = [
             "default": ["Gene Symbol"],
             "all": ["Gene Symbol", "Gene Identifier"],
             "ns": ["openmicroscopy.org/mapr/gene"],
-            "label": ["Gene"]
+            "label": "Gene"
         }
     },
     {
@@ -37,7 +60,7 @@ default_config = [
             "ns": [
                 "openmicroscopy.org/mapr/gene/supplementary"
             ],
-            "label": ["Gene supplementary"]
+            "label": "Gene supplementary"
         }
     },
     {
@@ -46,7 +69,7 @@ default_config = [
             "default": ["siRNA Identifier"],
             "all": ["siRNA Identifier", "siRNA Pool Identifier"],
             "ns": ["openmicroscopy.org/mapr/sirna"],
-            "label": ["siRNA"]
+            "label": "siRNA"
         }
     },
     {
@@ -57,16 +80,17 @@ default_config = [
             "ns": [
                 "openmicroscopy.org/mapr/sirna/supplementary"
             ],
-            "label": ["siRNA supplementary"]
+            "label": "siRNA supplementary"
         }
     },
+
     {
         "menu": "phenotype",
         "config": {
             "default": ["Phenotype"],
             "all": ["Phenotype", "Phenotype Term Accession"],
             "ns": ["openmicroscopy.org/mapr/phenotype"],
-            "label": ["Phenotype"]
+            "label": "Phenotype"
         }
     },
     {
@@ -75,7 +99,7 @@ default_config = [
             "default": ["Compound Name"],
             "all": ["Compound Name"],
             "ns": ["openmicroscopy.org/mapr/compound"],
-            "label": ["Compound"]
+            "label": "Compound"
         }
     },
     {
@@ -84,7 +108,7 @@ default_config = [
             "default": [],
             "all": [],
             "ns": ["openmicroscopy.org/mapr/compound/supplementary"],
-            "label": ["Compound supplementary"]
+            "label": "Compound supplementary"
         }
     },
     {
@@ -93,7 +117,7 @@ default_config = [
             "default": ["Organism"],
             "all": ["Organism"],
             "ns": ["openmicroscopy.org/mapr/organism"],
-            "label": ["Organism"]
+            "label": "Organism"
         }
     },
     {
@@ -102,7 +126,7 @@ default_config = [
             "default": ["Others"],
             "all": ["Others"],
             "ns": ["openmicroscopy.org/omero/bulk_annotations"],
-            "label": ["Others"]
+            "label": "Others"
         }
     }
 ]
@@ -111,17 +135,28 @@ default_config = [
 MAPR_SETTINGS_MAPPING = {
     "omeroweb.mapr.config":
         ["MAPR_CONFIG", json.dumps(default_config), json.loads, None],
+    "omeroweb.mapr.favicon_webservice":
+        ["FAVICON_WEBSERVICE",
+            "http://www.google.com/s2/favicons?domain=", str, None]
     }
 
 process_custom_settings(sys.modules[__name__], 'MAPR_SETTINGS_MAPPING')
 report_settings(sys.modules[__name__])
 
-
 MAPR_CONFIG_AS_DICT = config_list_to_dict(MAPR_CONFIG)  # noqa
+
+DEFAULT_FAVICON = os.path.join(
+    os.path.dirname(__file__), 'static', 'mapr', 'image',
+    'favicon.png').replace('\\', '/')
 
 
 class MaprSettings(object):
 
-    MENU_MAPR = getattr(settings, 'MAPR_CONFIG_AS_DICT', MAPR_CONFIG_AS_DICT)
+    MENU_MAPR = getattr(
+        settings, 'MAPR_CONFIG_AS_DICT', MAPR_CONFIG_AS_DICT)
+    DEFAULT_FAVICON = getattr(
+        settings, 'DEFAULT_FAVICON', DEFAULT_FAVICON)
+    FAVICON_WEBSERVICE = getattr(
+        settings, 'FAVICON_WEBSERVICE', FAVICON_WEBSERVICE)  # noqa
 
 mapr_settings = MaprSettings()

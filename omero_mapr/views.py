@@ -20,8 +20,11 @@
 #
 # Version: 1.0
 
-
 import logging
+import traceback
+import requests
+import cStringIO
+from urlparse import urlparse
 
 from Ice import Exception as IceException
 from omero import ApiUsageException, ServerError
@@ -32,6 +35,12 @@ from mapr_settings import mapr_settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseServerError, HttpResponseBadRequest
 from django.http import JsonResponse
+from django.http import Http404
+
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+
+from django_redis import get_redis_connection
 
 from show import mapr_paths_to_object
 from show import MapShow as Show
@@ -46,10 +55,24 @@ from omeroweb.webclient.views import _load_template as _webclient_load_template
 from omeroweb.webclient.views import api_paths_to_object \
     as webclient_api_paths_to_object
 
+from omeroweb.http import HttpJPEGResponse
+
 import omeroweb
 
 
 logger = logging.getLogger(__name__)
+
+
+try:
+    from PIL import Image  # see ticket:2597
+except ImportError:
+    try:
+        import Image  # see ticket:2597
+    except:
+        logger.error(
+            "You need to install the Python Imaging Library. Get it at"
+            " http://www.pythonware.com/products/pil/")
+        logger.error(traceback.format_exc())
 
 
 # Helpers
@@ -66,7 +89,7 @@ def fake_experimenter(label):
     }
 
 
-def get_str_or_default(request, name, default):
+def get_unicode_or_default(request, name, default):
     """
     Retrieves a parameter from the request. If the parameter is not present
     the default is returned
@@ -77,7 +100,7 @@ def get_str_or_default(request, name, default):
     val = None
     val_raw = request.GET.get(name, default)
     if val_raw is not None:
-        val = str(val_raw)
+        val = unicode(val_raw)
     return val
 
 
@@ -110,9 +133,27 @@ def _get_keys(mapr_settings, menu):
     return keys
 
 
+def _get_page(request):
+    page = get_long_or_default(request, 'page', 1)
+    if page < 1:
+        page = 1
+    return page
+
+
 @login_required()
 @render_response()
-def index(request, menu, value=None, conn=None, url=None, **kwargs):
+def index(request, menu, conn=None, url=None, **kwargs):
+    """
+    This override omeroweb.webclient.load_template
+    to support custom template base_mapr.html
+    """
+
+    try:
+        value = get_unicode_or_default(request, 'value', None)
+        query = get_bool_or_default(request, 'query', False)
+    except ValueError:
+        logger.error(traceback.format_exc())
+        return HttpResponseBadRequest('Invalid parameter value')
     kwargs['show'] = Show(conn=conn, request=request, menu=menu, value=value)
     kwargs['load_template_url'] = reverse(viewname="maprindex_%s" % menu)
     kwargs['template'] = "mapr/base_mapr.html"
@@ -122,14 +163,15 @@ def index(request, menu, value=None, conn=None, url=None, **kwargs):
     context['menu_default'] = ", ".join(
         mapr_settings.MENU_MAPR[menu]['default'])
     context['menu_all'] = ", ".join(mapr_settings.MENU_MAPR[menu]['all'])
-    context['map_value'] = value
+    context['map_value'] = value or ""
+    context['map_query'] = query or ""
     context['template'] = "mapr/base_mapr.html"
 
     return context
 
 
 @login_required()
-def api_paths_to_object(request, menu=None, value=None, conn=None, **kwargs):
+def api_paths_to_object(request, menu=None, conn=None, **kwargs):
     """
     This override omeroweb.webclient.api_paths_to_object
     to support custom path to map.value
@@ -139,36 +181,33 @@ def api_paths_to_object(request, menu=None, value=None, conn=None, **kwargs):
     keys = _get_keys(mapr_settings, menu)
 
     try:
-        mapann_value = get_str_or_default(request, 'map.value', None)
+        mapann_value = get_unicode_or_default(request, 'map.value', None)
         mapann_names = get_list_or_default(request, 'name', keys)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
     if menu in mapr_settings.MENU_MAPR:
+        paths = []
+        if mapann_value is not None:
+            try:
+                experimenter_id = get_long_or_default(request, 'experimenter',
+                                                      None)
+                project_id = get_long_or_default(request, 'project', None)
+                dataset_id = get_long_or_default(request, 'dataset', None)
+                image_id = get_long_or_default(request, 'image', None)
+                screen_id = get_long_or_default(request, 'screen', None)
+                plate_id = get_long_or_default(request, 'plate', None)
+                group_id = get_long_or_default(request, 'group', None)
+            except ValueError:
+                return HttpResponseBadRequest('Invalid parameter value')
 
-        try:
-            experimenter_id = get_long_or_default(request, 'experimenter',
-                                                  None)
-            # project_id = get_long_or_default(request, 'project', None)
-            # dataset_id = get_long_or_default(request, 'dataset', None)
-            image_id = get_long_or_default(request, 'image', None)
-            screen_id = get_long_or_default(request, 'screen', None)
-            plate_id = get_long_or_default(request, 'plate', None)
-            acquisition_id = get_long_or_default(request, 'run', None)
-            # acquisition will override 'run' if both are specified as they are
-            # the same thing
-            acquisition_id = get_long_or_default(request, 'acquisition',
-                                                 acquisition_id)
-            # well_id = request.GET.get('well', None)
-            group_id = get_long_or_default(request, 'group', None)
-        except ValueError:
-            return HttpResponseBadRequest('Invalid parameter value')
-
-        paths = mapr_paths_to_object(
-            conn=conn, mapann_ns=mapann_ns, mapann_query=value,
-            mapann_value=mapann_value, mapann_names=mapann_names,
-            screen_id=screen_id, plate_id=plate_id, image_id=image_id,
-            experimenter_id=experimenter_id, group_id=group_id)
+            paths = mapr_paths_to_object(
+                conn=conn, mapann_value=mapann_value,
+                mapann_ns=mapann_ns, mapann_names=mapann_names,
+                screen_id=screen_id, plate_id=plate_id,
+                project_id=project_id, dataset_id=dataset_id,
+                image_id=image_id,
+                experimenter_id=experimenter_id, group_id=group_id)
 
         return JsonResponse({'paths': paths})
     return webclient_api_paths_to_object(request, conn=conn, **kwargs)
@@ -177,25 +216,26 @@ omeroweb.webclient.views.api_paths_to_object = api_paths_to_object
 
 
 @login_required()
-def api_experimenter_list(request, menu,
-                          value=None, conn=None, **kwargs):
+def api_experimenter_list(request, menu, conn=None, **kwargs):
 
     mapann_ns = _get_ns(mapr_settings, menu)
     keys = _get_keys(mapr_settings, menu)
 
     # Get parameters
     try:
-        # page = get_long_or_default(request, 'page', 1)
+        # page = _get_page(request)
         # limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter', -1)
-        mapann_value = value or get_str_or_default(request, 'value', None) \
-            or get_str_or_default(request, 'id', None)
+
+        mapann_value = get_unicode_or_default(request, 'value', None) \
+            or get_unicode_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'name', keys)
-        mapann_query = get_str_or_default(request, 'query', None)
+        query = get_bool_or_default(request, 'query', False)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
+    experimenter = None
     try:
         if experimenter_id > -1:
             # Get the experimenter
@@ -206,18 +246,18 @@ def api_experimenter_list(request, menu,
             experimenter = fake_experimenter(
                 mapr_settings.MENU_MAPR[menu]['label'])
 
-        if mapann_value is not None or mapann_query is not None:
-            if mapann_query:
-                experimenter['extra'] = {'query': mapann_query}
+        if mapann_value is not None:
             if mapann_value:
                 experimenter['extra'] = {'value': mapann_value}
+            if query:
+                experimenter['extra'] = {'query': query}
             # count children
             experimenter['childCount'] = mapr_tree.count_mapannotations(
                 conn=conn,
+                mapann_value=mapann_value,
+                query=query,
                 mapann_ns=mapann_ns,
                 mapann_names=mapann_names,
-                mapann_value=mapann_value,
-                mapann_query=mapann_query,
                 group_id=group_id,
                 experimenter_id=experimenter_id)
 
@@ -232,23 +272,24 @@ def api_experimenter_list(request, menu,
 
 
 @login_required()
-def api_mapannotation_list(request, menu, value=None, conn=None, **kwargs):
+def api_mapannotation_list(request, menu, conn=None, **kwargs):
 
     mapann_ns = _get_ns(mapr_settings, menu)
     keys = _get_keys(mapr_settings, menu)
 
     # Get parameters
     try:
-        page = get_long_or_default(request, 'page', 1)
+        page = page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
-        mapann_value = value or get_str_or_default(request, 'value', None) \
-            or get_str_or_default(request, 'id', None)
+        mapann_value = get_unicode_or_default(request, 'id', None) \
+            or get_unicode_or_default(request, 'value', None)
+        query = get_bool_or_default(request, 'query', False)
         mapann_names = get_list_or_default(request, 'name', keys)
-        mapann_query = get_str_or_default(request, 'query', None)
         orphaned = get_bool_or_default(request, 'orphaned', False)
     except ValueError:
+        logger.error(traceback.format_exc())
         return HttpResponseBadRequest('Invalid parameter value')
 
     mapannotations = []
@@ -257,34 +298,33 @@ def api_mapannotation_list(request, menu, value=None, conn=None, **kwargs):
     try:
         # Get attributes from map annotation
         if orphaned:
-            if mapann_value is not None or mapann_query is not None:
-                mapannotations = mapr_tree.marshal_mapannotations(
-                    conn=conn,
-                    mapann_ns=mapann_ns,
-                    mapann_names=mapann_names,
-                    mapann_value=mapann_value,
-                    mapann_query=mapann_query,
-                    group_id=group_id,
-                    experimenter_id=experimenter_id,
-                    page=page,
-                    limit=limit)
+            mapannotations = mapr_tree.marshal_mapannotations(
+                conn=conn,
+                mapann_value=mapann_value,
+                query=query,
+                mapann_ns=mapann_ns,
+                mapann_names=mapann_names,
+                group_id=group_id,
+                experimenter_id=experimenter_id,
+                page=page,
+                limit=limit)
         else:
             screens = mapr_tree.marshal_screens(
                 conn=conn,
+                mapann_value=mapann_value,
+                query=query,
                 mapann_ns=mapann_ns,
                 mapann_names=mapann_names,
-                mapann_value=mapann_value,
-                mapann_query=mapann_query,
                 group_id=group_id,
                 experimenter_id=experimenter_id,
                 page=page,
                 limit=limit)
             projects = mapr_tree.marshal_projects(
                 conn=conn,
+                mapann_value=mapann_value,
+                query=query,
                 mapann_ns=mapann_ns,
                 mapann_names=mapann_names,
-                mapann_value=mapann_value,
-                mapann_query=mapann_query,
                 group_id=group_id,
                 experimenter_id=experimenter_id,
                 page=page,
@@ -309,14 +349,15 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
 
     # Get parameters
     try:
-        page = get_long_or_default(request, 'page', 1)
+        page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
-        project_id = get_str_or_default(request, 'id', None)
+        project_id = get_long_or_default(request, 'id', None)
+        mapann_value = get_unicode_or_default(request, 'value', None)
         mapann_names = get_list_or_default(request, 'name', keys)
-        mapann_value = get_str_or_default(request, 'value', None)
+        query = get_bool_or_default(request, 'query', False)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -326,9 +367,10 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
         datasets = mapr_tree.marshal_datasets(
             conn=conn,
             project_id=project_id,
+            mapann_value=mapann_value,
+            query=query,
             mapann_ns=mapann_ns,
             mapann_names=mapann_names,
-            mapann_value=mapann_value,
             group_id=group_id,
             experimenter_id=experimenter_id,
             page=page,
@@ -351,14 +393,15 @@ def api_plate_list(request, menu, conn=None, **kwargs):
 
     # Get parameters
     try:
-        page = get_long_or_default(request, 'page', 1)
+        page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
-        screen_id = get_str_or_default(request, 'id', None)
+        screen_id = get_long_or_default(request, 'id', None)
+        mapann_value = get_unicode_or_default(request, 'value', None)
         mapann_names = get_list_or_default(request, 'name', keys)
-        mapann_value = get_str_or_default(request, 'value', None)
+        query = get_bool_or_default(request, 'query', False)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -368,9 +411,10 @@ def api_plate_list(request, menu, conn=None, **kwargs):
         plates = mapr_tree.marshal_plates(
             conn=conn,
             screen_id=screen_id,
+            mapann_value=mapann_value,
+            query=query,
             mapann_ns=mapann_ns,
             mapann_names=mapann_names,
-            mapann_value=mapann_value,
             group_id=group_id,
             experimenter_id=experimenter_id,
             page=page,
@@ -393,7 +437,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
 
     # Get parameters
     try:
-        page = get_long_or_default(request, 'page', 1)
+        page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         load_pixels = get_bool_or_default(request, 'sizeXYZ', False)
@@ -401,10 +445,11 @@ def api_image_list(request, menu, conn=None, **kwargs):
         date = get_bool_or_default(request, 'date', False)
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
-        parent = get_str_or_default(request, 'node', None)
+        parent = get_unicode_or_default(request, 'node', None)
         parent_id = get_long_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'name', keys)
-        mapann_value = get_str_or_default(request, 'value', None)
+        mapann_value = get_unicode_or_default(request, 'value', None)
+        query = get_bool_or_default(request, 'query', False)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -418,6 +463,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
             mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             mapann_value=mapann_value,
+            query=query,
             load_pixels=load_pixels,
             group_id=group_id,
             experimenter_id=experimenter_id,
@@ -437,7 +483,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
 
 @login_required()
 @render_response()
-def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
+def load_metadata_details(request, c_type, conn=None, share_id=None,
                           **kwargs):
     """
     This page is the right-hand panel 'general metadata', first tab only.
@@ -445,6 +491,12 @@ def load_metadata_details(request, c_type, c_id, conn=None, share_id=None,
     The data and annotations are loaded by the manager. Display of appropriate
     data is handled by the template.
     """
+
+    c_id = None
+    try:
+        c_id = get_unicode_or_default(request, 'value', None)
+    except ValueError:
+        return HttpResponseBadRequest('Invalid parameter value')
 
     template = "mapr/metadata_general.html"
 
@@ -465,7 +517,7 @@ def api_annotations(request, menu, conn=None, **kwargs):
 
     # Get parameters
     try:
-        mapann_value = get_str_or_default(request, 'map', None)
+        mapann_value = get_unicode_or_default(request, 'map', None)
         mapann_names = get_list_or_default(request, 'name', keys)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
@@ -496,26 +548,29 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
 
     # Get parameters
     try:
-        page = get_long_or_default(request, 'page', 1)
+        page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
-        query = get_str_or_default(request, 'query', None)
+        mapann_value = get_unicode_or_default(request, 'value', None)
+        query = get_bool_or_default(request, 'query', True)
         mapann_names = get_list_or_default(request, 'name', keys)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
     autocomplete = []
     try:
-        autocomplete = mapr_tree.marshal_autocomplete(
-            conn=conn,
-            query=query,
-            mapann_ns=mapann_ns,
-            mapann_names=mapann_names,
-            group_id=group_id,
-            experimenter_id=experimenter_id,
-            page=page,
-            limit=limit)
+        if mapann_value is not None:
+            autocomplete = mapr_tree.marshal_autocomplete(
+                conn=conn,
+                mapann_value=mapann_value,
+                query=query,
+                mapann_ns=mapann_ns,
+                mapann_names=mapann_names,
+                group_id=group_id,
+                experimenter_id=experimenter_id,
+                page=page,
+                limit=limit)
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
     except ServerError as e:
@@ -524,3 +579,41 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
         return HttpResponseServerError(e.message)
 
     return JsonResponse(list(autocomplete), safe=False)
+
+
+@login_required()
+def mapannotations_favicon(request, conn=None, **kwargs):
+
+    icon = None
+    favdomain = "{0.scheme}://{0.netloc}/".format(
+        urlparse(request.GET.get('u', None)))
+    if favdomain is not None:
+        validate = URLValidator()
+        try:
+            validate(favdomain)
+        except ValidationError:
+            return HttpResponseBadRequest('Invalid url')
+
+        _cache_key = "favicon.%s" % favdomain
+
+        cache = get_redis_connection("default")
+        icon = cache.hget('favdomain', _cache_key)
+        if icon is None:
+            try:
+                r = requests.get(
+                    "%s%s" % (mapr_settings.FAVICON_WEBSERVICE, favdomain),
+                    stream=True)
+                if r.status_code == 200:
+                    icon = r.content
+                    cache.hset('favdomain', _cache_key, icon)
+            finally:
+                r.connection.close()
+        return HttpJPEGResponse(icon)
+
+    with Image.open(mapr_settings.DEFAULT_FAVICON) as img:
+        img.thumbnail((16, 16), Image.ANTIALIAS)
+        f = cStringIO.StringIO()
+        img.save(f, "PNG")
+        f.seek(0)
+        return HttpJPEGResponse(f.read())
+    raise Http404

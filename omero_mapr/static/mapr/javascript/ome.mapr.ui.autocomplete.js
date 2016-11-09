@@ -37,12 +37,12 @@ $(function () {
                 type : 'GET',
                 url: MAPANNOTATIONS.URLS.autocomplete,
                 data: {
-                    query: request.term,
+                    value: request.term,
+                    query: true,
                     experimenter_id: WEBCLIENT.active_user,
                     group: WEBCLIENT.active_group_id
                 },
                 success: function(data) {
-                    $('#id_autocomplete').removeClass('ui-autocomplete-loading');
                     if (data.length > 0) {
                         response( $.map( data, function(item) {
                             return item;
@@ -52,7 +52,7 @@ $(function () {
                    }
                 },
                 error: function(data) {
-                    $('#id_autocomplete').removeClass('ui-autocomplete-loading');
+                    response([{ label: 'Error occured.', value: -1 }]);
                 }
             });
         },
