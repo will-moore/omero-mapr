@@ -202,8 +202,8 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
                 return HttpResponseBadRequest('Invalid parameter value')
 
             paths = mapr_paths_to_object(
-                conn=conn, mapann_ns=mapann_ns,
-                mapann_value=mapann_value, mapann_names=mapann_names,
+                conn=conn, mapann_value=mapann_value,
+                mapann_ns=mapann_ns, mapann_names=mapann_names,
                 screen_id=screen_id, plate_id=plate_id,
                 project_id=project_id, dataset_id=dataset_id,
                 image_id=image_id,
@@ -235,6 +235,7 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
+    experimenter = None
     try:
         if experimenter_id > -1:
             # Get the experimenter
@@ -253,10 +254,10 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
             # count children
             experimenter['childCount'] = mapr_tree.count_mapannotations(
                 conn=conn,
-                mapann_ns=mapann_ns,
-                mapann_names=mapann_names,
                 mapann_value=mapann_value,
                 query=query,
+                mapann_ns=mapann_ns,
+                mapann_names=mapann_names,
                 group_id=group_id,
                 experimenter_id=experimenter_id)
 
@@ -297,34 +298,33 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
     try:
         # Get attributes from map annotation
         if orphaned:
-            if mapann_value is not None:
-                mapannotations = mapr_tree.marshal_mapannotations(
-                    conn=conn,
-                    mapann_ns=mapann_ns,
-                    mapann_names=mapann_names,
-                    mapann_value=mapann_value,
-                    query=query,
-                    group_id=group_id,
-                    experimenter_id=experimenter_id,
-                    page=page,
-                    limit=limit)
+            mapannotations = mapr_tree.marshal_mapannotations(
+                conn=conn,
+                mapann_value=mapann_value,
+                query=query,
+                mapann_ns=mapann_ns,
+                mapann_names=mapann_names,
+                group_id=group_id,
+                experimenter_id=experimenter_id,
+                page=page,
+                limit=limit)
         else:
             screens = mapr_tree.marshal_screens(
                 conn=conn,
-                mapann_ns=mapann_ns,
-                mapann_names=mapann_names,
                 mapann_value=mapann_value,
                 query=query,
+                mapann_ns=mapann_ns,
+                mapann_names=mapann_names,
                 group_id=group_id,
                 experimenter_id=experimenter_id,
                 page=page,
                 limit=limit)
             projects = mapr_tree.marshal_projects(
                 conn=conn,
-                mapann_ns=mapann_ns,
-                mapann_names=mapann_names,
                 mapann_value=mapann_value,
                 query=query,
+                mapann_ns=mapann_ns,
+                mapann_names=mapann_names,
                 group_id=group_id,
                 experimenter_id=experimenter_id,
                 page=page,
@@ -354,7 +354,7 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
-        project_id = get_unicode_or_default(request, 'id', None)
+        project_id = get_long_or_default(request, 'id', None)
         mapann_value = get_unicode_or_default(request, 'value', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         query = get_bool_or_default(request, 'query', False)
@@ -367,10 +367,10 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
         datasets = mapr_tree.marshal_datasets(
             conn=conn,
             project_id=project_id,
-            mapann_ns=mapann_ns,
-            mapann_names=mapann_names,
             mapann_value=mapann_value,
             query=query,
+            mapann_ns=mapann_ns,
+            mapann_names=mapann_names,
             group_id=group_id,
             experimenter_id=experimenter_id,
             page=page,
@@ -398,7 +398,7 @@ def api_plate_list(request, menu, conn=None, **kwargs):
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request,
                                               'experimenter_id', -1)
-        screen_id = get_unicode_or_default(request, 'id', None)
+        screen_id = get_long_or_default(request, 'id', None)
         mapann_value = get_unicode_or_default(request, 'value', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         query = get_bool_or_default(request, 'query', False)
@@ -411,10 +411,10 @@ def api_plate_list(request, menu, conn=None, **kwargs):
         plates = mapr_tree.marshal_plates(
             conn=conn,
             screen_id=screen_id,
-            mapann_ns=mapann_ns,
-            mapann_names=mapann_names,
             mapann_value=mapann_value,
             query=query,
+            mapann_ns=mapann_ns,
+            mapann_names=mapann_names,
             group_id=group_id,
             experimenter_id=experimenter_id,
             page=page,

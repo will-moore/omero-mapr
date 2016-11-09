@@ -136,8 +136,8 @@ def _marshal_map(conn, row):
     return mapann
 
 
-def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
-                         mapann_value=None, query=False,
+def count_mapannotations(conn, mapann_value, query=False,
+                         mapann_ns=[], mapann_names=[],
                          group_id=-1, experimenter_id=-1):
     ''' Count mapannotiation values
 
@@ -158,6 +158,10 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
         or -1 for all experimenters
         @type experimenter_id L{long}
     '''
+
+    # early exit
+    if not mapann_value:
+        return 0
 
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
@@ -197,8 +201,8 @@ def count_mapannotations(conn, mapann_ns=[], mapann_names=[],
     return counter
 
 
-def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
-                           query=False, mapann_value=None,
+def marshal_mapannotations(conn, mapann_value, query=False,
+                           mapann_ns=[], mapann_names=[],
                            group_id=-1, experimenter_id=-1,
                            page=1, limit=settings.PAGE):
     ''' Marshals mapannotation values
@@ -228,6 +232,9 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
     '''
 
     mapannotations = []
+    if not mapann_value:
+        return mapannotations
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_value=mapann_value, query=query,
@@ -298,8 +305,8 @@ def marshal_mapannotations(conn, mapann_ns=[], mapann_names=[],
     return mapannotations
 
 
-def marshal_screens(conn, mapann_ns=[], mapann_names=[],
-                    mapann_value=None, query=False,
+def marshal_screens(conn, mapann_value, query=False,
+                    mapann_ns=[], mapann_names=[],
                     group_id=-1, experimenter_id=-1,
                     page=1, limit=settings.PAGE):
 
@@ -330,6 +337,9 @@ def marshal_screens(conn, mapann_ns=[], mapann_names=[],
     '''
 
     screens = []
+    if not mapann_value:
+        return screens
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         query=query, mapann_value=mapann_value,
@@ -380,8 +390,8 @@ def marshal_screens(conn, mapann_ns=[], mapann_names=[],
     return screens
 
 
-def marshal_projects(conn, mapann_ns=[], mapann_names=[],
-                     mapann_value=None, query=False,
+def marshal_projects(conn, mapann_value, query=False,
+                     mapann_ns=[], mapann_names=[],
                      group_id=-1, experimenter_id=-1,
                      page=1, limit=settings.PAGE):
 
@@ -412,6 +422,9 @@ def marshal_projects(conn, mapann_ns=[], mapann_names=[],
     '''
 
     projects = []
+    if not mapann_value:
+        return projects
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         query=query, mapann_value=mapann_value,
@@ -464,7 +477,7 @@ def marshal_projects(conn, mapann_ns=[], mapann_names=[],
 
 
 def marshal_datasets(conn, project_id,
-                     mapann_value=None, query=False,
+                     mapann_value, query=False,
                      mapann_ns=[], mapann_names=[],
                      group_id=-1, experimenter_id=-1,
                      page=1, limit=settings.PAGE):
@@ -497,6 +510,11 @@ def marshal_datasets(conn, project_id,
         @type page L{long}
     '''
     datasets = []
+
+    # early exit
+    if project_id is None or not isinstance(project_id, long):
+        return datasets
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         query=query, mapann_value=mapann_value,
@@ -550,7 +568,7 @@ def marshal_datasets(conn, project_id,
 
 
 def marshal_plates(conn, screen_id,
-                   mapann_value=None, query=False,
+                   mapann_value, query=False,
                    mapann_ns=[], mapann_names=[],
                    group_id=-1, experimenter_id=-1,
                    page=1, limit=settings.PAGE):
@@ -582,7 +600,13 @@ def marshal_plates(conn, screen_id,
         defaults to the value set in settings.PAGE
         @type page L{long}
     '''
+
     plates = []
+
+    # early exit
+    if screen_id is None or not isinstance(screen_id, long):
+        return plates
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         query=query, mapann_value=mapann_value,
@@ -636,7 +660,7 @@ def marshal_plates(conn, screen_id,
 
 
 def marshal_images(conn, parent, parent_id,
-                   mapann_value=None, query=False,
+                   mapann_value, query=False,
                    mapann_ns=[], mapann_names=[],
                    load_pixels=False,
                    group_id=-1, experimenter_id=-1,
@@ -673,6 +697,11 @@ def marshal_images(conn, parent, parent_id,
         @type page L{long}
     '''
     images = []
+
+    # early exit
+    if (parent_id is None or not isinstance(parent_id, long)) or not parent:
+        return images
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         query=query, mapann_value=mapann_value,
@@ -804,7 +833,8 @@ def marshal_images(conn, parent, parent_id,
     return images
 
 
-def load_mapannotation(conn, mapann_ns=[], mapann_names=[], mapann_value=None,
+def load_mapannotation(conn, mapann_value,
+                       mapann_ns=[], mapann_names=[],
                        group_id=-1, experimenter_id=-1,
                        page=1, limit=settings.PAGE):
     ''' Marshals mapannotation values
@@ -900,6 +930,10 @@ def marshal_autocomplete(conn, mapann_value, query=True,
         defaults to the value set in settings.PAGE
         @type page L{long}
     '''
+    autocomplete = []
+    if not mapann_value:
+        return autocomplete
+
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         query=query, mapann_value=mapann_value,
@@ -924,7 +958,6 @@ def marshal_autocomplete(conn, mapann_value, query=True,
         """ % (" and ".join(where_clause))
 
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
-    autocomplete = []
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         autocomplete.append({'value': e[0]["value"]})
