@@ -950,7 +950,7 @@ def marshal_autocomplete(conn, mapann_value, query=True,
         "query",
         rstring("%s%%" % unicode(mapann_value).lower()))
     where_clause.append('lower(mv.value) like :query')
-    order_by = "length(mv.value)"
+    order_by = "length(mv.value) ASC, lower(mv.value) ASC"
 
     params2.addString(
         "query",
