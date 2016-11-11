@@ -22,6 +22,7 @@
 
 import logging
 import omero
+import copy
 
 from omero.rtypes import rstring, rlist, unwrap, wrap
 from django.conf import settings
@@ -930,15 +931,36 @@ def marshal_autocomplete(conn, mapann_value, query=True,
         defaults to the value set in settings.PAGE
         @type page L{long}
     '''
+
     autocomplete = []
     if not mapann_value:
         return autocomplete
 
+    # mapann_value is customized due to multiple queries
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        query=query, mapann_value=mapann_value,
+        query=False, mapann_value=None,
         params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
+
+    params2 = copy.deepcopy(params)
+    where_clause2 = copy.deepcopy(where_clause)
+
+    params.addString(
+        "query",
+        rstring("%s%%" % unicode(mapann_value).lower()))
+    where_clause.append('lower(mv.value) like :query')
+    order_by = "length(mv.value) ASC, lower(mv.value) ASC"
+
+    params2.addString(
+        "query",
+        rstring("%%%s%%" % unicode(mapann_value).lower()))
+    params2.addString(
+        "query2",
+        rstring("%s%%" % unicode(mapann_value).lower()))
+    where_clause2.append('lower(mv.value) like :query')
+    where_clause2.append('lower(mv.value) not like :query2')
+    order_by2 = "lower(mv.value)"
 
     service_opts = deepcopy(conn.SERVICE_OPTS)
 
@@ -949,16 +971,28 @@ def marshal_autocomplete(conn, mapann_value, query=True,
 
     qs = conn.getQueryService()
 
-    q = """
+    _q = """
         select new map(mv.value as value)
         from ImageAnnotationLink ial join ial.child a join a.mapValue mv
-        where %s
+        where {where_clause}
         group by mv.value
-        order by lower(mv.value)
-        """ % (" and ".join(where_clause))
+        order by {order_by}
+        """
 
+    # query by value%
+    q = _q.format(
+        where_clause=(" and ".join(where_clause)), order_by=order_by)
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
     for e in qs.projection(q, params, service_opts):
         e = unwrap(e)
         autocomplete.append({'value': e[0]["value"]})
+
+    # query by %value% and exclude value%
+    q = _q.format(
+        where_clause=(" and ".join(where_clause2)), order_by=order_by2)
+    logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
+    for e in qs.projection(q, params2, service_opts):
+        e = unwrap(e)
+        autocomplete.append({'value': e[0]["value"]})
+
     return autocomplete
