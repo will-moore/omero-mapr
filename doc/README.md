@@ -63,3 +63,87 @@
  | `/mapr/api/gene/paths_to_object/` | GET    |                                                                                       | `map.value=`                                                                        | 200 JSON         |                                                   | find hierarchies for a given value (case sensitive) - in case we will provide multiple users or groups                                                                                                                                                                                                                                                                                                    |
  | `/mapr/autocomplete/<type>/` | GET    | `type=(gene|phenotype|sirna|compound|organism)`                                       | `value=<value>` `query=true`                                                        | 200 JSON         |                                                   | find keywords for matching `%value%` pattern                                                                                                                                                                                                                                                                                                                                                              |
  
+ 
+## Example script
+
+
+Example script begins by creating HTTP session using Requests:
+
+```
+import requests
+
+COOKIE_NAME = "sessionid_demo3"
+INDEX_PAGE = "http://idr-demo.openmicroscopy.org/webclient/?experimenter=-1"
+
+# create http session
+with requests.Session() as session:
+    request = requests.Request('GET', INDEX_PAGE)
+    prepped = session.prepare_request(request)
+    response = session.send(prepped)
+    if response.status_code != 200:
+        response.raise_for_status()
+    cookies = dict(sessionid=response.cookies[COOKIE_NAME])
+```
+
+get Screens that are annotated with gene:
+
+```
+SCREENS_PROJECTS_URL = "http://idr-demo.openmicroscopy.org/mapr/api/{key}/?value={value}"
+
+qs = {'key': 'gene', 'value': 'CDC20'}
+url = SCREENS_PROJECTS_URL.format(**qs)
+for s in session.get(url).json()['screens']:
+    screen_id = s['id']
+```
+
+get Plates in Screen that are annotated with gene:
+
+```
+PLATES_URL = "http://idr-demo.openmicroscopy.org/mapr/api/{key}/plates/?value={value}&id={screen_id}"
+
+qs = {'key': 'gene', 'value': 'CDC20', 'screen_id': screen_id}
+url = PLATES_URL.format(**qs)
+for p in session.get(url).json()['plates']:
+    plate_id = p['id']
+````
+
+get Images in Plate that are annotated with gene:
+
+```
+IMAGES_URL = "http://idr-demo.openmicroscopy.org/mapr/api/{key}/images/?value={value}&node={parent_type}&id={parent_id}"
+
+IMAGE_URL = "http://idr-demo.openmicroscopy.org/webclient/?show=image-{image_id}"
+IMAGE_VIEWER = "http://idr-demo.openmicroscopy.org/webclient/img_detail/{image_id}/"
+THUMBNAIL_URL = "http://idr-demo.openmicroscopy.org/webclient/render_thumbnail/{image_id}/"
+ATTRIBUTES_URL = "http://idr-demo.openmicroscopy.org/webclient/api/annotations/?type=map&image={image_id}"
+
+qs = {'key': 'gene', 'value': 'CDC20', 'parent_type': 'plate', 'parent_id': plate_id}
+url = IMAGES_URL.format(**qs)
+for i in session.get(url).json()['images']:
+    image_id = i['id']
+    print "Image link:", IMAGE_URL.format(**{'image_id': image_id})
+    print "Image viewer link:", IMAGE_VIEWER.format(**{'image_id': image_id})
+    print 'Thumbnail URL:', THUMBNAIL_URL.format(**{'image_id': image_id})
+    url = ATTRIBUTES_URL.format(**{'image_id': image_id})
+    for a in session.get(_url).json()['annotations']:
+        print 'Annotaitons:'
+        print a['values']
+```
+
+example output:
+
+```
+Image link: http://idr-demo.openmicroscopy.org/webclient/?show=image-124486
+Image viewer link: http://idr-demo.openmicroscopy.org/webclient/img_detail/124486/
+Thumbnail URL: http://idr-demo.openmicroscopy.org/webclient/render_thumbnail/124486/
+Annotaitons:
+[[u'Gene Identifier', u'YGL116W'], [u'Gene Identifier URL', u'http://www.yeastgenome.org/locus/YGL116W/overview'], [u'Gene Symbol', u'CDC20']]
+Annotaitons:
+[[u'Organism', u'Saccharomyces cerevisiae']]
+Annotaitons:
+[[u'Phenotype', u'GFP localization: cytosol'], [u'Phenotype Term Name', u'protein localized in cytosol phenotype'], [u'Phenotype Term Accession', u'CMPO_0000393'], [u'Phenotype Term Accession URL', u'http://www.ebi.ac.uk/cmpo/CMPO_0000393']]
+Annotaitons:
+[[u'Phenotype', u'GFP localization: nucleus'], [u'Phenotype Term Name', u'protein localized in nucleus phenotype'], [u'Phenotype Term Accession', u'CMPO_0000398'], [u'Phenotype Term Accession URL', u'http://www.ebi.ac.uk/cmpo/CMPO_0000398']]
+Annotaitons:
+[[u'Strain', u'Y6545'], [u'Environmental Stress', u'dithiothreitol'], [u'Channels', u'H2B-mCherry:cytosol;GFP:tagged protein;bright field/transmitted:cell '], [u'Has Phenotype', u'yes'], [u'Phenotype Annotation Level', u'experimental condition and gene']]
+````
