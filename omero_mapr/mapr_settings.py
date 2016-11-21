@@ -159,4 +159,5 @@ class MaprSettings(object):
     FAVICON_WEBSERVICE = getattr(
         settings, 'FAVICON_WEBSERVICE', FAVICON_WEBSERVICE)  # noqa
 
+
 mapr_settings = MaprSettings()

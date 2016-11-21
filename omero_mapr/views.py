@@ -212,6 +212,7 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
         return JsonResponse({'paths': paths})
     return webclient_api_paths_to_object(request, conn=conn, **kwargs)
 
+
 omeroweb.webclient.views.api_paths_to_object = api_paths_to_object
 
 
