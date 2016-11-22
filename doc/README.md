@@ -7,14 +7,13 @@ or can be altered by changing omero config `omeroweb.mapr.config`
  
 | URL                          | METHOD | URL PARAMS                                                                            | QUERY STRING                                                                        | Success Response | Error Response:                                   | Sample Call:                                                                                                                                                                                                                                                                                                                                                                                              |
 |------------------------------|--------|---------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|------------------|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *) `/webclient/`             | GET    |                                                                                       | `show=<type>-<value>`                                                               | 302 redirect     |                                                   | `/webclient/?show=gene-CDC20`                                                                                                                                                                                                                                                                                                                                                                             |
+| `/webclient/`*              | GET    |                                                                                       | `show=<type>-<value>`                                                               | 302 redirect     |                                                   | `/webclient/?show=gene-CDC20`                                                                                                                                                                                                                                                                                                                                                                             |
 | `/mapr/<type>/`                   | GET    | `type=(gene|phenotype|sirna|compound|organism)`                                       | `value=<value>` `query=(true|false)` `default:false`                                | 200 HTML         |                                                   | `/mapr/gene/?value=CDC20` `/mapr/organism/?value=CDC2&query=true`                                                                                                                                                                                                                                                                                                                  |
 
-**Show URL *)**
+**Show URL***
 ----
 
-Default alias for handling particular links and "showing" objects in the
-OMERO.web tree view.
+Extention to OMERO.web "showing" plugin
 
 * **URL**
 
@@ -38,7 +37,9 @@ OMERO.web tree view.
 
   `http://idr-demo.openmicroscopy.org/webclient/?show=gene-CDC20`
 
- 
+*) Default alias for handling particular links and recognizing objects in the
+OMERO.web tree view.
+
 
 **Attribute URL**
 ----
