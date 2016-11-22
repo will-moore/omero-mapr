@@ -101,7 +101,6 @@ Example script begins by creating HTTP session using Requests:
 ```
 import requests
 
-COOKIE_NAME = "sessionid_demo3"
 INDEX_PAGE = "http://idr-demo.openmicroscopy.org/webclient/?experimenter=-1"
 
 # create http session
@@ -111,7 +110,6 @@ with requests.Session() as session:
     response = session.send(prepped)
     if response.status_code != 200:
         response.raise_for_status()
-    cookies = dict(sessionid=response.cookies[COOKIE_NAME])
 ```
 
 get Screens that are annotated with gene:
