@@ -75,6 +75,7 @@ OMERO.web tree view.
 * **Sample Call:**
 
   `http://idr-demo.openmicroscopy.org/mapr/gene/?value=CDC20`
+
   `http://idr-demo.openmicroscopy.org/mapr/gene/?value=CDC2&query=true`
  
  
