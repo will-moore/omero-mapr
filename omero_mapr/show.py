@@ -140,6 +140,7 @@ class MapShow(omeroweb_show.Show):
             # hardcode to always tell to load all users
             return omero.gateway.MapAnnotationWrapper(self.conn, m)
 
+
 omeroweb_show.Show = MapShow
 
 
