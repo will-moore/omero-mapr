@@ -4,7 +4,7 @@ services:
     image: postgres
 
   omeroserver:
-    image: olat/omero-test-daemon-c7:0.1.1
+    image: olat/omero-test-daemon-c7:0.1.4
     links:
       - postgres
     environment:
@@ -15,13 +15,14 @@ services:
       - 4063:4063
 
   maprtest:
-    image: olat/omero-test-daemon-c7:0.1.1
+    image: olat/omero-test-daemon-c7:0.1.4
     links:
       - omeroserver
     environment:
       - SKIP_UPGRADE_CHECK=true
       - OMEROBUILD=${OMEROBUILD}
-      - COMPONENT=py
+      - COMPONENT=server
+      - RUNSCRIPT=py
       - SERVER_HOST=omeroserver
       - SERVER_PORT=4064
     volumes:

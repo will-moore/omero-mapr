@@ -11,13 +11,16 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'omeroweb.settings')
 # `pytest` automatically calls this function once when tests are run.
 def pytest_configure():
     settings.DEBUG = False
-    settings.MAPR_CONFIG_AS_DICT = {"key": {
-        "menu": "mapkey",
-        "config": {
-            "default": ["mapkey"],
-            "all": ["mapkey", "mapkey2"],
-            "ns": [],
-            "label": "MapKey"
-        }
-    }}
+    settings.MAPR_CONFIG_AS_DICT = {
+        "gene": {
+            "menu": "gene",
+            "config": {
+                "default": ["Gene Symbol"],
+                "all": ["Gene Symbol", "Gene Identifier"],
+                "ns": ["openmicroscopy.org/omero/bulk_annotations"],
+                "label": "Gene"
+            },
+        },
+    }
+
     django.setup()

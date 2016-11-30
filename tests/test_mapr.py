@@ -23,90 +23,155 @@
 # Version: 1.0
 #
 
-import json
-import omero
+import os
+
+from omero.model import ScreenI, PlateI, WellI, WellSampleI, ScreenPlateLinkI
+from omero.rtypes import rint, rstring, unwrap
+from omero.util.temp_files import create_path
+from omero.util.populate_metadata import BulkToMapAnnotationContext
+from omero.util.populate_metadata import ParsingContext
+
 from django.core.urlresolvers import reverse
 
-from omeroweb.testlib import IWebTest
+from omeroweb.testlib import IWebTest, _get_response_json
+from omero.constants.namespaces import NSBULKANNOTATIONS
 
 
-class TestMapr(IWebTest):
+class IMaprTest(IWebTest):
+    """
+    Abstract class derived from ITest which implements helpers for creating
+    Django clients using django.test
+    """
 
-    def image_with_channels(self):
+    # TODO: move to testlib, common from test_populate.py
+    def create_csv(
+        self,
+        col_names="Well,Well Type,Concentration",
+        row_data=("A1,Control,0", "A2,Treatment,10")
+    ):
+
+        csv_file_name = create_path("test", ".csv")
+        csv_file = open(csv_file_name, 'w')
+        try:
+            csv_file.write(col_names)
+            csv_file.write("\n")
+            csv_file.write("\n".join(row_data))
+        finally:
+            csv_file.close()
+        return str(csv_file_name)
+
+    def create_plate(self, row_count, col_count):
+        plates = self.import_plates(plateRows=row_count,
+                                    plateCols=col_count)
+        return plates[0]
+
+    def create_plate1(self, row_count, col_count):
+        uuid = self.ctx.sessionUuid
+
+        def create_well(row, column):
+            well = WellI()
+            well.row = rint(row)
+            well.column = rint(column)
+            ws = WellSampleI()
+            image = self.new_image(name=uuid)
+            ws.image = image
+            well.addWellSample(ws)
+            return well
+
+        plate = PlateI()
+        plate.name = rstring("TestPopulateMetadata%s" % uuid)
+        for row in range(row_count):
+            for col in range(col_count):
+                well = create_well(row, col)
+                plate.addWell(well)
+        return self.client.sf.getUpdateService().saveAndReturnObject(plate)
+
+    def new_screen(self, name=None, description=None):
         """
-        Returns a new foundational Image with Channel objects attached for
-        view method testing.
+        Creates a new screen object.
+        :param name: The screen name. If None, a UUID string will be used
+        :param description: The screen description
         """
-        pixels = self.pix(client=self.client)
-        for the_c in range(pixels.getSizeC().val):
-            channel = omero.model.ChannelI()
-            channel.logicalChannel = omero.model.LogicalChannelI()
-            pixels.addChannel(channel)
-        image = pixels.getImage()
-        return self.sf.getUpdateService().saveAndReturnObject(image)
+        return self.new_object(ScreenI, name=name, description=description)
+
+    def make_screen(self, name=None, description=None, client=None):
+        """
+        Creates a new screen instance and returns the persisted object.
+        :param name: The screen name. If None, a UUID string will be used
+        :param description: The screen description
+        :param client: The client to use to create the object
+        """
+        if client is None:
+            client = self.client
+        screen = self.new_screen(name=name, description=description)
+        return client.sf.getUpdateService().saveAndReturnObject(screen)
+
+    def get_screen_annotations(self):
+        query = """select s from Screen s
+            left outer join fetch s.annotationLinks links
+            left outer join fetch links.child
+            where s.id=%s""" % self.screen.id.val
+        qs = self.client.sf.getQueryService()
+        screen = qs.findByQuery(query, None)
+        anns = screen.linkedAnnotationList()
+        return anns
+    # TODO: END move to testlib, common from test_populate.py
+
+
+class TestMapr(IMaprTest):
+
+    def setup_method(self):
+        super(IMaprTest, self).setup_class()
+        self.screen = self.make_screen("test_screen_mapr")
+        row_count = 1
+        col_count = 2
+        self.plate = self.create_plate1(row_count, col_count)
+        plate_name = self.plate.name.val
+
+        link = ScreenPlateLinkI()
+        link.setParent(self.screen.proxy())
+        link.setChild(self.plate.proxy())
+        self.client.sf.getUpdateService().saveAndReturnObject(link)
+
+        gene = {
+            'col_names':
+                "Plate,Well Number,Well,Gene Identifier,Gene Symbol,Organism",
+            'row_data': (
+                "%s,1,A1,CDC20,ENSG00000117399,Homo sapiens" % plate_name,
+                "%s,2,A2,CDC20,YGL116W,Mouse" % plate_name
+            )
+        }
+        self.csv_name = self.create_csv(gene['col_names'], gene['row_data'])
+
+        ctx = ParsingContext(self.client, self.screen.proxy(),
+                             file=self.csv_name)
+        ctx.parse()
+        ctx.write_to_omero()
+
+        cfg = os.path.join(
+            os.path.dirname(__file__), 'bulk_to_map_annotation_context.yml')
+        # Get file annotations
+        anns = self.get_screen_annotations()
+        # Only expect a single annotation which is a 'bulk annotation'
+        assert len(anns) == 1
+        table_file_ann = anns[0]
+        assert unwrap(table_file_ann.getNs()) == NSBULKANNOTATIONS
+        fileid = table_file_ann.file.id.val
+
+        ctx = BulkToMapAnnotationContext(
+            self.client, self.screen.proxy(), fileid=fileid, cfg=cfg)
+        ctx.parse()
+        ctx.write_to_omero()
 
     def test_basic(self):
 
-        # Add project
-        request_url = reverse("manage_action_containers",
-                              args=["addnewcontainer"])
-        data = {
-            'folder_type': 'project',
-            'name': 'foobar'
-        }
-        csrf_token = self.django_client.cookies['csrftoken'].value
-        extra = {'HTTP_X_CSRFTOKEN': csrf_token}
-        response = self.django_client.post(request_url, data=data, **extra)
-        pid = json.loads(response.content).get("id")
-
-        # Add dataset to the project
-        request_url = reverse("manage_action_containers",
-                              args=["addnewcontainer", "project", pid])
-        data = {
-            'folder_type': 'dataset',
-            'name': 'foobar'
-        }
-        csrf_token = self.django_client.cookies['csrftoken'].value
-        extra = {'HTTP_X_CSRFTOKEN': csrf_token}
-        response = self.django_client.post(request_url, data=data, **extra)
-        did = json.loads(response.content).get("id")
-
-        # Link image to Dataset
-        img = self.createTestImage(session=self.sf)
-        request_url = reverse("api_links")
-        data = {
-            'dataset': {did: {'image': [img.id.val]}}
-        }
-
-        csrf_token = self.django_client.cookies['csrftoken'].value
-        extra = {'HTTP_X_CSRFTOKEN': csrf_token}
-        response = self.django_client.post(
-            request_url, data=json.dumps(data),
-            content_type="application/json", **extra)
-
-        # add map annotation
-        request_url = reverse("annotate_map")
-        mapann = [['mapkey', 'mapvalue'], ['mapkey2', 'mapvalue2']]
-        data = {
-            'image': img.id.val,
-            'mapAnnotation': json.dumps(mapann)
-        }
-        csrf_token = self.django_client.cookies['csrftoken'].value
-        extra = {'HTTP_X_CSRFTOKEN': csrf_token}
-        response = self.django_client.post(request_url, data=data, **extra)
-        assert response.get('Content-Type') == 'application/json'
-        res = json.loads(response.content)
-        assert res
-
         # test autocomplete
         request_url = reverse("mapannotations_autocomplete",
-                              args=["key"])
+                              args=["gene"])
         data = {
-            'value': 'map',
+            'value': 'cdc',
             'query': 'true'
         }
-        response = self.django_client.get(request_url, data=data)
-        assert response.get('Content-Type') == 'application/json'
-        res = json.loads(response.content)
+        response = _get_response_json(self.django_client, request_url, data)
 
-        assert res == [{'value': 'mapvalue'}, {'value': 'mapvalue2'}]
+        assert response == [{'value': 'CDC20'}]
