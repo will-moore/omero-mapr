@@ -2,8 +2,8 @@
 
 set -e -u -x
 
-SERVER_HOST=${1:-"localhost"}
-SERVER_PORT=${2:-"4064"}
+SERVER_HOST=${SERVER_HOST:-"localhost"}
+SERVER_PORT=${SERVER_PORT:-"4064"}
 
 OMEROPATH=${OMEROPATH:-"${HOME}/OMERO.${COMPONENT}"}
 

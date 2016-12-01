@@ -27,4 +27,4 @@ services:
       - SERVER_PORT=4064
     volumes:
       - ../.:/home/omero/mapr.git
-    command: /home/omero/mapr.git/runtest omeroserver 4064
+    command: /home/omero/mapr.git/runtest
