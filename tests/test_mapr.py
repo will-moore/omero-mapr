@@ -24,26 +24,26 @@
 #
 
 import os
+import pytest
 
+from django.core.urlresolvers import reverse
+
+from omero.constants.namespaces import NSBULKANNOTATIONS
 from omero.model import ScreenI
 from omero.rtypes import rstring, unwrap
 from omero.util.temp_files import create_path
 from omero.util.populate_metadata import BulkToMapAnnotationContext
 from omero.util.populate_metadata import ParsingContext
 
-from django.core.urlresolvers import reverse
-
 from omeroweb.testlib import IWebTest, _get_response_json
-from omero.constants.namespaces import NSBULKANNOTATIONS
 
 
 class IMaprTest(IWebTest):
+
     """
-    Abstract class derived from ITest which implements helpers for creating
-    Django clients using django.test
+    Extends ITest
     """
 
-    # TODO: move to testlib, common from test_populate.py
     def create_csv(
         self,
         col_names="Well,Well Type,Concentration",
@@ -75,9 +75,9 @@ class IMaprTest(IWebTest):
         except AttributeError:
             plate = self.import_plates(plateRows=row_count,
                                        plateCols=col_count)[0]
-        plate = self.set_name(plate, "P001")
+        plate = self.set_name(plate, "Plate001")
         screen = ScreenI()
-        screen.name = rstring("test_screen_mapr")
+        screen.name = rstring("Screen001")
         screen.linkPlate(plate.proxy())
         return (self.client.sf.getUpdateService().saveAndReturnObject(screen),
                 plate)
@@ -111,7 +111,6 @@ class IMaprTest(IWebTest):
         screen = qs.findByQuery(query, None)
         anns = screen.linkedAnnotationList()
         return anns
-    # TODO: END move to testlib, common from test_populate.py
 
 
 class TestMapr(IMaprTest):
@@ -121,14 +120,14 @@ class TestMapr(IMaprTest):
         col_count = 2
         self.screen, self.plate = self.create_screen(row_count, col_count)
 
-        self.csv = os.path.join(os.path.dirname(__file__),
-                                'bulk_to_map_annotation_context_ns.csv')
+        csv = os.path.join(os.path.dirname(__file__),
+                           'bulk_to_map_annotation_context_ns.csv')
 
-        ctx = ParsingContext(self.client, self.screen.proxy(), file=self.csv)
+        ctx = ParsingContext(self.client, self.screen.proxy(), file=csv)
         ctx.parse()
         ctx.write_to_omero()
 
-        self.cfg = os.path.join(
+        cfg = os.path.join(
             os.path.dirname(__file__), 'bulk_to_map_annotation_context.yml')
 
         # Get file annotations
@@ -140,19 +139,22 @@ class TestMapr(IMaprTest):
         fileid = table_file_ann.file.id.val
 
         ctx = BulkToMapAnnotationContext(
-            self.client, self.screen.proxy(), fileid=fileid, cfg=self.cfg)
+            self.client, self.screen.proxy(), fileid=fileid, cfg=cfg)
         ctx.parse()
         ctx.write_to_omero()
 
-    def test_basic(self):
-
+    @pytest.mark.parametrize('ac', (
+        {'menu': 'gene', 'value': 'CDC20', 'search_value': 'cdc'},
+        {'menu': 'organism', 'value': 'Homo sapiens', 'search_value': 'homo'},
+    ))
+    def test_autocomplete(self, ac):
         # test autocomplete
         request_url = reverse("mapannotations_autocomplete",
-                              args=["gene"])
+                              args=[ac['menu']])
         data = {
-            'value': 'cdc',
-            'query': 'true'
+            'value': ac['search_value'],
+            'query': 'true',
         }
         response = _get_response_json(self.django_client, request_url, data)
 
-        assert response == [{'value': 'CDC20'}]
+        assert response == [{'value': ac['value']}]

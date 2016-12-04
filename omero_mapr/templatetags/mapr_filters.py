@@ -37,4 +37,4 @@ logger = logging.getLogger(__name__)
 @register.filter
 def menutolabel(value):
     "Subtracts the arg from the value"
-    return mapr_settings.MENU_MAPR[value]['label']
+    return mapr_settings.CONFIG[value]['label']

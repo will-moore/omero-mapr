@@ -1,6 +1,6 @@
 ---
-name: test_screen_mapr
-version: 2
+name: Screen001
+version: 1
 
 defaults:
     # Should the column be processed when creating bulk-annotations (yes/no)

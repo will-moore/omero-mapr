@@ -118,7 +118,7 @@ def get_list_or_default(request, name, default):
 def _get_ns(mapr_settings, menu):
     ns = []
     try:
-        ns = mapr_settings.MENU_MAPR[menu]['ns']
+        ns = mapr_settings.CONFIG[menu]['ns']
     except:
         pass
     return ns
@@ -127,7 +127,7 @@ def _get_ns(mapr_settings, menu):
 def _get_keys(mapr_settings, menu):
     keys = None
     try:
-        keys = mapr_settings.MENU_MAPR[menu]['all']
+        keys = mapr_settings.CONFIG[menu]['all']
     except:
         pass
     return keys
@@ -161,8 +161,8 @@ def index(request, menu, conn=None, url=None, **kwargs):
                                        conn=conn, url=url, **kwargs)
     context['active_user'] = context['active_user'] or {'id': -1}
     context['menu_default'] = ", ".join(
-        mapr_settings.MENU_MAPR[menu]['default'])
-    context['menu_all'] = ", ".join(mapr_settings.MENU_MAPR[menu]['all'])
+        mapr_settings.CONFIG[menu]['default'])
+    context['menu_all'] = ", ".join(mapr_settings.CONFIG[menu]['all'])
     context['map_value'] = value or ""
     context['map_query'] = query or ""
     context['template'] = "mapr/base_mapr.html"
@@ -186,7 +186,7 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
-    if menu in mapr_settings.MENU_MAPR:
+    if menu in mapr_settings.CONFIG:
         paths = []
         if mapann_value is not None:
             try:
@@ -245,7 +245,7 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
         else:
             # fake experimenter -1
             experimenter = fake_experimenter(
-                mapr_settings.MENU_MAPR[menu]['label'])
+                mapr_settings.CONFIG[menu]['label'])
 
         if mapann_value is not None:
             if mapann_value:

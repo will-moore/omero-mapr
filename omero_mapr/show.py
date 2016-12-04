@@ -46,7 +46,7 @@ class MapShow(omeroweb_show.Show):
     # supported objects
     omeroweb_show.Show.SUPPORTED_OBJECT_TYPES += ('map',)
     omeroweb_show.Show.SUPPORTED_OBJECT_TYPES += \
-        tuple(mapr_settings.MENU_MAPR)
+        tuple(mapr_settings.CONFIG)
 
     def __init__(self, conn, request, menu, value=None):
         super(MapShow, self).__init__(conn, request, menu)
@@ -65,8 +65,8 @@ class MapShow(omeroweb_show.Show):
         first_obj = m.group('object_type')
         # if we are showing any of map.value alias make sure
         # we are not in webclient
-        if (first_obj in mapr_settings.MENU_MAPR.keys() and
-                self.menu not in mapr_settings.MENU_MAPR):
+        if (first_obj in mapr_settings.CONFIG.keys() and
+                self.menu not in mapr_settings.CONFIG):
             # redirect to menu/value/
             link = {
                 "viewname": "maprindex_%s" % first_obj,
@@ -76,7 +76,7 @@ class MapShow(omeroweb_show.Show):
                 reverse_with_params(**link)
             )
         # if in mapr app hierachy is different
-        if self.menu in mapr_settings.MENU_MAPR:
+        if self.menu in mapr_settings.CONFIG:
             first_selected = None
             try:
                 key = m.group('key')
