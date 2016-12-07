@@ -20,15 +20,17 @@
 #
 # Version: 1.0
 
-from django.conf import settings
-from omeroweb.settings import process_custom_settings, report_settings
 import sys
 import os
 import json
+from collections import OrderedDict
+
+from django.conf import settings
+from omeroweb.settings import process_custom_settings, report_settings
 
 
 def config_list_to_dict(config_list):
-    config_dict = dict()
+    config_dict = OrderedDict()
     for i in json.loads(config_list):
         k = i.get('menu', None)
         if k is not None:
