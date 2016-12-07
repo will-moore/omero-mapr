@@ -37,7 +37,7 @@ $(function () {
                 type : 'GET',
                 url: MAPANNOTATIONS.URLS.autocomplete,
                 data: {
-                    value: request.term,
+                    value: request.term.toLowerCase(),
                     query: true,
                     experimenter_id: WEBCLIENT.active_user,
                     group: WEBCLIENT.active_group_id
