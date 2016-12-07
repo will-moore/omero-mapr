@@ -22,21 +22,10 @@
 
 import sys
 import os
-import json
-from collections import OrderedDict
 
 from django.conf import settings
 from omeroweb.settings import process_custom_settings, report_settings
-
-
-def config_list_to_dict(config_list):
-    config_dict = OrderedDict()
-    for i in json.loads(config_list):
-        k = i.get('menu', None)
-        if k is not None:
-            if i.get('config', None) is not None:
-                config_dict[k] = i['config']
-    return config_dict
+from omero_mapr.utils import config_list_to_dict
 
 
 # load settings
@@ -68,9 +57,20 @@ def prefix_setting(suffix, default):
 
 class MaprSettings(object):
 
-    DEFAULT_FAVICON = prefix_setting('DEFAULT_FAVICON', {})
-    CONFIG = prefix_setting('CONFIG', {})
-    FAVICON_WEBSERVICE = prefix_setting('FAVICON_WEBSERVICE', {})
+    CONFIG = prefix_setting('CONFIG', MAPR_CONFIG)  # noqa
+    DEFAULT_FAVICON = prefix_setting('DEFAULT_FAVICON',
+                                     MAPR_DEFAULT_FAVICON)  # noqa
+    FAVICON_WEBSERVICE = prefix_setting('FAVICON_WEBSERVICE',
+                                        MAPR_FAVICON_WEBSERVICE)  # noqa
 
 
 mapr_settings = MaprSettings()
+
+
+# Update Django settings
+
+# add custom processor
+TEMPLATES = getattr(settings, 'TEMPLATES', [])
+TEMPLATES[0]['OPTIONS']['context_processors'].append(
+    'omero_mapr.custom_context_processor.mapr_url_suffix')
+setattr(settings, 'TEMPLATES', TEMPLATES)

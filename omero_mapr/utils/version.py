@@ -23,11 +23,27 @@
 # Version: 1.0
 
 
-from omero_mapr.utils.version import get_version
+def get_version(version=None):
+
+    """
+    Returns a PEP 386-compliant version number.
+    See https://www.python.org/dev/peps/pep-0440/
+    """
+
+    version = get_full_version(version)
+    parts = 2 if version[2] == 0 else 3
+    res = '.'.join(str(x) for x in version[:parts])
+    if len(version) > 3:
+        res = "%s%s" % (res, version[3])
+    return str(res)
 
 
-VERSION = (0, 1, 8, 'dev')
+def get_full_version(version=None):
 
-__version__ = get_version(VERSION)
+    """
+    Returns a tuple of the mapr version.
+    """
 
-default_app_config = 'omero_mapr.apps.MaprAppConfig'
+    if version is None:
+        from omero_mapr import VERSION as version  # noqa
+    return version

@@ -27,17 +27,17 @@
 
 {% block link %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'mapr/css/ome.mapr.css'|add:url_suffix %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'mapr/css/ome.mapr.css'|add:mapr_url_suffix %}" type="text/css" />
 {% endblock %}
 
 {% block script %}
     
     {{ block.super }}
 
-    <script src="{% static 'mapr/javascript/ome.mapr.ui.autocomplete.js'|add:url_suffix %}" type="text/javascript"></script>
-    <script src="{% static 'mapr/javascript/ome.mapr.js'|add:url_suffix %}" type="text/javascript"></script>
+    <script src="{% static 'mapr/javascript/ome.mapr.ui.autocomplete.js'|add:mapr_url_suffix %}" type="text/javascript"></script>
+    <script src="{% static 'mapr/javascript/ome.mapr.js'|add:mapr_url_suffix %}" type="text/javascript"></script>
     <!-- include code to handle primary 'thumbs' middle plugin -->
-    <script src="{% static 'mapr/javascript/center_plugin.thumbs.js'|add:url_suffix %}" type="text/javascript"></script>
+    <script src="{% static 'mapr/javascript/center_plugin.thumbs.js'|add:mapr_url_suffix %}" type="text/javascript"></script>
 
 {% endblock %}
 

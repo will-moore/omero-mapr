@@ -21,6 +21,7 @@
 # Version: 1.0
 
 import os
+import sys
 from setuptools import setup, find_packages
 
 
@@ -34,13 +35,18 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-VERSION = '0.1.7'
+version = __import__('omero_mapr').get_version()
 
+install_requires = get_requirements()
+
+tests_require = []
+if "test" in sys.argv:
+    tests_require = get_requirements('requirements-test.txt')
 
 setup(
     name="omero-mapr",
     packages=find_packages(exclude=['ez_setup']),
-    version=VERSION,
+    version=version,
     description="MAPR is a Python plugin for OMERO.web",
     long_description=read('README.rst'),
     classifiers=[
@@ -67,10 +73,10 @@ setup(
     author_email='ome-devel@lists.openmicroscopy.org.uk',
     license='AGPLv3',
     url="https://github.com/ome/omero-mapr",
-    download_url='https://github.com/ome/omero-mapr/tarball/%s' % VERSION,  # NOQA
-    install_requires=get_requirements(),
+    download_url='https://github.com/ome/omero-mapr/tarball/%s' % version,  # NOQA
+    install_requires=install_requires,
     setup_requires=['pytest-runner'],
-    tests_require=get_requirements('requirements-test.txt'),
+    tests_require=tests_require,
     include_package_data=True,
     zip_safe=False,
     test_suite="tests",
