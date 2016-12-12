@@ -4,7 +4,7 @@ services:
     image: postgres
 
   omeroserver:
-    image: olat/omero-test-daemon-c7:0.1.4
+    image: openmicroscopy/omero-test-daemon-c7:0.2.0
     links:
       - postgres
     environment:
@@ -15,7 +15,7 @@ services:
       - 4063:4063
 
   maprtest:
-    image: olat/omero-test-daemon-c7:0.1.4
+    image: openmicroscopy/omero-test-daemon-c7:0.2.0
     links:
       - omeroserver
     environment:
