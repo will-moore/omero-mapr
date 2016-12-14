@@ -30,15 +30,15 @@ from omero_mapr.utils import config_list_to_dict
 
 # load settings
 MAPR_SETTINGS_MAPPING = {
-    "omeroweb.mapr.config":
+    "omero.web.mapr.config":
         ["MAPR_CONFIG", "[]", config_list_to_dict, None],
-    "omeroweb.mapr.favicon":
+    "omero.web.mapr.favicon":
         ["MAPR_DEFAULT_FAVICON",
          os.path.join(os.path.dirname(__file__),
                       'static', 'mapr', 'image',
                       'favicon.png').replace('\\', '/'),
          str, None],
-    "omeroweb.mapr.favicon_webservice":
+    "omero.web.mapr.favicon_webservice":
         ["MAPR_FAVICON_WEBSERVICE",
             "http://www.google.com/s2/favicons?domain=", str, None],
     }
