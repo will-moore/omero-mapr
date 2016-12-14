@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# #!/usr/bin/env python
 #
 #
 #
@@ -22,19 +21,29 @@
 # Author: Aleksandra Tarkowska <A(dot)Tarkowska(at)dundee(dot)ac(dot)uk>, 2008.
 #
 # Version: 1.0
-#
-
-import logging
-
-from django import template
-from ..mapr_settings import mapr_settings
-
-register = template.Library()
-
-logger = logging.getLogger(__name__)
 
 
-@register.filter
-def menutolabel(value):
-    "Subtracts the arg from the value"
-    return mapr_settings.CONFIG[value]['label']
+def get_version(version=None):
+
+    """
+    Returns a PEP 386-compliant version number.
+    See https://www.python.org/dev/peps/pep-0440/
+    """
+
+    version = get_full_version(version)
+    parts = 2 if version[2] == 0 else 3
+    res = '.'.join(str(x) for x in version[:parts])
+    if len(version) > 3:
+        res = "%s%s" % (res, version[3])
+    return str(res)
+
+
+def get_full_version(version=None):
+
+    """
+    Returns a tuple of the mapr version.
+    """
+
+    if version is None:
+        from omero_mapr import VERSION as version  # noqa
+    return version

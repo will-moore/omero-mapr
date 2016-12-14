@@ -32,13 +32,13 @@ from mapr_settings import mapr_settings
 reverse_lazy = lazy(reverse, str)
 
 # concatenate aliases to use in url regex
-MENU_MAPR_REGEX = "(%s)" % ("|".join(mapr_settings.MENU_MAPR))
-DEFAULT_MENU = mapr_settings.MENU_MAPR.iterkeys().next()
+CONFIG_REGEX = "(%s)" % ("|".join(mapr_settings.CONFIG))
+DEFAULT_CONFIG = mapr_settings.CONFIG.iterkeys().next()
 
 urlpatterns = patterns('',)
 
 # alias
-for m in mapr_settings.MENU_MAPR:
+for m in mapr_settings.CONFIG:
     urlpatterns += (
         url(r'^(?i)%s/$' % m,
             views.index, {'menu': m},
@@ -50,43 +50,43 @@ urlpatterns += (
     # core
     url(r'^$', never_cache(
         RedirectView.as_view(
-            url=reverse_lazy('maprindex_%s' % DEFAULT_MENU),
+            url=reverse_lazy('maprindex_%s' % DEFAULT_CONFIG),
             permanent=True,
             query_string=True)),
         name="maprindex"),
 
-    url(r'^api/(?P<menu>%s)/count/$' % (MENU_MAPR_REGEX),
+    url(r'^api/(?P<menu>%s)/count/$' % (CONFIG_REGEX),
         views.api_experimenter_list,
         name='mapannotations_api_experimenters'),
-    url(r'^api/(?P<menu>%s)/datasets/$' % MENU_MAPR_REGEX,
+    url(r'^api/(?P<menu>%s)/datasets/$' % CONFIG_REGEX,
         views.api_datasets_list,
         name='mapannotations_api_datasets'),
-    url(r'^api/(?P<menu>%s)/plates/$' % MENU_MAPR_REGEX,
+    url(r'^api/(?P<menu>%s)/plates/$' % CONFIG_REGEX,
         views.api_plate_list,
         name='mapannotations_api_plates'),
-    url(r'^api/(?P<menu>%s)/images/$' % MENU_MAPR_REGEX,
+    url(r'^api/(?P<menu>%s)/images/$' % CONFIG_REGEX,
         views.api_image_list,
         name='mapannotations_api_images'),
 
-    url(r'^api/(?P<menu>%s)/paths_to_object/$' % MENU_MAPR_REGEX,
+    url(r'^api/(?P<menu>%s)/paths_to_object/$' % CONFIG_REGEX,
         views.api_paths_to_object,
         name='mapannotations_api_paths_to_object'),
 
-    url(r'^metadata_details/(?P<c_type>%s)/$' % MENU_MAPR_REGEX,
+    url(r'^metadata_details/(?P<c_type>%s)/$' % CONFIG_REGEX,
         views.load_metadata_details,
         name="mapannotations_load_metadata_details"),
 
-    url(r'^api/(?P<menu>%s)/annotations/$' % MENU_MAPR_REGEX,
+    url(r'^api/(?P<menu>%s)/annotations/$' % CONFIG_REGEX,
         views.api_annotations,
         name='mapannotations_api_annotations'),
 
     # must be last on the list
-    url(r'^api/(?P<menu>%s)/$' % MENU_MAPR_REGEX,
+    url(r'^api/(?P<menu>%s)/$' % CONFIG_REGEX,
         views.api_mapannotation_list,
         name='mapannotations_api_mapannotations'),
 
     # autocomplete
-    url(r'^api/autocomplete/(?P<menu>%s)/$' % MENU_MAPR_REGEX,
+    url(r'^api/autocomplete/(?P<menu>%s)/$' % CONFIG_REGEX,
         views.mapannotations_autocomplete,
         name='mapannotations_autocomplete'),
 
