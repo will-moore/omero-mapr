@@ -148,7 +148,9 @@ $(function () {
     var $metadata_general = $("#metadata_general");
     var general_tab_index = 0;
 
-    // make sure maps are ALWAYS open
+    // make sure details are ALWAYS opened
+    OME.setPaneExpanded('details', true);
+    // make sure maps are ALWAYS opened
     OME.setPaneExpanded('maps', true);
 
     // this is called on change in jstree selection, or switching tabs
