@@ -67,7 +67,7 @@ class MapShow(omeroweb_show.Show):
         # we are not in webclient
         if (first_obj in mapr_settings.CONFIG.keys() and
                 self.menu not in mapr_settings.CONFIG):
-            # redirect to menu/value/
+            # redirect to menu/?value=VALUE
             link = {
                 "viewname": "maprindex_%s" % first_obj,
                 "query_string": {'value': m.group('value')}
