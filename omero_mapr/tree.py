@@ -896,6 +896,17 @@ def load_mapannotation(conn, mapann_value,
     return annotations, experimenters
 
 
+def _escape_chars_like(query):
+    escape_chars = {
+        "%": "\%",
+        "_": "\_",
+    }
+
+    for k, v in escape_chars.items():
+        query = query.replace(k, v)
+    return query
+
+
 def marshal_autocomplete(conn, mapann_value, query=True,
                          mapann_ns=[], mapann_names=None,
                          group_id=-1, experimenter_id=-1,
@@ -942,16 +953,16 @@ def marshal_autocomplete(conn, mapann_value, query=True,
 
     params.addString(
         "query",
-        rstring("%s%%" % unicode(mapann_value).lower()))
+        rstring("%s%%" % _escape_chars_like(mapann_value.lower())))
     where_clause.append('lower(mv.value) like :query')
     order_by = "length(mv.value) ASC, lower(mv.value) ASC"
 
     params2.addString(
         "query",
-        rstring("%%%s%%" % unicode(mapann_value).lower()))
+        rstring("%%%s%%" % _escape_chars_like(mapann_value.lower())))
     params2.addString(
         "query2",
-        rstring("%s%%" % unicode(mapann_value).lower()))
+        rstring("%s%%" % _escape_chars_like(mapann_value.lower())))
     where_clause2.append('lower(mv.value) like :query')
     where_clause2.append('lower(mv.value) not like :query2')
     order_by2 = "lower(mv.value)"
