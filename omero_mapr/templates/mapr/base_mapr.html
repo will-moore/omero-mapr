@@ -1,5 +1,6 @@
 {% extends "webclient/data/containers.html" %}
 {% load i18n %}
+{% load common_filters %}
 
 {% comment %}
 <!--
@@ -100,13 +101,13 @@
         MAPANNOTATIONS.URLS.autocomplete = "{% url 'mapannotations_autocomplete' menu %}";
         MAPANNOTATIONS.URLS.autocomplete_default = "{% url 'mapannotations_api_experimenters' menu %}";
 
-        MAPANNOTATIONS.CTX = {'label': "{{ menu }}", 'value': "{{ map_value }}", 'query': "{{ map_query|lower }}"};
+        MAPANNOTATIONS.CTX = {{ map_ctx|json_dumps|safe }};
 
         payload = {};
         if (MAPANNOTATIONS.CTX.value.length > 0) {
             payload['value'] = MAPANNOTATIONS.CTX.value;
         }
-        if (MAPANNOTATIONS.CTX.query.length > 0) {
+        if (MAPANNOTATIONS.CTX.query) {
             payload['query'] = MAPANNOTATIONS.CTX.query;
         }
         $("#dataTree").data('payload', payload);

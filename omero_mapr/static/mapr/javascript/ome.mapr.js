@@ -36,6 +36,7 @@ $(function () {
         if (MAPANNOTATIONS.CTX.value.length > 0) {
             payload['value'] = MAPANNOTATIONS.CTX.value;
         }
+        // only support matching results in a JSTree
         //if (MAPANNOTATIONS.CTX.query) {
         //    payload['query'] = MAPANNOTATIONS.CTX.query;
         //}

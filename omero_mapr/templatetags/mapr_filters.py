@@ -27,6 +27,7 @@
 import logging
 
 from django import template
+
 from ..mapr_settings import mapr_settings
 
 register = template.Library()

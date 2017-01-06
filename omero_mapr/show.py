@@ -128,9 +128,9 @@ class MapShow(omeroweb_show.Show):
             f.limit = rint(1)
             params.theFilter = f
 
-            q = ("SELECT distinct (a)"
-                 "FROM ImageAnnotationLink ial JOIN ial.child a"
-                 "JOIN a.mapValue mv"
+            q = ("SELECT distinct (a) "
+                 "FROM ImageAnnotationLink ial JOIN ial.child a "
+                 "JOIN a.mapValue mv "
                  "WHERE mv.value = :mvalue")
 
             qs = self.conn.getQueryService()

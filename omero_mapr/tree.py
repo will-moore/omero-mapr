@@ -39,6 +39,17 @@ from omeroweb.webclient.tree import _marshal_annotation, _marshal_exp_obj
 logger = logging.getLogger(__name__)
 
 
+def _escape_chars_like(query):
+    escape_chars = {
+        "%": "\%",
+        "_": "\_",
+    }
+
+    for k, v in escape_chars.items():
+        query = query.replace(k, v)
+    return query
+
+
 def _set_parameters(mapann_ns=[], mapann_names=[],
                     mapann_value=None, query=False,
                     params=None, experimenter_id=-1,
@@ -94,7 +105,7 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
         if query:
             params.addString(
                 "query",
-                rstring("%%%s%%" % unicode(mapann_value).lower()))
+                rstring("%%%s%%" % _escape_chars_like(mapann_value.lower())))
             where_clause.append("lower(mv.value) like :query")
         else:
             params.addString('value', mapann_value)
@@ -894,17 +905,6 @@ def load_mapannotation(conn, mapann_value,
     experimenters = experimenters.values()
 
     return annotations, experimenters
-
-
-def _escape_chars_like(query):
-    escape_chars = {
-        "%": "\%",
-        "_": "\_",
-    }
-
-    for k, v in escape_chars.items():
-        query = query.replace(k, v)
-    return query
 
 
 def marshal_autocomplete(conn, mapann_value, query=True,

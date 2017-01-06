@@ -111,7 +111,7 @@ OME.linkify_element = function(elements) {
                     if ( _key in keys2menu && keys2menu[_key] !== undefined ) {
                         // create mapr url
                         var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/?value=" + encodeURIComponent(_val);
-                        $chvalue.html($chvalue.html().replace(_val, "<a href='" + _url + "'>" + _val + "</a>"));
+                        $chvalue.html($chvalue.html().replace(_val, '<a href="' + _url + '">' + _val + '</a>'));
                     }
                 }
                 var _tkey = _key.replace(/url/i, "").trim();

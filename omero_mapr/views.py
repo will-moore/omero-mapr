@@ -163,8 +163,8 @@ def index(request, menu, conn=None, url=None, **kwargs):
     context['menu_default'] = ", ".join(
         mapr_settings.CONFIG[menu]['default'])
     context['menu_all'] = ", ".join(mapr_settings.CONFIG[menu]['all'])
-    context['map_value'] = value or ""
-    context['map_query'] = query or ""
+    context['map_ctx'] = \
+        {'label': menu, 'value': value or "", 'query': query or ""}
     context['template'] = "mapr/base_mapr.html"
 
     return context
