@@ -733,16 +733,18 @@ def marshal_images(conn, parent, parent_id,
 
     extra_values = []
     if load_pixels:
-        extra_values.append(
-            " , "
-            " pix.sizeX as sizeX, "
-            " pix.sizeY as sizeY, "
-            " pix.sizeZ as sizeZ ")
+        extra_values.append("""
+            ,
+            pix.sizeX as sizeX,
+            pix.sizeY as sizeY,
+            pix.sizeZ as sizeZ
+        """)
 
     if date:
-        extra_values.append(
-            " image.details.creationEvent.time as date, "
-            "image.acquisitionDate as acqDate")
+        extra_values.append(""",
+            image.details.creationEvent.time as date,
+            image.acquisitionDate as acqDate
+        """)
 
     q = """
         select new map(image.id as id,
