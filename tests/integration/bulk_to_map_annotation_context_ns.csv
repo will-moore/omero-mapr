@@ -1,3 +1,5 @@
 Plate,Well Number,Well,Gene Identifier,Gene Symbol,Organism
 Plate001,1,A1,CDC20,ENSG00000117399,Homo sapiens
 Plate001,2,A2,CDC20,YGL116W,Mouse
+Plate001,3,A3,beta'Cop,apostrophe,Human
+Plate001,4,A4,percent,123 (abc%def),Some organism

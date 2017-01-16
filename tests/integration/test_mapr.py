@@ -117,7 +117,7 @@ class TestMapr(IMaprTest):
 
     def setup_method(self, method):
         row_count = 1
-        col_count = 2
+        col_count = 4
         self.screen, self.plate = self.create_screen(row_count, col_count)
 
         csv = os.path.join(os.path.dirname(__file__),
@@ -146,6 +146,8 @@ class TestMapr(IMaprTest):
     @pytest.mark.parametrize('ac', (
         {'menu': 'gene', 'value': 'CDC20', 'search_value': 'cdc'},
         {'menu': 'organism', 'value': 'Homo sapiens', 'search_value': 'homo'},
+        {'menu': 'gene', 'value': "beta'Cop", 'search_value': "'"},
+        {'menu': 'gene', 'value': "123 (abc%def)", 'search_value': "%"},
     ))
     def test_autocomplete(self, ac):
         # test autocomplete
