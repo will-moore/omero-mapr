@@ -67,7 +67,7 @@ class MapShow(omeroweb_show.Show):
         # we are not in webclient
         if (first_obj in mapr_settings.CONFIG.keys() and
                 self.menu not in mapr_settings.CONFIG):
-            # redirect to menu/value/
+            # redirect to menu/?value=VALUE
             link = {
                 "viewname": "maprindex_%s" % first_obj,
                 "query_string": {'value': m.group('value')}
@@ -128,9 +128,9 @@ class MapShow(omeroweb_show.Show):
             f.limit = rint(1)
             params.theFilter = f
 
-            q = ("SELECT distinct (a)"
-                 "FROM ImageAnnotationLink ial JOIN ial.child a"
-                 "JOIN a.mapValue mv"
+            q = ("SELECT distinct (a) "
+                 "FROM ImageAnnotationLink ial JOIN ial.child a "
+                 "JOIN a.mapValue mv "
                  "WHERE mv.value = :mvalue")
 
             qs = self.conn.getQueryService()

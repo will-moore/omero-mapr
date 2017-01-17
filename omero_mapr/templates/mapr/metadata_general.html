@@ -39,7 +39,7 @@
                 // This is called once the html for "General" tab of right panel has loaded...
 
                 // Delegate to sub-views to handle content of each collapsible panel
-                var selectedObjs = ["map-{{ manager.obj_id }}"];
+                var selectedObjs = ["map-" + {{ manager.obj_id|json_dumps|safe }}];
                 var annPaneData = {
                     'selected': selectedObjs,
                     // canAnnotate used by map annotations and ratings panes
@@ -59,7 +59,7 @@
                 // show a link to the current object
                 $("#show_link_btn").click(function(){
                     $("#link_info_popup").show();
-                    var lnk = location.protocol + '//' + location.host + '{% url "webindex" %}?show={{ menu }}-' + encodeURIComponent("{{ manager.obj_id }}");
+                    var lnk = location.protocol + '//' + location.host + '{% url "webindex" %}?show={{ menu }}-' + encodeURIComponent({{ manager.obj_id|json_dumps|safe }});
                     var link_input = $("#link_info_popup input");
                     link_input.val(lnk);
                     link_input.get(0).focus();
