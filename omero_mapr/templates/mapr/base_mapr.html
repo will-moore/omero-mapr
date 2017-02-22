@@ -110,6 +110,9 @@
         if (MAPANNOTATIONS.CTX.query) {
             payload['query'] = MAPANNOTATIONS.CTX.query;
         }
+        if (MAPANNOTATIONS.CTX.case_sensitive) {
+            payload['case_sensitive'] = MAPANNOTATIONS.CTX.case_sensitive;
+        }
         $("#dataTree").data('payload', payload);
 
     </script>

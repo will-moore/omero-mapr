@@ -151,6 +151,7 @@ def index(request, menu, conn=None, url=None, **kwargs):
     try:
         value = get_unicode_or_default(request, 'value', None)
         query = get_bool_or_default(request, 'query', False)
+        case_sensitive = get_bool_or_default(request, 'case_sensitive', False)
     except ValueError:
         logger.error(traceback.format_exc())
         return HttpResponseBadRequest('Invalid parameter value')
@@ -164,7 +165,8 @@ def index(request, menu, conn=None, url=None, **kwargs):
         mapr_settings.CONFIG[menu]['default'])
     context['menu_all'] = ", ".join(mapr_settings.CONFIG[menu]['all'])
     context['map_ctx'] = \
-        {'label': menu, 'value': value or "", 'query': query or ""}
+        {'label': menu, 'value': value or "", 'query': query or "",
+         'case_sensitive': case_sensitive or ""}
     context['template'] = "mapr/base_mapr.html"
 
     return context
@@ -232,6 +234,7 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
             or get_unicode_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         query = get_bool_or_default(request, 'query', False)
+        case_sensitive = get_bool_or_default(request, 'case_sensitive', False)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -247,15 +250,20 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
                 mapr_settings.CONFIG[menu]['label'])
 
         if mapann_value is not None:
+            experimenter['extra'] = {}
             if mapann_value:
-                experimenter['extra'] = {'value': mapann_value}
+                experimenter['extra']['value'] = mapann_value
             if query:
-                experimenter['extra'] = {'query': query}
+                experimenter['extra']['query'] = query
+            if case_sensitive:
+                experimenter['extra']['case_sensitive'] = case_sensitive
+
             # count children
             experimenter['childCount'] = mapr_tree.count_mapannotations(
                 conn=conn,
                 mapann_value=mapann_value,
                 query=query,
+                case_sensitive=case_sensitive,
                 mapann_ns=mapann_ns,
                 mapann_names=mapann_names,
                 group_id=group_id,
@@ -286,6 +294,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
         mapann_value = get_unicode_or_default(request, 'id', None) \
             or get_unicode_or_default(request, 'value', None)
         query = get_bool_or_default(request, 'query', False)
+        case_sensitive = get_bool_or_default(request, 'case_sensitive', False)
         mapann_names = get_list_or_default(request, 'name', keys)
         orphaned = get_bool_or_default(request, 'orphaned', False)
     except ValueError:
@@ -302,6 +311,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
                 conn=conn,
                 mapann_value=mapann_value,
                 query=query,
+                case_sensitive=case_sensitive,
                 mapann_ns=mapann_ns,
                 mapann_names=mapann_names,
                 group_id=group_id,

@@ -153,6 +153,7 @@ def _marshal_map(conn, row):
 
 
 def count_mapannotations(conn, mapann_value, query=False,
+                         case_sensitive=False,
                          mapann_ns=[], mapann_names=[],
                          group_id=-1, experimenter_id=-1):
     ''' Count mapannotiation values
@@ -181,7 +182,8 @@ def count_mapannotations(conn, mapann_value, query=False,
 
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        query=query, mapann_value=mapann_value, case_sensitive=False,
+        query=query, mapann_value=mapann_value,
+        case_sensitive=case_sensitive,
         params=None, experimenter_id=experimenter_id,
         page=None, limit=None)
 
@@ -218,6 +220,7 @@ def count_mapannotations(conn, mapann_value, query=False,
 
 
 def marshal_mapannotations(conn, mapann_value, query=False,
+                           case_sensitive=False,
                            mapann_ns=[], mapann_names=[],
                            group_id=-1, experimenter_id=-1,
                            page=1, limit=settings.PAGE):
@@ -253,7 +256,8 @@ def marshal_mapannotations(conn, mapann_value, query=False,
 
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        mapann_value=mapann_value, query=query, case_sensitive=False,
+        mapann_value=mapann_value, query=query,
+        case_sensitive=case_sensitive,
         params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
