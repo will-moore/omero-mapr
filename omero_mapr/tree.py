@@ -51,7 +51,7 @@ def _escape_chars_like(query):
 
 
 def _set_parameters(mapann_ns=[], mapann_names=[],
-                    mapann_value=None, query=False,
+                    mapann_value=None, query=False, case_sensitive=True,
                     params=None, experimenter_id=-1,
                     page=None, limit=settings.PAGE):
 
@@ -108,8 +108,12 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
                 rstring("%%%s%%" % _escape_chars_like(mapann_value.lower())))
             where_clause.append("lower(mv.value) like :query")
         else:
-            params.addString('value', mapann_value)
-            where_clause.append("mv.value  = :value")
+            if case_sensitive:
+                params.addString('value', mapann_value)
+                where_clause.append("mv.value  = :value")
+            else:
+                params.addString('value', mapann_value.lower())
+                where_clause.append("lower(mv.value)  = :value")
 
     return params, where_clause
 
@@ -177,7 +181,7 @@ def count_mapannotations(conn, mapann_value, query=False,
 
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        query=query, mapann_value=mapann_value,
+        query=query, mapann_value=mapann_value, case_sensitive=False,
         params=None, experimenter_id=experimenter_id,
         page=None, limit=None)
 
@@ -249,7 +253,7 @@ def marshal_mapannotations(conn, mapann_value, query=False,
 
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        mapann_value=mapann_value, query=query,
+        mapann_value=mapann_value, query=query, case_sensitive=False,
         params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
