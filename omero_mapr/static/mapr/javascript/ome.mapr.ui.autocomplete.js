@@ -85,7 +85,7 @@ $(function () {
             .appendTo( ul );
     }
 
-    $("#search_hints").tooltip({
+    $(".mapr_tooltip").tooltip({
         track: true,
         show: false,
         hide: false,

@@ -58,7 +58,7 @@
                 <li class="seperator"></li>
 
                 <li>
-                    <div class="case_sensitive"><input {% if map_ctx.case_sensitive %}checked{% endif %} id="id_case_sensitive" type="checkbox" name="case_sensitive" value="Case insensitive" hidden><label for="id_case_sensitive">Aa</label></div>
+                    <div class="case_sensitive mapr_tooltip" data-content="Case-sensitive search"><input {% if map_ctx.case_sensitive %}checked{% endif %} id="id_case_sensitive" type="checkbox" name="case_sensitive" value="Case insensitive" hidden><label for="id_case_sensitive">Aa</label></div>
                 </li>
                 <li>
                     <div class="search filtersearch autocompletesearch" id="autocompletesearch">
@@ -69,7 +69,7 @@
                 </li>
 
                 <li style="float:right">
-                    <input id="search_hints" type="image" class="button" src="{% static "webgateway/img/help16.png" %}" data-content="Please start typing to search for {{ menu_default }}. Autocomplete will help you to enter {{ menu_default }} ({{ menu_all }}) by automatically filling information in as you type."/>
+                    <input type="image" class="button mapr_tooltip" src="{% static "webgateway/img/help16.png" %}" data-content="Please start typing to search for {{ menu_default }}. Autocomplete will help you to enter {{ menu_default }} ({{ menu_all }}) by automatically filling information in as you type."/>
                 </li>
             </ul>
 
