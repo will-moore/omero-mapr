@@ -117,7 +117,7 @@ class TestMapr(IMaprTest):
 
     def setup_method(self, method):
         row_count = 1
-        col_count = 4
+        col_count = 6
         self.screen, self.plate = self.create_screen(row_count, col_count)
 
         csv = os.path.join(os.path.dirname(__file__),
@@ -144,15 +144,35 @@ class TestMapr(IMaprTest):
         ctx.write_to_omero()
 
     @pytest.mark.parametrize('ac', (
-        {'menu': 'gene', 'value': 'CDC20',
-         'search_value': 'cdc', 'case_sensitive': False},
-        {'menu': 'gene', 'value': 'CDC20',
-         'search_value': 'CDC', 'case_sensitive': True},
+        {'menu': 'gene', 'value': None, 'search_value': 'CDC20'},
         {'menu': 'organism', 'value': 'Homo sapiens', 'search_value': 'homo'},
         {'menu': 'gene', 'value': "beta'Cop", 'search_value': "'"},
         {'menu': 'gene', 'value': "123 (abc%def)", 'search_value': "%"},
     ))
     def test_autocomplete(self, ac):
+        # test autocomplete
+        request_url = reverse("mapannotations_autocomplete",
+                              args=[ac['menu']])
+        data = {
+            'value': ac['search_value'],
+            'query': 'true',
+        }
+        response = _get_response_json(self.django_client, request_url, data)
+
+        res = []
+        if ac['value'] is not None:
+            res = [{'value': ac['value']}]
+        assert response == res
+
+    @pytest.mark.parametrize('ac', (
+        {'menu': 'gene', 'value': 'CDC14',
+         'search_value': 'CDC', 'case_sensitive': True},
+        {'menu': 'gene', 'value': 'cdc14',
+         'search_value': 'cdc', 'case_sensitive': True},
+        {'menu': 'gene', 'value': "beta'Cop",
+         'search_value': "'", 'case_sensitive': True},
+    ))
+    def test_autocomplete_case_sensitive(self, ac):
         # test autocomplete
         request_url = reverse("mapannotations_autocomplete",
                               args=[ac['menu']])
@@ -168,3 +188,26 @@ class TestMapr(IMaprTest):
         response = _get_response_json(self.django_client, request_url, data)
 
         assert response == [{'value': ac['value']}]
+
+    @pytest.mark.parametrize('ac', (
+        {'menu': 'gene', 'values': ('CDC14', 'cdc14', 'Cdc14'),
+         'search_value': 'cdc', 'case_sensitive': False},
+    ))
+    def test_autocomplete_case_insensitive(self, ac):
+        # test autocomplete
+        request_url = reverse("mapannotations_autocomplete",
+                              args=[ac['menu']])
+        try:
+            _cs = ac['case_sensitive']
+        except KeyError:
+            _cs = False
+        data = {
+            'value': ac['search_value'],
+            'case_sensitive': _cs,
+            'query': 'true',
+        }
+        response = _get_response_json(self.django_client, request_url, data)
+        res = [r['value'] for r in response]
+
+        assert len(res) == len(ac['values'])
+        assert sorted(res) == sorted(ac['values'])
