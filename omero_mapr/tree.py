@@ -102,21 +102,16 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
         where_clause.append("a.details.owner.id = :id")
 
     if mapann_value:
+        mapann_value = mapann_value if case_sensitive else mapann_value.lower()
+        _cwc = 'mv.value' if case_sensitive else 'lower(mv.value)'
         if query:
             params.addString(
                 "query",
-                rstring("%%%s%%" % _escape_chars_like(mapann_value.lower())))
-            if case_sensitive:
-                where_clause.append("mv.value like :query")
-            else:
-                where_clause.append("lower(mv.value) like :query")
+                rstring("%%%s%%" % _escape_chars_like(mapann_value)))
+            where_clause.append("%s like :query" % _cwc)
         else:
-            if case_sensitive:
-                params.addString('value', mapann_value)
-                where_clause.append("mv.value  = :value")
-            else:
-                params.addString('value', mapann_value.lower())
-                where_clause.append("lower(mv.value) = :value")
+            params.addString('value', mapann_value)
+            where_clause.append("%s  = :value" % _cwc)
 
     return params, where_clause
 
