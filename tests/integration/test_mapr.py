@@ -144,7 +144,10 @@ class TestMapr(IMaprTest):
         ctx.write_to_omero()
 
     @pytest.mark.parametrize('ac', (
-        {'menu': 'gene', 'value': 'CDC20', 'search_value': 'cdc'},
+        {'menu': 'gene', 'value': 'CDC20',
+         'search_value': 'cdc', 'case_sensitive': False},
+        {'menu': 'gene', 'value': 'CDC20',
+         'search_value': 'CDC', 'case_sensitive': True},
         {'menu': 'organism', 'value': 'Homo sapiens', 'search_value': 'homo'},
         {'menu': 'gene', 'value': "beta'Cop", 'search_value': "'"},
         {'menu': 'gene', 'value': "123 (abc%def)", 'search_value': "%"},
@@ -153,8 +156,13 @@ class TestMapr(IMaprTest):
         # test autocomplete
         request_url = reverse("mapannotations_autocomplete",
                               args=[ac['menu']])
+        try:
+            _cs = ac['case_sensitive']
+        except KeyError:
+            _cs = False
         data = {
             'value': ac['search_value'],
+            'case_sensitive': _cs,
             'query': 'true',
         }
         response = _get_response_json(self.django_client, request_url, data)

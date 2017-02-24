@@ -37,10 +37,11 @@ $(function () {
                 type : 'GET',
                 url: MAPANNOTATIONS.URLS.autocomplete,
                 data: {
-                    value: request.term.toLowerCase(),
+                    case_sensitive: $('#id_case_sensitive').is(":checked"),
+                    value: $('#id_case_sensitive').is(":checked") ? request.term : request.term.toLowerCase(),
                     query: true,
                     experimenter_id: WEBCLIENT.active_user,
-                    group: WEBCLIENT.active_group_id
+                    group: WEBCLIENT.active_group_id,
                 },
                 success: function(data) {
                     if (data.length > 0) {
@@ -49,7 +50,7 @@ $(function () {
                         }));
                     } else {
                        response([{ label: 'No results found.', value: -1 }]);
-                   }
+                    }
                 },
                 error: function(data) {
                     response([{ label: 'Error occured.', value: -1 }]);

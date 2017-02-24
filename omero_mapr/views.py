@@ -565,6 +565,7 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
         mapann_value = get_unicode_or_default(request, 'value', None)
         query = get_bool_or_default(request, 'query', True)
         mapann_names = get_list_or_default(request, 'name', keys)
+        case_sensitive = get_bool_or_default(request, 'case_sensitive', False)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -575,6 +576,7 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
                 conn=conn,
                 mapann_value=mapann_value,
                 query=query,
+                case_sensitive=case_sensitive,
                 mapann_ns=mapann_ns,
                 mapann_names=mapann_names,
                 group_id=group_id,
