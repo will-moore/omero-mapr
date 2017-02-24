@@ -42,6 +42,8 @@ from django.core.exceptions import ValidationError
 
 from django_redis import get_redis_connection
 
+from omero.gateway.utils import toBoolean
+
 from show import mapr_paths_to_object
 from show import MapShow as Show
 import tree as mapr_tree
@@ -133,6 +135,15 @@ def _get_keys(mapr_settings, menu):
     return keys
 
 
+def _get_case_sensitive(mapr_settings, menu):
+    cs = False
+    try:
+        cs = toBoolean(mapr_settings.CONFIG[menu]['case_sensitive'])
+    except:
+        pass
+    return cs
+
+
 def _get_page(request):
     page = get_long_or_default(request, 'page', 1)
     if page < 1:
@@ -161,9 +172,11 @@ def index(request, menu, conn=None, url=None, **kwargs):
     context = _webclient_load_template(request, menu,
                                        conn=conn, url=url, **kwargs)
     context['active_user'] = context['active_user'] or {'id': -1}
-    context['menu_default'] = ", ".join(
-        mapr_settings.CONFIG[menu]['default'])
-    context['menu_all'] = ", ".join(mapr_settings.CONFIG[menu]['all'])
+    context['mapr_conf'] = {
+        'menu': menu,
+        'menu_all': ", ".join(mapr_settings.CONFIG[menu]['all']),
+        'menu_default': ", ".join(mapr_settings.CONFIG[menu]['default']),
+        'case_sensitive': _get_case_sensitive(mapr_settings, menu)}
     context['map_ctx'] = \
         {'label': menu, 'value': value or "", 'query': query or "",
          'case_sensitive': case_sensitive or ""}

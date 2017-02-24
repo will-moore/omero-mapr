@@ -59,14 +59,18 @@ $(function () {
         },
         minLength: 1,
         open: function() {},
-        close: function() {},
+        close: function() {
+            $(this).val('');
+            $(this).data().uiAutocomplete.term = null;
+            return false;
+        },
         focus: function(event,ui) {},
         select: function(event, ui) {
             if (ui.item.value == -1) {
                 return false;
             }
-            // keep selected value in input
-            $( "#id_autocomplete" ).val("");
+            $(this).val('');
+            $(this).data().uiAutocomplete.term = null;
             jstreeInst.deselect_all();
             jstreeInst.close_all();
             OME.clearThumbnailsPanel();
