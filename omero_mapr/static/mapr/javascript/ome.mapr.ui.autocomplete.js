@@ -72,7 +72,9 @@ $(function () {
             OME.clearThumbnailsPanel();
             WEBCLIENT.URLS.api_experimenter = MAPANNOTATIONS.URLS.autocomplete_default
             jstreeInst.settings.core.data = function(node, callback, payload) {
-                oldData.apply(jstreeInst, [node, callback, {'value': ui.item.value}]);
+                oldData.apply(jstreeInst, [node, callback,
+                    {'value': ui.item.value,
+                     'case_sensitive': $('#id_case_sensitive').is(":checked")}]);
             };
             jstreeInst.refresh();
             return false;
