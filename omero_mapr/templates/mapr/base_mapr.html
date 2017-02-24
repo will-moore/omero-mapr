@@ -58,7 +58,7 @@
                 <li class="seperator"></li>
 
                 <li>
-                    <div class="case_sensitive"><input id="id_case_sensitive" type="checkbox" name="case_sensitive" value="Case insensitive" hidden><label for="id_case_sensitive">Aa</label></div>
+                    <div class="case_sensitive"><input {% if map_ctx.case_sensitive %}checked{% endif %} id="id_case_sensitive" type="checkbox" name="case_sensitive" value="Case insensitive" hidden><label for="id_case_sensitive">Aa</label></div>
                 </li>
                 <li>
                     <div class="search filtersearch autocompletesearch" id="autocompletesearch">
@@ -116,7 +116,11 @@
         }
         if (MAPANNOTATIONS.CTX.case_sensitive) {
             payload['case_sensitive'] = MAPANNOTATIONS.CTX.case_sensitive;
+            $('#id_case_sensitive').prop('checked', true);
+        } else {
+            $('#id_case_sensitive').prop('checked', false);
         }
+
         $("#dataTree").data('payload', payload);
 
     </script>
