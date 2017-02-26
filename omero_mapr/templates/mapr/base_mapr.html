@@ -65,10 +65,10 @@
                 </li>
 
                 <li style="float:right">
-                    <input type="image" class="button mapr_tooltip" src="{% static "webgateway/img/help16.png" %}" data-content="Please start typing to search for {{ mapr_conf.menu_default }}. Autocomplete helps you to enter {{ mapr_conf.menu_default }} ({{ mapr_conf.menu_all }}) by automatically filling information in as you type. 'Match cases' narrows down result by case sensitivity."/>
+                    <input type="image" class="button mapr_tooltip" src="{% static "webgateway/img/help16.png" %}" data-content="Please start typing to search for {{ mapr_conf.menu_default }}. Autocomplete helps you to enter {{ mapr_conf.menu_default }} ({{ mapr_conf.menu_all }}) by automatically filling information in as you type. 'Match case' narrows down result by case sensitivity."/>
                 </li>
                 {% if mapr_conf.case_sensitive %}<li style="float:right">
-                    <div class="case_sensitive mapr_tooltip" data-content="Case sensitive search."><input {% if map_ctx.case_sensitive %}checked{% endif %} id="id_case_sensitive" type="checkbox" name="case_sensitive" value="Case insensitive"><label for="id_case_sensitive">Match cases</label></div>
+                    <div class="case_sensitive mapr_tooltip" data-content="Case sensitive search."><input {% if map_ctx.case_sensitive %}checked{% endif %} id="id_case_sensitive" type="checkbox" name="case_sensitive" value="Case insensitive"><label for="id_case_sensitive">Match case</label></div>
                 </li>{% endif %}
 
             </ul>

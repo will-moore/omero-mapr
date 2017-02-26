@@ -52,15 +52,11 @@ body {
     vertical-align: middle;
 }
 .case_sensitive label {
-    color: hsl(215,20%,75%);
+    color: #555555;
     font-weight: lighter;
     display: inline-block;
     width: 25px;
     height: 16px;
     padding: 5px 0px;
     vertical-align: middle;
-}
-
-.case_sensitive input[type=checkbox]:checked + label {
-    color:#555555;
 }
