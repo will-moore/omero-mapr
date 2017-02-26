@@ -59,7 +59,7 @@ def pytest_configure():
                     "default": ["Phenotype"],
                     "all": ["Phenotype", "Phenotype Term Accession"],
                     "ns": ["openmicroscopy.org/omero/bulk_annotations"],
-                    "label": "Phenotype"
+                    "label": "Phenotype",
                 }
             },
             {
@@ -68,7 +68,7 @@ def pytest_configure():
                     "default": ["Organism"],
                     "all": ["Organism"],
                     "ns": ["openmicroscopy.org/omero/bulk_annotations"],
-                    "label": "Organism"
+                    "label": "Organism",
                 }
             },
             {
@@ -77,7 +77,7 @@ def pytest_configure():
                     "default": ["Others"],
                     "all": ["Others"],
                     "ns": ["openmicroscopy.org/omero/bulk_annotations"],
-                    "label": "Others"
+                    "label": "Others",
                 }
             }
         ]
