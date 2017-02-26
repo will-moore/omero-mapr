@@ -29,91 +29,15 @@ import pytest
 from django.core.urlresolvers import reverse
 
 from omero.constants.namespaces import NSBULKANNOTATIONS
-from omero.model import ScreenI
-from omero.rtypes import rstring, unwrap
-from omero.util.temp_files import create_path
+from omero.rtypes import unwrap
 from omero.util.populate_metadata import BulkToMapAnnotationContext
 from omero.util.populate_metadata import ParsingContext
 
-from omeroweb.testlib import IWebTest, _get_response_json
+from omero_mapr.testlib import IMaprTest
+from omeroweb.testlib import _get_response_json
 
 
-class IMaprTest(IWebTest):
-
-    """
-    Extends ITest
-    """
-
-    def create_csv(
-        self,
-        col_names="Well,Well Type,Concentration",
-        row_data=("A1,Control,0", "A2,Treatment,10")
-    ):
-
-        csv_file_name = create_path("test", ".csv")
-        csv_file = open(csv_file_name, 'w')
-        try:
-            csv_file.write(col_names)
-            csv_file.write("\n")
-            csv_file.write("\n".join(row_data))
-        finally:
-            csv_file.close()
-        return str(csv_file_name)
-
-    def set_name(self, obj, name):
-        q = self.client.sf.getQueryService()
-        up = self.client.sf.getUpdateService()
-        obj = q.get(obj.__class__.__name__, obj.id.val)
-        obj.setName(rstring(name))
-        return up.saveAndReturnObject(obj)
-
-    def create_screen(self, row_count, col_count):
-        # TODO: remove 5.2 vs 5.3 compatibility
-        try:
-            plate = self.importPlates(plateRows=row_count,
-                                      plateCols=col_count)[0]
-        except AttributeError:
-            plate = self.import_plates(plateRows=row_count,
-                                       plateCols=col_count)[0]
-        plate = self.set_name(plate, "Plate001")
-        screen = ScreenI()
-        screen.name = rstring("Screen001")
-        screen.linkPlate(plate.proxy())
-        return (self.client.sf.getUpdateService().saveAndReturnObject(screen),
-                plate)
-
-    def new_screen(self, name=None, description=None):
-        """
-        Creates a new screen object.
-        :param name: The screen name. If None, a UUID string will be used
-        :param description: The screen description
-        """
-        return self.new_object(ScreenI, name=name, description=description)
-
-    def make_screen(self, name=None, description=None, client=None):
-        """
-        Creates a new screen instance and returns the persisted object.
-        :param name: The screen name. If None, a UUID string will be used
-        :param description: The screen description
-        :param client: The client to use to create the object
-        """
-        if client is None:
-            client = self.client
-        screen = self.new_screen(name=name, description=description)
-        return client.sf.getUpdateService().saveAndReturnObject(screen)
-
-    def get_screen_annotations(self):
-        query = """select s from Screen s
-            left outer join fetch s.annotationLinks links
-            left outer join fetch links.child
-            where s.id=%s""" % self.screen.id.val
-        qs = self.client.sf.getQueryService()
-        screen = qs.findByQuery(query, None)
-        anns = screen.linkedAnnotationList()
-        return anns
-
-
-class TestMapr(IMaprTest):
+class TestMaprAutocomplete(IMaprTest):
 
     def setup_method(self, method):
         row_count = 1
@@ -149,7 +73,7 @@ class TestMapr(IMaprTest):
         {'menu': 'gene', 'value': "beta'Cop", 'search_value': "'"},
         {'menu': 'gene', 'value': "123 (abc%def)", 'search_value': "%"},
     ))
-    def test_autocomplete(self, ac):
+    def test_autocomplete_default(self, ac):
         # test autocomplete
         request_url = reverse("mapannotations_autocomplete",
                               args=[ac['menu']])
@@ -176,13 +100,9 @@ class TestMapr(IMaprTest):
         # test autocomplete
         request_url = reverse("mapannotations_autocomplete",
                               args=[ac['menu']])
-        try:
-            _cs = ac['case_sensitive']
-        except KeyError:
-            _cs = False
         data = {
             'value': ac['search_value'],
-            'case_sensitive': _cs,
+            'case_sensitive': ac['case_sensitive'],
             'query': 'true',
         }
         response = _get_response_json(self.django_client, request_url, data)
@@ -197,13 +117,9 @@ class TestMapr(IMaprTest):
         # test autocomplete
         request_url = reverse("mapannotations_autocomplete",
                               args=[ac['menu']])
-        try:
-            _cs = ac['case_sensitive']
-        except KeyError:
-            _cs = False
         data = {
             'value': ac['search_value'],
-            'case_sensitive': _cs,
+            'case_sensitive': ac['case_sensitive'],
             'query': 'true',
         }
         response = _get_response_json(self.django_client, request_url, data)
