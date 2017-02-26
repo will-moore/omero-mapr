@@ -1,3 +1,28 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#
+#
+# Copyright (c) 2016,2017 University of Dundee.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Author: Aleksandra Tarkowska <A(dot)Tarkowska(at)dundee(dot)ac(dot)uk>.
+#
+# Version: 1.0
+#
+
 import os
 import json
 import django
@@ -24,7 +49,8 @@ def pytest_configure():
                     "default": ["Gene Symbol"],
                     "all": ["Gene Symbol", "Gene Identifier"],
                     "ns": ["openmicroscopy.org/omero/bulk_annotations"],
-                    "label": "Gene"
+                    "label": "Gene",
+                    "case_sensitive": True,
                 }
             },
             {
@@ -76,8 +102,9 @@ def itest(request):
 @pytest.fixture(scope="session")
 def imaprtest(request):
     """
-    Returns a new L{weblibrary.IMaprTest} instance. With attached
-    finalizer so that pytest will clean it up.
+    Returns a new L{weblibrary.IMaprTest} instance and
+    populate metadata. Attached finalizer so that pytest
+    will clean it up.
     """
     IMaprTest.setup_class()
 

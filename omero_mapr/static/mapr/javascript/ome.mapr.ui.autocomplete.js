@@ -37,9 +37,9 @@ $(function () {
                 type : 'GET',
                 url: MAPANNOTATIONS.URLS.autocomplete,
                 data: {
-                    case_sensitive: $('#id_case_sensitive').is(":checked"),
                     value: $('#id_case_sensitive').is(":checked") ? request.term : request.term.toLowerCase(),
                     query: true,
+                    case_sensitive: $('#id_case_sensitive').is(":checked"),
                     experimenter_id: WEBCLIENT.active_user,
                     group: WEBCLIENT.active_group_id,
                 },

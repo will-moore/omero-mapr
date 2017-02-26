@@ -60,3 +60,6 @@ body {
     padding: 5px 0px;
     vertical-align: middle;
 }
+.case_sensitive input[type=checkbox][disabled] + label{
+    color: hsl(215,20%,75%);
+}

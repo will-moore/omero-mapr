@@ -162,7 +162,11 @@ def index(request, menu, conn=None, url=None, **kwargs):
     try:
         value = get_unicode_or_default(request, 'value', None)
         query = get_bool_or_default(request, 'query', False)
-        case_sensitive = get_bool_or_default(request, 'case_sensitive', False)
+        if _get_case_sensitive(mapr_settings, menu):
+            case_sensitive = get_bool_or_default(
+                request, 'case_sensitive', False)
+        else:
+            case_sensitive = False
     except ValueError:
         logger.error(traceback.format_exc())
         return HttpResponseBadRequest('Invalid parameter value')
@@ -247,7 +251,11 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
             or get_unicode_or_default(request, 'id', None)
         mapann_names = get_list_or_default(request, 'name', keys)
         query = get_bool_or_default(request, 'query', False)
-        case_sensitive = get_bool_or_default(request, 'case_sensitive', False)
+        if _get_case_sensitive(mapr_settings, menu):
+            case_sensitive = get_bool_or_default(
+                request, 'case_sensitive', False)
+        else:
+            case_sensitive = False
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -306,7 +314,11 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
         mapann_value = get_unicode_or_default(request, 'id', None) \
             or get_unicode_or_default(request, 'value', None)
         query = get_bool_or_default(request, 'query', False)
-        case_sensitive = get_bool_or_default(request, 'case_sensitive', False)
+        if _get_case_sensitive(mapr_settings, menu):
+            case_sensitive = get_bool_or_default(
+                request, 'case_sensitive', False)
+        else:
+            case_sensitive = False
         mapann_names = get_list_or_default(request, 'name', keys)
         orphaned = get_bool_or_default(request, 'orphaned', False)
     except ValueError:
@@ -577,7 +589,11 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
         mapann_value = get_unicode_or_default(request, 'value', None)
         query = get_bool_or_default(request, 'query', True)
         mapann_names = get_list_or_default(request, 'name', keys)
-        case_sensitive = get_bool_or_default(request, 'case_sensitive', False)
+        if _get_case_sensitive(mapr_settings, menu):
+            case_sensitive = get_bool_or_default(
+                request, 'case_sensitive', False)
+        else:
+            case_sensitive = False
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
