@@ -24,7 +24,10 @@
 #
 
 from omero.model import ScreenI
-from omero.rtypes import rstring
+from omero.rtypes import rstring, unwrap
+from omero.constants.namespaces import NSBULKANNOTATIONS
+from omero.util.populate_metadata import BulkToMapAnnotationContext
+from omero.util.populate_metadata import ParsingContext
 from omero.util.temp_files import create_path
 
 from omeroweb.testlib import IWebTest
@@ -33,7 +36,7 @@ from omeroweb.testlib import IWebTest
 class IMaprTest(IWebTest):
 
     """
-    Extends ITest
+    Extends IWebTest (ITest)
     """
 
     def create_csv(
@@ -103,3 +106,25 @@ class IMaprTest(IWebTest):
         screen = qs.findByQuery(query, None)
         anns = screen.linkedAnnotationList()
         return anns
+
+    def populate_data(self, csv, cfg):
+        row_count = 1
+        col_count = 6
+        self.screen, self.plate = self.create_screen(row_count, col_count)
+
+        ctx = ParsingContext(self.client, self.screen.proxy(), file=csv)
+        ctx.parse()
+        ctx.write_to_omero()
+
+        # Get file annotations
+        anns = self.get_screen_annotations()
+        # Only expect a single annotation which is a 'bulk annotation'
+        assert len(anns) == 1
+        table_file_ann = anns[0]
+        assert unwrap(table_file_ann.getNs()) == NSBULKANNOTATIONS
+        fileid = table_file_ann.file.id.val
+
+        ctx = BulkToMapAnnotationContext(
+         self.client, self.screen.proxy(), fileid=fileid, cfg=cfg)
+        ctx.parse()
+        ctx.write_to_omero()

@@ -263,13 +263,9 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
                 mapr_settings.CONFIG[menu]['label'])
 
         if mapann_value is not None:
-            experimenter['extra'] = {}
-            if mapann_value:
-                experimenter['extra']['value'] = mapann_value
+            experimenter['extra'] = {'case_sensitive': case_sensitive}
             if query:
                 experimenter['extra']['query'] = query
-            if case_sensitive:
-                experimenter['extra']['case_sensitive'] = case_sensitive
 
             # count children
             experimenter['childCount'] = mapr_tree.count_mapannotations(
@@ -281,6 +277,9 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
                 mapann_names=mapann_names,
                 group_id=group_id,
                 experimenter_id=experimenter_id)
+
+            if experimenter['childCount'] > 0 and mapann_value:
+                experimenter['extra']['value'] = mapann_value
 
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
