@@ -178,8 +178,8 @@ def index(request, menu, conn=None, url=None, **kwargs):
     context['active_user'] = context['active_user'] or {'id': -1}
     context['mapr_conf'] = {
         'menu': menu,
-        'menu_all': ", ".join(mapr_settings.CONFIG[menu]['all']),
-        'menu_default': ", ".join(mapr_settings.CONFIG[menu]['default']),
+        'menu_all': mapr_settings.CONFIG[menu]['all'],
+        'menu_default': mapr_settings.CONFIG[menu]['default'],
         'case_sensitive': _get_case_sensitive(mapr_settings, menu)}
     context['map_ctx'] = \
         {'label': menu, 'value': value or "", 'query': query or "",
