@@ -61,7 +61,6 @@ from omeroweb.http import HttpJPEGResponse
 
 import omeroweb
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -77,7 +76,7 @@ except ImportError:
         logger.error(traceback.format_exc())
 
 
-# Helpers
+# Views Helpers
 def fake_experimenter(label):
     """
     Marshal faked experimenter when id is -1
@@ -117,11 +116,29 @@ def get_list_or_default(request, name, default):
     return request.GET.getlist(name, default)
 
 
+def _get_wildcard(mapr_settings, menu):
+    wc = False
+    try:
+        wc = mapr_settings.CONFIG[menu]['wildcard']['enabled']
+    except KeyError:
+        pass
+    return wc
+
+
+def _get_wildcard_limit(mapr_settings, menu):
+    wc = 0
+    try:
+        wc = mapr_settings.CONFIG[menu]['wildcard']['limit']
+    except KeyError:
+        pass
+    return wc
+
+
 def _get_ns(mapr_settings, menu):
     ns = []
     try:
         ns = mapr_settings.CONFIG[menu]['ns']
-    except:
+    except KeyError:
         pass
     return ns
 
@@ -130,7 +147,7 @@ def _get_keys(mapr_settings, menu):
     keys = None
     try:
         keys = mapr_settings.CONFIG[menu]['all']
-    except:
+    except KeyError:
         pass
     return keys
 
@@ -139,7 +156,7 @@ def _get_case_sensitive(mapr_settings, menu):
     cs = False
     try:
         cs = toBoolean(mapr_settings.CONFIG[menu]['case_sensitive'])
-    except:
+    except KeyError:
         pass
     return cs
 
@@ -205,7 +222,7 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
-    if menu in mapr_settings.CONFIG and mapann_value is not None:
+    if menu in mapr_settings.CONFIG and mapann_value:
         paths = []
         try:
             experimenter_id = get_long_or_default(request, 'experimenter',
@@ -259,7 +276,7 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
-    experimenter = None
+    experimenter = {}
     try:
         if experimenter_id > -1:
             # Get the experimenter
@@ -270,7 +287,7 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
             experimenter = fake_experimenter(
                 mapr_settings.CONFIG[menu]['label'])
 
-        if mapann_value is not None:
+        if _get_wildcard(mapr_settings, menu) or mapann_value:
             experimenter['extra'] = {'case_sensitive': case_sensitive}
             if query:
                 experimenter['extra']['query'] = query
@@ -329,40 +346,42 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
     screens = []
     projects = []
     try:
-        # Get attributes from map annotation
-        if orphaned:
-            mapannotations = mapr_tree.marshal_mapannotations(
-                conn=conn,
-                mapann_value=mapann_value,
-                query=query,
-                case_sensitive=case_sensitive,
-                mapann_ns=mapann_ns,
-                mapann_names=mapann_names,
-                group_id=group_id,
-                experimenter_id=experimenter_id,
-                page=page,
-                limit=limit)
-        else:
-            screens = mapr_tree.marshal_screens(
-                conn=conn,
-                mapann_value=mapann_value,
-                query=query,
-                mapann_ns=mapann_ns,
-                mapann_names=mapann_names,
-                group_id=group_id,
-                experimenter_id=experimenter_id,
-                page=page,
-                limit=limit)
-            projects = mapr_tree.marshal_projects(
-                conn=conn,
-                mapann_value=mapann_value,
-                query=query,
-                mapann_ns=mapann_ns,
-                mapann_names=mapann_names,
-                group_id=group_id,
-                experimenter_id=experimenter_id,
-                page=page,
-                limit=limit)
+        if _get_wildcard(mapr_settings, menu) or mapann_value:
+            # Get attributes from map annotation
+            if orphaned:
+                # offset = _get_wildcard_limit(mapr_settings, menu)
+                mapannotations = mapr_tree.marshal_mapannotations(
+                    conn=conn,
+                    mapann_value=mapann_value,
+                    query=query,
+                    case_sensitive=case_sensitive,
+                    mapann_ns=mapann_ns,
+                    mapann_names=mapann_names,
+                    group_id=group_id,
+                    experimenter_id=experimenter_id,
+                    page=page,
+                    limit=limit)
+            else:
+                screens = mapr_tree.marshal_screens(
+                    conn=conn,
+                    mapann_value=mapann_value,
+                    query=query,
+                    mapann_ns=mapann_ns,
+                    mapann_names=mapann_names,
+                    group_id=group_id,
+                    experimenter_id=experimenter_id,
+                    page=page,
+                    limit=limit)
+                projects = mapr_tree.marshal_projects(
+                    conn=conn,
+                    mapann_value=mapann_value,
+                    query=query,
+                    mapann_ns=mapann_ns,
+                    mapann_names=mapann_names,
+                    group_id=group_id,
+                    experimenter_id=experimenter_id,
+                    page=page,
+                    limit=limit)
 
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
@@ -397,18 +416,19 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
 
     datasets = []
     try:
-        # Get the images
-        datasets = mapr_tree.marshal_datasets(
-            conn=conn,
-            project_id=project_id,
-            mapann_value=mapann_value,
-            query=query,
-            mapann_ns=mapann_ns,
-            mapann_names=mapann_names,
-            group_id=group_id,
-            experimenter_id=experimenter_id,
-            page=page,
-            limit=limit)
+        if _get_wildcard(mapr_settings, menu) or mapann_value:
+            # Get the images
+            datasets = mapr_tree.marshal_datasets(
+                conn=conn,
+                project_id=project_id,
+                mapann_value=mapann_value,
+                query=query,
+                mapann_ns=mapann_ns,
+                mapann_names=mapann_names,
+                group_id=group_id,
+                experimenter_id=experimenter_id,
+                page=page,
+                limit=limit)
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
     except ServerError as e:
@@ -441,18 +461,19 @@ def api_plate_list(request, menu, conn=None, **kwargs):
 
     plates = []
     try:
-        # Get the images
-        plates = mapr_tree.marshal_plates(
-            conn=conn,
-            screen_id=screen_id,
-            mapann_value=mapann_value,
-            query=query,
-            mapann_ns=mapann_ns,
-            mapann_names=mapann_names,
-            group_id=group_id,
-            experimenter_id=experimenter_id,
-            page=page,
-            limit=limit)
+        if _get_wildcard(mapr_settings, menu) or mapann_value:
+            # Get the images
+            plates = mapr_tree.marshal_plates(
+                conn=conn,
+                screen_id=screen_id,
+                mapann_value=mapann_value,
+                query=query,
+                mapann_ns=mapann_ns,
+                mapann_names=mapann_names,
+                group_id=group_id,
+                experimenter_id=experimenter_id,
+                page=page,
+                limit=limit)
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
     except ServerError as e:
@@ -489,22 +510,23 @@ def api_image_list(request, menu, conn=None, **kwargs):
 
     images = []
     try:
-        # Get the images
-        images = mapr_tree.marshal_images(
-            conn=conn,
-            parent=parent,
-            parent_id=parent_id,
-            mapann_ns=mapann_ns,
-            mapann_names=mapann_names,
-            mapann_value=mapann_value,
-            query=query,
-            load_pixels=load_pixels,
-            group_id=group_id,
-            experimenter_id=experimenter_id,
-            page=page,
-            date=date,
-            thumb_version=thumb_version,
-            limit=limit)
+        if _get_wildcard(mapr_settings, menu) or mapann_value:
+            # Get the images
+            images = mapr_tree.marshal_images(
+                conn=conn,
+                parent=parent,
+                parent_id=parent_id,
+                mapann_ns=mapann_ns,
+                mapann_names=mapann_names,
+                mapann_value=mapann_value,
+                query=query,
+                load_pixels=load_pixels,
+                group_id=group_id,
+                experimenter_id=experimenter_id,
+                page=page,
+                date=date,
+                thumb_version=thumb_version,
+                limit=limit)
     except ApiUsageException as e:
         return HttpResponseBadRequest(e.serverStackTrace)
     except ServerError as e:
@@ -599,7 +621,7 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
 
     autocomplete = []
     try:
-        if mapann_value is not None:
+        if mapann_value:
             autocomplete = mapr_tree.marshal_autocomplete(
                 conn=conn,
                 mapann_value=mapann_value,

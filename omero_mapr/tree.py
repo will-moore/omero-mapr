@@ -112,6 +112,8 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
         else:
             params.addString('value', mapann_value)
             where_clause.append("%s  = :value" % _cwc)
+    else:
+        where_clause.append("mv.value != '' ")
 
     return params, where_clause
 
@@ -173,10 +175,6 @@ def count_mapannotations(conn, mapann_value, query=False,
         or -1 for all experimenters
         @type experimenter_id L{long}
     '''
-
-    # early exit
-    if not mapann_value:
-        return 0
 
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
@@ -249,8 +247,6 @@ def marshal_mapannotations(conn, mapann_value, query=False,
     '''
 
     mapannotations = []
-    if not mapann_value:
-        return mapannotations
 
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
@@ -355,8 +351,6 @@ def marshal_screens(conn, mapann_value, query=False,
     '''
 
     screens = []
-    if not mapann_value:
-        return screens
 
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
@@ -440,8 +434,6 @@ def marshal_projects(conn, mapann_value, query=False,
     '''
 
     projects = []
-    if not mapann_value:
-        return projects
 
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
@@ -878,6 +870,9 @@ def load_mapannotation(conn, mapann_value,
     '''
 
     annotations = []
+    if not mapann_value:
+        return annotations
+
     experimenters = {}
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
