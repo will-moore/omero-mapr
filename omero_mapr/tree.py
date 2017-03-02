@@ -51,7 +51,7 @@ def _escape_chars_like(query):
 
 
 def _set_parameters(mapann_ns=[], mapann_names=[],
-                    mapann_value=None, query=False,
+                    mapann_value=None, query=False, case_sensitive=True,
                     params=None, experimenter_id=-1,
                     page=None, limit=settings.PAGE):
 
@@ -102,14 +102,16 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
         where_clause.append("a.details.owner.id = :id")
 
     if mapann_value:
+        mapann_value = mapann_value if case_sensitive else mapann_value.lower()
+        _cwc = 'mv.value' if case_sensitive else 'lower(mv.value)'
         if query:
             params.addString(
                 "query",
-                rstring("%%%s%%" % _escape_chars_like(mapann_value.lower())))
-            where_clause.append("lower(mv.value) like :query")
+                rstring("%%%s%%" % _escape_chars_like(mapann_value)))
+            where_clause.append("%s like :query" % _cwc)
         else:
             params.addString('value', mapann_value)
-            where_clause.append("mv.value  = :value")
+            where_clause.append("%s  = :value" % _cwc)
 
     return params, where_clause
 
@@ -149,6 +151,7 @@ def _marshal_map(conn, row):
 
 
 def count_mapannotations(conn, mapann_value, query=False,
+                         case_sensitive=False,
                          mapann_ns=[], mapann_names=[],
                          group_id=-1, experimenter_id=-1):
     ''' Count mapannotiation values
@@ -178,6 +181,7 @@ def count_mapannotations(conn, mapann_value, query=False,
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         query=query, mapann_value=mapann_value,
+        case_sensitive=case_sensitive,
         params=None, experimenter_id=experimenter_id,
         page=None, limit=None)
 
@@ -214,6 +218,7 @@ def count_mapannotations(conn, mapann_value, query=False,
 
 
 def marshal_mapannotations(conn, mapann_value, query=False,
+                           case_sensitive=False,
                            mapann_ns=[], mapann_names=[],
                            group_id=-1, experimenter_id=-1,
                            page=1, limit=settings.PAGE):
@@ -250,6 +255,7 @@ def marshal_mapannotations(conn, mapann_value, query=False,
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         mapann_value=mapann_value, query=query,
+        case_sensitive=case_sensitive,
         params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
@@ -910,6 +916,7 @@ def load_mapannotation(conn, mapann_value,
 
 
 def marshal_autocomplete(conn, mapann_value, query=True,
+                         case_sensitive=False,
                          mapann_ns=[], mapann_names=None,
                          group_id=-1, experimenter_id=-1,
                          page=1, limit=settings.PAGE):
@@ -943,30 +950,34 @@ def marshal_autocomplete(conn, mapann_value, query=True,
     if not mapann_value:
         return autocomplete
 
+    mapann_value = mapann_value if case_sensitive else mapann_value.lower()
+
     # mapann_value is customized due to multiple queries
     params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
-        query=False, mapann_value=None,
+        query=query, mapann_value=None,
+        case_sensitive=case_sensitive,
         params=None, experimenter_id=experimenter_id,
         page=page, limit=limit)
 
     params2 = copy.deepcopy(params)
     where_clause2 = copy.deepcopy(where_clause)
 
+    _cwc = 'mv.value' if case_sensitive else 'lower(mv.value)'
     params.addString(
         "query",
-        rstring("%s%%" % _escape_chars_like(mapann_value.lower())))
-    where_clause.append('lower(mv.value) like :query')
+        rstring("%s%%" % _escape_chars_like(mapann_value)))
+    where_clause.append(' %s like :query ' % _cwc)
     order_by = "length(mv.value) ASC, lower(mv.value) ASC"
 
     params2.addString(
         "query",
-        rstring("%%%s%%" % _escape_chars_like(mapann_value.lower())))
+        rstring("%%%s%%" % _escape_chars_like(mapann_value)))
     params2.addString(
         "query2",
-        rstring("%s%%" % _escape_chars_like(mapann_value.lower())))
-    where_clause2.append('lower(mv.value) like :query')
-    where_clause2.append('lower(mv.value) not like :query2')
+        rstring("%s%%" % _escape_chars_like(mapann_value)))
+    where_clause2.append('%s like :query' % _cwc)
+    where_clause2.append('%s not like :query2' % _cwc)
     order_by2 = "lower(mv.value)"
 
     service_opts = deepcopy(conn.SERVICE_OPTS)

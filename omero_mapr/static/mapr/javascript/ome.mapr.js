@@ -36,7 +36,11 @@ $(function () {
         if (MAPANNOTATIONS.CTX.value.length > 0) {
             payload['value'] = MAPANNOTATIONS.CTX.value;
         }
-        // only support matching results in a JSTree
+        // case sensitive results in a JSTree
+        //if (MAPANNOTATIONS.CTX.case_sensitive.length > 0) {
+        //    payload['case_sensitive'] = MAPANNOTATIONS.CTX.case_sensitive;
+        //}
+        // query results in a JSTree
         //if (MAPANNOTATIONS.CTX.query) {
         //    payload['query'] = MAPANNOTATIONS.CTX.query;
         //}

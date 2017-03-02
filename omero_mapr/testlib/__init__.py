@@ -23,25 +23,20 @@
 # Version: 1.0
 #
 
-import os
-import pytest
-
-from django.core.urlresolvers import reverse
-
-from omero.constants.namespaces import NSBULKANNOTATIONS
 from omero.model import ScreenI
 from omero.rtypes import rstring, unwrap
-from omero.util.temp_files import create_path
+from omero.constants.namespaces import NSBULKANNOTATIONS
 from omero.util.populate_metadata import BulkToMapAnnotationContext
 from omero.util.populate_metadata import ParsingContext
+from omero.util.temp_files import create_path
 
-from omeroweb.testlib import IWebTest, _get_response_json
+from omeroweb.testlib import IWebTest
 
 
 class IMaprTest(IWebTest):
 
     """
-    Extends ITest
+    Extends IWebTest (ITest)
     """
 
     def create_csv(
@@ -112,23 +107,14 @@ class IMaprTest(IWebTest):
         anns = screen.linkedAnnotationList()
         return anns
 
-
-class TestMapr(IMaprTest):
-
-    def setup_method(self, method):
+    def populate_data(self, csv, cfg):
         row_count = 1
-        col_count = 4
+        col_count = 6
         self.screen, self.plate = self.create_screen(row_count, col_count)
-
-        csv = os.path.join(os.path.dirname(__file__),
-                           'bulk_to_map_annotation_context_ns.csv')
 
         ctx = ParsingContext(self.client, self.screen.proxy(), file=csv)
         ctx.parse()
         ctx.write_to_omero()
-
-        cfg = os.path.join(
-            os.path.dirname(__file__), 'bulk_to_map_annotation_context.yml')
 
         # Get file annotations
         anns = self.get_screen_annotations()
@@ -139,24 +125,6 @@ class TestMapr(IMaprTest):
         fileid = table_file_ann.file.id.val
 
         ctx = BulkToMapAnnotationContext(
-            self.client, self.screen.proxy(), fileid=fileid, cfg=cfg)
+         self.client, self.screen.proxy(), fileid=fileid, cfg=cfg)
         ctx.parse()
         ctx.write_to_omero()
-
-    @pytest.mark.parametrize('ac', (
-        {'menu': 'gene', 'value': 'CDC20', 'search_value': 'cdc'},
-        {'menu': 'organism', 'value': 'Homo sapiens', 'search_value': 'homo'},
-        {'menu': 'gene', 'value': "beta'Cop", 'search_value': "'"},
-        {'menu': 'gene', 'value': "123 (abc%def)", 'search_value': "%"},
-    ))
-    def test_autocomplete(self, ac):
-        # test autocomplete
-        request_url = reverse("mapannotations_autocomplete",
-                              args=[ac['menu']])
-        data = {
-            'value': ac['search_value'],
-            'query': 'true',
-        }
-        response = _get_response_json(self.django_client, request_url, data)
-
-        assert response == [{'value': ac['value']}]

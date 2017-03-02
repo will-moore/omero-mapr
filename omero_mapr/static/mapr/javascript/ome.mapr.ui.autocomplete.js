@@ -37,10 +37,11 @@ $(function () {
                 type : 'GET',
                 url: MAPANNOTATIONS.URLS.autocomplete,
                 data: {
-                    value: request.term.toLowerCase(),
+                    value: $('#id_case_sensitive').is(":checked") ? request.term : request.term.toLowerCase(),
                     query: true,
+                    case_sensitive: $('#id_case_sensitive').is(":checked"),
                     experimenter_id: WEBCLIENT.active_user,
-                    group: WEBCLIENT.active_group_id
+                    group: WEBCLIENT.active_group_id,
                 },
                 success: function(data) {
                     if (data.length > 0) {
@@ -49,7 +50,7 @@ $(function () {
                         }));
                     } else {
                        response([{ label: 'No results found.', value: -1 }]);
-                   }
+                    }
                 },
                 error: function(data) {
                     response([{ label: 'Error occured.', value: -1 }]);
@@ -58,20 +59,26 @@ $(function () {
         },
         minLength: 1,
         open: function() {},
-        close: function() {},
+        close: function() {
+            $(this).val('');
+            $(this).data().uiAutocomplete.term = null;
+            return false;
+        },
         focus: function(event,ui) {},
         select: function(event, ui) {
             if (ui.item.value == -1) {
                 return false;
             }
-            // keep selected value in input
-            $( "#id_autocomplete" ).val("");
+            $(this).val('');
+            $(this).data().uiAutocomplete.term = null;
             jstreeInst.deselect_all();
             jstreeInst.close_all();
             OME.clearThumbnailsPanel();
             WEBCLIENT.URLS.api_experimenter = MAPANNOTATIONS.URLS.autocomplete_default
             jstreeInst.settings.core.data = function(node, callback, payload) {
-                oldData.apply(jstreeInst, [node, callback, {'value': ui.item.value}]);
+                oldData.apply(jstreeInst, [node, callback,
+                    {'value': ui.item.value,
+                     'case_sensitive': $('#id_case_sensitive').is(":checked")}]);
             };
             jstreeInst.refresh();
             return false;
@@ -82,7 +89,7 @@ $(function () {
             .appendTo( ul );
     }
 
-    $("#search_hints").tooltip({
+    $(".mapr_tooltip").tooltip({
         track: true,
         show: false,
         hide: false,

@@ -36,3 +36,30 @@ ul.ui-autocomplete{
 input[type='text'].ui-autocomplete-loading {
     background: url('../../webgateway/img/spinner.gif') no-repeat right center;
 }
+
+
+div label input {
+    margin-right:100px;
+}
+body {
+    font-family:sans-serif;
+}
+
+
+
+.case_sensitive input[type=checkbox] {
+    display: inline-block;
+    vertical-align: middle;
+}
+.case_sensitive label {
+    color: #555555;
+    font-weight: lighter;
+    display: inline-block;
+    width: 25px;
+    height: 16px;
+    padding: 5px 0px;
+    vertical-align: middle;
+}
+.case_sensitive input[type=checkbox][disabled] + label{
+    color: hsl(215,20%,75%);
+}
