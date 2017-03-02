@@ -40,6 +40,8 @@ from django.http import Http404
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
+from django.utils.html import strip_tags
+
 from django_redis import get_redis_connection
 
 from omero.gateway.utils import toBoolean
@@ -101,19 +103,8 @@ def get_unicode_or_default(request, name, default):
     val = None
     val_raw = request.GET.get(name, default)
     if val_raw is not None:
-        val = unicode(val_raw)
+        val = unicode(strip_tags(val_raw))
     return val
-
-
-def get_list_or_default(request, name, default):
-    """
-    Retrieves a list of parameters from the request. If list is not present
-    the default is returned
-
-    This does not catch exceptions as it makes sense to throw exceptions if
-    the arguments provided do not pass basic type validation
-    """
-    return request.GET.getlist(name, default)
 
 
 def _get_wildcard(mapr_settings, menu):
@@ -213,12 +204,11 @@ def api_paths_to_object(request, menu=None, conn=None, **kwargs):
     to support custom path to map.value
     """
 
-    mapann_ns = _get_ns(mapr_settings, menu)
-    keys = _get_keys(mapr_settings, menu)
-
     try:
+        mapann_ns = _get_ns(mapr_settings, menu)
+        mapann_names = _get_keys(mapr_settings, menu)
+
         mapann_value = get_unicode_or_default(request, 'map.value', None)
-        mapann_names = get_list_or_default(request, 'name', keys)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -254,19 +244,17 @@ omeroweb.webclient.views.api_paths_to_object = api_paths_to_object
 @login_required()
 def api_experimenter_list(request, menu, conn=None, **kwargs):
 
-    mapann_ns = _get_ns(mapr_settings, menu)
-    keys = _get_keys(mapr_settings, menu)
-
     # Get parameters
     try:
+        mapann_ns = _get_ns(mapr_settings, menu)
+        mapann_names = _get_keys(mapr_settings, menu)
+
         # page = _get_page(request)
         # limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter', -1)
-
         mapann_value = get_unicode_or_default(request, 'value', None) \
             or get_unicode_or_default(request, 'id', None)
-        mapann_names = get_list_or_default(request, 'name', keys)
         query = get_bool_or_default(request, 'query', False)
         if _get_case_sensitive(mapr_settings, menu):
             case_sensitive = get_bool_or_default(
@@ -319,11 +307,11 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
 @login_required()
 def api_mapannotation_list(request, menu, conn=None, **kwargs):
 
-    mapann_ns = _get_ns(mapr_settings, menu)
-    keys = _get_keys(mapr_settings, menu)
-
     # Get parameters
     try:
+        mapann_ns = _get_ns(mapr_settings, menu)
+        mapann_names = _get_keys(mapr_settings, menu)
+
         page = page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
@@ -336,7 +324,6 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
                 request, 'case_sensitive', False)
         else:
             case_sensitive = False
-        mapann_names = get_list_or_default(request, 'name', keys)
         orphaned = get_bool_or_default(request, 'orphaned', False)
     except ValueError:
         logger.error(traceback.format_exc())
@@ -397,11 +384,11 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
 @login_required()
 def api_datasets_list(request, menu, conn=None, **kwargs):
 
-    mapann_ns = _get_ns(mapr_settings, menu)
-    keys = _get_keys(mapr_settings, menu)
-
     # Get parameters
     try:
+        mapann_ns = _get_ns(mapr_settings, menu)
+        mapann_names = _get_keys(mapr_settings, menu)
+
         page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
@@ -409,7 +396,6 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
                                               'experimenter_id', -1)
         project_id = get_long_or_default(request, 'id', None)
         mapann_value = get_unicode_or_default(request, 'value', None)
-        mapann_names = get_list_or_default(request, 'name', keys)
         query = get_bool_or_default(request, 'query', False)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
@@ -442,11 +428,11 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
 @login_required()
 def api_plate_list(request, menu, conn=None, **kwargs):
 
-    mapann_ns = _get_ns(mapr_settings, menu)
-    keys = _get_keys(mapr_settings, menu)
-
     # Get parameters
     try:
+        mapann_ns = _get_ns(mapr_settings, menu)
+        mapann_names = _get_keys(mapr_settings, menu)
+
         page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
@@ -454,7 +440,6 @@ def api_plate_list(request, menu, conn=None, **kwargs):
                                               'experimenter_id', -1)
         screen_id = get_long_or_default(request, 'id', None)
         mapann_value = get_unicode_or_default(request, 'value', None)
-        mapann_names = get_list_or_default(request, 'name', keys)
         query = get_bool_or_default(request, 'query', False)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
@@ -487,11 +472,11 @@ def api_plate_list(request, menu, conn=None, **kwargs):
 @login_required()
 def api_image_list(request, menu, conn=None, **kwargs):
 
-    mapann_ns = _get_ns(mapr_settings, menu)
-    keys = _get_keys(mapr_settings, menu)
-
     # Get parameters
     try:
+        mapann_ns = _get_ns(mapr_settings, menu)
+        mapann_names = _get_keys(mapr_settings, menu)
+
         page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
@@ -502,7 +487,6 @@ def api_image_list(request, menu, conn=None, **kwargs):
                                               'experimenter_id', -1)
         parent = get_unicode_or_default(request, 'node', None)
         parent_id = get_long_or_default(request, 'id', None)
-        mapann_names = get_list_or_default(request, 'name', keys)
         mapann_value = get_unicode_or_default(request, 'value', None)
         query = get_bool_or_default(request, 'query', False)
     except ValueError:
@@ -568,13 +552,12 @@ def load_metadata_details(request, c_type, conn=None, share_id=None,
 @login_required()
 def api_annotations(request, menu, conn=None, **kwargs):
 
-    mapann_ns = _get_ns(mapr_settings, menu)
-    keys = _get_keys(mapr_settings, menu)
-
     # Get parameters
     try:
+        mapann_ns = _get_ns(mapr_settings, menu)
+
         mapann_value = get_unicode_or_default(request, 'map', None)
-        mapann_names = get_list_or_default(request, 'name', keys)
+        mapann_names = _get_keys(mapr_settings, menu)
     except ValueError:
         return HttpResponseBadRequest('Invalid parameter value')
 
@@ -599,18 +582,17 @@ def api_annotations(request, menu, conn=None, **kwargs):
 @login_required()
 def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
 
-    mapann_ns = _get_ns(mapr_settings, menu)
-    keys = _get_keys(mapr_settings, menu)
-
     # Get parameters
     try:
+        mapann_ns = _get_ns(mapr_settings, menu)
+        mapann_names = _get_keys(mapr_settings, menu)
+
         page = _get_page(request)
         limit = get_long_or_default(request, 'limit', settings.PAGE)
         group_id = get_long_or_default(request, 'group', -1)
         experimenter_id = get_long_or_default(request, 'experimenter_id', -1)
         mapann_value = get_unicode_or_default(request, 'value', None)
         query = get_bool_or_default(request, 'query', True)
-        mapann_names = get_list_or_default(request, 'name', keys)
         if _get_case_sensitive(mapr_settings, menu):
             case_sensitive = get_bool_or_default(
                 request, 'case_sensitive', False)
