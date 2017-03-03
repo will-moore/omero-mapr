@@ -26,7 +26,7 @@
 from omero_mapr.utils.version import get_version
 
 
-VERSION = (0, 1, 11)
+VERSION = (0, 1, 12)
 
 __version__ = get_version(VERSION)
 
