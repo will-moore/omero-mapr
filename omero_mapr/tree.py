@@ -209,9 +209,8 @@ def count_mapannotations(conn, mapann_value, query=False,
          )
         """ % (" and ".join(where_clause))
 
-    counter = unwrap(qs.projection(q, params, service_opts))[0][0]
-
     logger.debug("HQL QUERY: %s\nPARAMS: %r" % (q, params))
+    counter = unwrap(qs.projection(q, params, service_opts))[0][0]
     return counter
 
 
