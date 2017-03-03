@@ -195,17 +195,15 @@ def count_mapannotations(conn, mapann_value, query=False,
     q = """
         select
             count(distinct mv.value) as childCount
-        from ImageAnnotationLink ial
-            join ial.child a
-            join a.mapValue mv
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
             join ial.parent i
             left outer join i.wellSamples ws
             left outer join i.datasetLinks dil
         where %s AND
          (
-             (dil is null and ws is not null)
+             (ws is not null)
              OR
-             (ws is null and dil is not null)
+             (dil is not null)
          )
         """ % (" and ".join(where_clause))
 
@@ -267,33 +265,29 @@ def marshal_mapannotations(conn, mapann_value, query=False,
         select
             mv.value as value,
             count(distinct i.id) as imgCount,
-            count(distinct s.id) as childCount1,
-            count(distinct p.id) as childCount2
-        from ImageAnnotationLink ial
-            join ial.child a
-            join a.mapValue mv
+            count(distinct sl.parent.id) as childCount1,
+            count(distinct pdl.parent.id) as childCount2
+        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
             join ial.parent i
             left outer join i.wellSamples ws
                 left outer join ws.well w
                 left outer join w.plate pl
                 left outer join pl.screenLinks sl
-                left outer join sl.parent s
             left outer join i.datasetLinks dil
                 left outer join dil.parent ds
                 left outer join ds.projectLinks pdl
-                left outer join pdl.parent p
         where %s AND
          (
              (dil is null
-                 and ds is null and pdl is null and p is null
+                 and ds is null and pdl is null
               and ws is not null
                   and w is not null and pl is not null
-                  and sl is not null and s is not null)
+                  and sl is not null)
              OR
              (ws is null
-                 and w is null and pl is null and sl is null and s is null
+                 and w is null and pl is null and sl is null
               and dil is not null
-                 and ds is not null and pdl is not null and p is not null)
+                 and ds is not null and pdl is not null)
          )
         group by mv.value
         order by count(distinct i.id) DESC
