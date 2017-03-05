@@ -6,14 +6,13 @@
 
 
 #id_autocomplete {
-    margin-top: -2px;
-    width: 135px;
+    width: 165px;
 }
 
 ul.ui-autocomplete{
     background: #ffffff;
     border:solid 1px #D4D6D8;
-    width: 135px;
+    width: 165px;
     max-height: 400px;
     overflow: hidden;
     overflow-y: scroll;
@@ -30,7 +29,7 @@ ul.ui-autocomplete{
 }
 
 .autocompletesearch label{
-    top:3px;
+    top: 5px;
 }
 
 input[type='text'].ui-autocomplete-loading {
