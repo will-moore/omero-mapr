@@ -56,7 +56,7 @@ class TestMaprViews(object):
         {'menu': 'gene', 'value': 'cDc14', 'case_sensitive': False,
          'res_value': {'value': 'cDc14'}, 'count': 3},
     ))
-    def test_api_experimenter_list(self, imaprtest, ac):
+    def test_api_experimenter_list_query_string(self, imaprtest, ac):
         def _expected(menu, extra, count, uid):
             _res = {
                 "experimenter": {
@@ -112,7 +112,7 @@ class TestMaprViews(object):
         {'menu': 'gene', 'value': 'cDc14', 'case_sensitive': False,
          'res_value': {'CDC14': 1, 'cdc14': 2, 'Cdc14': 1}, 'count': 3},
     ))
-    def test_api_mapannotations(self, imaprtest, ac):
+    def test_api_mapannotations_query_string(self, imaprtest, ac):
         request_url = reverse("mapannotations_api_mapannotations",
                               args=[ac['menu']])
         data = {
