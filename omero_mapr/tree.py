@@ -358,6 +358,13 @@ def marshal_screens(conn, mapann_value, query=False,
         group_id = -1
     service_opts.setOmeroGroup(group_id)
 
+    # TODO: Joining wellsample should be enough since wells are annotated
+    # with the same annotaitons as images. In the future if that change,
+    # query has to be restored to:
+    # -     count(distinct i.id) as imgCount)
+    # - from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+    # -     join ial.parent i join i.wellSamples ws join ws.well w
+    # -     join w.plate pl join pl.screenLinks sl join sl.parent screen
     qs = conn.getQueryService()
     q = """
         select new map(mv.value as value,
@@ -366,10 +373,11 @@ def marshal_screens(conn, mapann_value, query=False,
             screen.details.owner.id as ownerId,
             screen as screen_details_permissions,
             count(distinct pl.id) as childCount,
-            count(distinct i.id) as imgCount)
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
-            join ial.parent i join i.wellSamples ws join ws.well w
-            join w.plate pl join pl.screenLinks sl join sl.parent screen
+            count(distinct ws.id) as imgCount)
+        from WellAnnotationLink wal join wal.child a join a.mapValue mv
+            join wal.parent w join w.wellSamples ws
+            join w.plate pl join pl.screenLinks sl
+            join sl.parent screen
         where %s
         group by screen.id, screen.name, mv.value
         order by lower(screen.name), screen.id
@@ -627,17 +635,25 @@ def marshal_plates(conn, screen_id,
     service_opts.setOmeroGroup(group_id)
 
     qs = conn.getQueryService()
+
+    # TODO: Joining wellsample should be enough since wells are annotated
+    # with the same annotaitons as images. In the future if that change,
+    # query has to be restored to:
+    # -     count(distinct i.id) as childCount)
+    # - from ImageAnnotationLink ial join ial.child a join a.mapValue mv
+    # -     join ial.parent i join i.wellSamples ws join ws.well w
+    # -     join w.plate plate join plate.screenLinks sl join sl.parent screen
     q = """
         select new map(mv.value as value,
             plate.id as id,
             plate.name as name,
             plate.details.owner.id as ownerId,
             plate as plate_details_permissions,
-            count(distinct i.id) as childCount)
-        from ImageAnnotationLink ial join ial.child a join a.mapValue mv
-            join ial.parent i join i.wellSamples ws join ws.well w
-            join w.plate plate join plate.screenLinks sl join
-            sl.parent screen
+            count(distinct ws.id) as childCount)
+        from WellAnnotationLink wal join wal.child a join a.mapValue mv
+            join wal.parent w join w.wellSamples ws
+            join w.plate plate join plate.screenLinks sl
+            join sl.parent screen
         where %s
         group by plate.id, plate.name, mv.value
         order by lower(plate.name), plate.id, mv.value
