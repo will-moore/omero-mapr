@@ -19,6 +19,7 @@ set -u
 pip install -r ${OMEROPATH}/share/web/requirements-py27-nginx.txt
 
 # install mapr
+cd /tmp  # Move to a writeable directory
 pip install -e ${maprsrcpath}
 ${OMEROPATH}/bin/omero config set omero.web.apps '["omero_mapr"]'
 ${OMEROPATH}/bin/omero config set omero.web.server_list '[["'${SERVER_HOST}'", '${SERVER_PORT}', "'${SERVER_HOST}'"]]'
