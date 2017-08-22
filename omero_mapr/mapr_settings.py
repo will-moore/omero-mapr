@@ -66,11 +66,14 @@ class MaprSettings(object):
 
 mapr_settings = MaprSettings()
 
+# print 'mapr_settings', mapr_settings.CONFIG
+
 
 # Update Django settings
 
 # add custom processor
-TEMPLATES = getattr(settings, 'TEMPLATES', [])
-TEMPLATES[0]['OPTIONS']['context_processors'].append(
-    'omero_mapr.custom_context_processor.mapr_url_suffix')
-setattr(settings, 'TEMPLATES', TEMPLATES)
+# settings.configure()
+# TEMPLATES = getattr(settings, 'TEMPLATES', [])
+# TEMPLATES[0]['OPTIONS']['context_processors'].append(
+#     'omero_mapr.custom_context_processor.mapr_url_suffix')
+# setattr(settings, 'TEMPLATES', TEMPLATES)

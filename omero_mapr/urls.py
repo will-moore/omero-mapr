@@ -47,6 +47,9 @@ for m in mapr_settings.CONFIG:
 
 urlpatterns += (
 
+    url(r'^(?i)%s/test', views.index, {'menu': 'test'},
+            name="maprindex_test"),
+
     # core
     url(r'^$', never_cache(
         RedirectView.as_view(

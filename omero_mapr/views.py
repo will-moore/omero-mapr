@@ -42,7 +42,10 @@ from django.core.exceptions import ValidationError
 
 from django.utils.html import strip_tags
 
-from django_redis import get_redis_connection
+try:
+    from django_redis import get_redis_connection
+except ImportError:
+    pass
 
 from omero.gateway.utils import toBoolean
 
