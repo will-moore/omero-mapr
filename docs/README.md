@@ -2,9 +2,9 @@
 
 ## Attribute URL
 
-Top level Attribute URL. Attributes are preconfigured in application settings https://github.com/ome/omero-mapr/blob/master/mapr/mapr_settings.py
+Top level Attribute URL. Attributes are preconfigured in application settings https://github.com/ome/omero-mapr/blob/master/omero_mapr/mapr_settings.py
 or can be altered by changing omero config `omero.web.mapr.config`
- 
+
 | URL                          | METHOD | URL PARAMS                                                                            | QUERY STRING                                                                        | Success Response | Error Response:                                   | Sample Call:                                                                                                                                                                                                                                                                                                                                                                                              |
 |------------------------------|--------|---------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|------------------|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `/webclient/`*              | GET    |                                                                                       | `show=<type>-<value>`                                                               | 302 redirect     |                                                   | `/webclient/?show=gene-CDC20`                                                                                                                                                                                                                                                                                                                                                                             |
@@ -51,11 +51,11 @@ OMERO.web tree view.
 * **Method:**
 
   `GET`
-  
+
 *  **URL Params**
 
    **Required:**
- 
+
    `type=[gene|phenotype|sirna|compound|organism]`
 
 *  **QUERY STRING**
@@ -78,8 +78,8 @@ OMERO.web tree view.
   `http://idr.openmicroscopy.org/mapr/gene/?value=CDC20`
 
   `http://idr.openmicroscopy.org/mapr/gene/?value=CDC2&query=true`
- 
- 
+
+
 ## MAPR JSON API
 
 | URL                          | METHOD | URL PARAMS                                                                            | QUERY STRING                                                                        | Success Response | Error Response:                                   | Sample Call:                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -90,8 +90,8 @@ OMERO.web tree view.
 | `/mapr/api/annotations/<type>/`   | GET    | `type=(gene|phenotype|sirna|compound|organism)`                                       | `type=map` `map=<value>` or `(screen|plate|project|dataset|image)=<id>`             | 200 JSON         | 400 Invalid parameter value400 ApiUsageException  | return map annotations containing given value (case sensitive)                                                                                                                                                                                                                                                                                                                                            |
 | `/mapr/api/gene/paths_to_object/` | GET    |                                                                                       | `map.value=`                                                                        | 200 JSON         |                                                   | find hierarchies for a given value (case sensitive) - in case we will provide multiple users or groups                                                                                                                                                                                                                                                                                                    |
 | `/mapr/autocomplete/<type>/` | GET    | `type=(gene|phenotype|sirna|compound|organism)`                                       | `value=<value>` `query=true`                                                        | 200 JSON         |                                                   | find keywords for matching `%value%` pattern                                                                                                                                                                                                                                                                                                                                                              |
- 
- 
+
+
 ### Example script
 
 OMERO.web uses default session backend authentication scheme for authentication.
