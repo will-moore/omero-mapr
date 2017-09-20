@@ -56,7 +56,7 @@ OMERO.web tree view.
 
    **Required:**
 
-   `type=[gene|phenotype|sirna|compound|organism]`
+   `type=[gene|phenotype|cellline|sirna|antibody|compound|organism]`
 
 *  **QUERY STRING**
 
