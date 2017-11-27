@@ -71,7 +71,7 @@ try:
 except ImportError:
     try:
         import Image  # see ticket:2597
-    except:
+    except ImportError:
         logger.error(
             "You need to install the Python Imaging Library. Get it at"
             " http://www.pythonware.com/products/pil/")

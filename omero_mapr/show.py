@@ -88,7 +88,7 @@ class MapShow(omeroweb_show.Show):
                 self.conn.SERVICE_OPTS.setOmeroGroup('-1')
                 first_selected = self._load_first_selected(
                     first_obj, attributes)
-            except:
+            except Exception:
                 pass
             if first_obj not in self.TOP_LEVEL_PREFIXES:
                 # Need to see if first item has parents
@@ -268,7 +268,7 @@ def mapr_paths_to_object(conn, mapann_value,
         # Experimenter is always present
         try:
             experimenter_id = e[0]["owner"]
-        except:
+        except Exception:
             experimenter_id = -1
         path.append({
             'type': 'experimenter',
@@ -281,7 +281,7 @@ def mapr_paths_to_object(conn, mapann_value,
                 'type': 'map',
                 'id': map_value,
             })
-        except:
+        except Exception:
             pass
 
         try:
@@ -290,7 +290,7 @@ def mapr_paths_to_object(conn, mapann_value,
                     'type': 'screen',
                     'id': e[0]["screen_id"]
                 })
-        except:
+        except Exception:
             pass
 
         try:
@@ -300,7 +300,7 @@ def mapr_paths_to_object(conn, mapann_value,
                     'type': 'plate',
                     'id': plate_id,
                 })
-        except:
+        except Exception:
             pass
 
         try:
@@ -309,7 +309,7 @@ def mapr_paths_to_object(conn, mapann_value,
                     'type': 'project',
                     'id': e[0]["project_id"]
                 })
-        except:
+        except Exception:
             pass
 
         try:
@@ -318,7 +318,7 @@ def mapr_paths_to_object(conn, mapann_value,
                     'type': 'dataset',
                     'id': e[0]["dataset_id"],
                 })
-        except:
+        except Exception:
             pass
 
         # Image is always present
@@ -327,7 +327,7 @@ def mapr_paths_to_object(conn, mapann_value,
                 'type': 'image',
                 'id': e[0]["image_id"]
             })
-        except:
+        except Exception:
             pass
         paths.append(path)
     return paths
