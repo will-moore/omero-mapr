@@ -8,23 +8,8 @@ python:
 services:
   - docker
 
-env:
-  - OMEROBUILD=OMERO-DEV-merge-build
-
 before_install:
-  - docker --version
-  - pip install docker-compose
-  - docker-compose -v
-
-before_script:
-  - pip install flake8 pycodestyle pep8-naming
-  - flake8 --version
-  - flake8 -v .
-  - python setup.py sdist install
+  - git clone git://github.com/openmicroscopy/omero-test-infra .omero
 
 script:
-  - echo 'Tested in CI'
-#  - docker-compose -f docker/docker-compose.yml up --build --abort-on-container-exit
-#  - exitcode=$(docker inspect -f '{{.State.ExitCode}}' docker_maprtest_1)
-#  - docker-compose -f docker/docker-compose.yml rm -fv
-#  - exit $exitcode
+  - .omero/app-docker
