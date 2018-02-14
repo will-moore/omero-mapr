@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+set -u
+
+# Call super. Activates virtualenv
+. /infra/app-config
+
+$OMERO_DIST/bin/omero config set omero.web.ui.top_links '[["Data", {"query_string": {"experimenter": -1}, "viewname": "webindex"}, {"title": "OMERO"}], ["Mapr", {"query_string": {"experimenter": -1}, "viewname": "maprindex_mapr"}, {"title": "Mapr browser"}]]'
+
+$OMERO_DIST/bin/omero config set omero.web.mapr.config '[{"menu": "mapr", "config": {"default": ["Gene Symbol"], "all": ["Gene Symbol"], "ns": ["openmicroscopy.org/mapr/gene"], "label": "Mapr", "case_sensitive": true}}]'
+
