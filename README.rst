@@ -8,7 +8,7 @@
 MAPR
 ====
 
-OMERO.map is an OMERO.web app that enables browsing of data through attributes linked to images
+OMERO.mapr is an OMERO.web app that enables browsing of data through attributes linked to images
 in the form of Map Annotations.
 
 It is used extensively by the `Image Data Resource <http://idr.openmicroscopy.org/>`_,
