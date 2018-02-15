@@ -11,7 +11,7 @@ MAPR
 OMERO.mapr is an OMERO.web app that enables browsing of data through attributes linked to images
 in the form of Map Annotations.
 
-It is used extensively by the `Image Data Resource <http://idr.openmicroscopy.org/>`_,
+It is used extensively by the `Image Data Resource <https://idr.openmicroscopy.org/>`_,
 allowing users to find data by various categories such as Genes, Phenotypes, Organism etc.
 
 In OMERO, Map Annotations are lists of named attributes that can be used to
