@@ -71,9 +71,9 @@ add a map annotation corresponding to the configuration above:
 
 ::
 
-    key_value_data = [["Gene Identifier","CG7134"],
-                      ["Gene Identifier URL", "http://www.flybase.org/cgi-bin/uniq.html?field=SYN&db=fbgn&context=CG7134"],
-                      ["Gene Symbol","cdc14"]]
+    key_value_data = [["Gene Identifier","ENSG00000117399"],
+                      ["Gene Identifier URL", "http://www.ensembl.org/id/ENSG00000117399"],
+                      ["Gene Symbol","CDC20"]]
     map_ann = omero.gateway.MapAnnotationWrapper(conn)
     map_ann.setValue(key_value_data)
     map_ann.setNs("openmicroscopy.org/mapr/gene")
@@ -83,7 +83,11 @@ add a map annotation corresponding to the configuration above:
 
 
 Now restart OMERO.web as normal for the configuration above to take effect.
-You should now be able to browse to a ``Genes`` page and search for ``cdc14``.
+You should now be able to browse to a ``Genes`` page and search for
+``CDC20`` or ``ENSG00000117399``.
+
+.. image:: https://user-images.githubusercontent.com/900055/36256919-d8a19fb6-124c-11e8-8628-d792ff29bd22.png
+
 
 Testing
 =======
