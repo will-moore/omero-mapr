@@ -8,7 +8,22 @@
 MAPR
 ====
 
-An OMERO.web app allowing to browse the data through attributes linked to the image
+OMERO.map is an OMERO.web app that enables browsing of data through attributes linked to images
+in the form of Map Annotations.
+
+It is used extensively by the `Image Data Resource <http://idr.openmicroscopy.org/>`_,
+allowing users to find data by various categories such as Genes, Phenotypes, Organism etc.
+
+In OMERO, Map Annotations are lists of named attributes that can be used to
+annotate many types of data. Annotations can be assigned a ``namespace``
+to indicate the origin and purpose of the annotation.
+
+In OMERO.mapr we can configure different categories of attributes using
+different namespaces, such as ``openmicroscopy.org/mapr/gene``.
+Within Map Annotations with this namespace, attributes named
+by specified keys will be searchable. For example,
+``Gene Symbol`` and ``Gene Identifier``.
+
 
 Requirements
 ============
@@ -26,18 +41,49 @@ Install the app using `pip <https://pip.pypa.io/en/stable/>`_:
 
     $ pip install omero-mapr
 
-plug in the app to OMERO.web
+Add the app to the list of installed apps:
 
 ::
 
     $ bin/omero config append omero.web.apps '"omero_mapr"'
 
-    $ bin/omero config append omero.web.ui.top_links '["Key1", {"viewname": "maprindex_key1", "query_string": {"experimenter": -1}}, {"title": "Key1 browser"}]'
 
-    $ bin/omero config append omero.web.mapr.config '{"menu": "key1", "config": {"default": ["Key1"], "all": ["Key1", "Key2"], "ns": ["openmicroscopy.org/mapr/key1"], "label": "Key1"}}'
+Configure the categories that we want to search for. In this example we want to search
+for Map Annotations of namespace ``openmicroscopy.org/mapr/gene`` searching for
+attributes under the ``Gene Symbol`` and ``Gene Identifier`` keys.
+
+::
+
+    $ bin/omero config append omero.web.mapr.config '{"menu": "gene","config": {"default": ["Gene Symbol"],"all": ["Gene Symbol", "Gene Identifier"],"ns": ["openmicroscopy.org/mapr/gene"],"label": "Gene"}}'
+
+We can add a link to the top of the webclient page to take us to the mapr Genes search page.
+The ``viewname`` should be in the form ``maprindex_{menu}`` where ``{menu}`` is the the ``menu`` value in the previous config.
+In this example a link of ``Genes`` with tooltip ``Find Gene annotations`` will take us to the ``gene`` search page.
+
+::
+
+    $ bin/omero config append omero.web.ui.top_links '["Genes", {"viewname": "maprindex_gene", "query_string": {"experimenter": -1}}, {"title": "Find Gene annotations"}]'
 
 
-Now restart OMERO.web as normal.
+Finally, we can add a map annotation to an Image that is in a Screen -> Plate -> Well
+hierarchy. This uses the OMERO `Python API <https://docs.openmicroscopy.org/latest/omero/developers/Python.html>`_ to
+add a map annotation corresponding to the configuration above:
+
+::
+
+    key_value_data = [["Gene Identifier","CG7134"],
+                      ["Gene Identifier URL", "http://www.flybase.org/cgi-bin/uniq.html?field=SYN&db=fbgn&context=CG7134"],
+                      ["Gene Symbol","cdc14"]]
+    map_ann = omero.gateway.MapAnnotationWrapper(conn)
+    map_ann.setValue(key_value_data)
+    map_ann.setNs("openmicroscopy.org/mapr/gene")
+    map_ann.save()
+    i = conn.getObject('Image', 2917)
+    i.linkAnnotation(map_ann)
+
+
+Now restart OMERO.web as normal for the configuration above to take effect.
+You should now be able to browse to a ``Genes`` page and search for ``cdc14``.
 
 Testing
 =======
