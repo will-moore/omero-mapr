@@ -113,7 +113,12 @@ And to search for "siRNAi" targets we can add:
     $ bin/omero config append omero.web.mapr.config '{"menu": "sirnai", "config":{"default":["siRNAi"], "all":["siRNAi"], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"siRNAi"}}'
 
 After configuring appropriate ``top_links`` for each of these and restarting web, we
-can now search for Antibodies or siRNAi Key-Value pairs added by users
+can now search for Antibodies or siRNAi Key-Value pairs added by users:
+
+
+.. image:: https://user-images.githubusercontent.com/900055/36311352-f11be692-1322-11e8-990b-076e1e208f86.png
+
+.. image:: https://user-images.githubusercontent.com/900055/36311363-f3ce8660-1322-11e8-92a5-a79b842eb133.png
 
 Testing
 =======
