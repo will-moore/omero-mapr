@@ -59,12 +59,14 @@ def get_script(request, script_name, conn):
             var values = %s;
             if (params.query === '') return true;
             var map_ann = values[data.id];
+            if (!map_ann) return false;
             var search_values = '';
             if (params.mapr_key === 'All') {
                 search_values = Object.values(map_ann).join(" ");
             } else {
                 search_values = map_ann[params.mapr_key]
             }
+            if (!search_values) return false;
             return (search_values.indexOf(params.query) > -1);
         })
         """ % json.dumps(values)
