@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+set -u
+
+# Call super. Activates virtualenv
+. /infra/app-config
+
+cat > /opt/omero/web/config/10-mapr.omero <<EOF
+config append omero.web.ui.top_links '["Genes", {"viewname": "maprindex_gene", "query_string": {"experimenter": -1}}, {"title": "Find Gene annotations"}]'
+config append omero.web.mapr.config '{"menu": "gene","config": {"default": ["Gene Symbol"],"all": ["Gene Symbol", "Gene Identifier"],"ns": ["openmicroscopy.org/mapr/gene"],"label": "Gene"}}'
+EOF
