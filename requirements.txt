@@ -1,2 +1,2 @@
 requests
-django-redis>4.4
+django-redis>4.4,<4.9
