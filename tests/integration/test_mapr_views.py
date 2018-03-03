@@ -28,7 +28,7 @@ import pytest
 
 from django.core.urlresolvers import reverse
 
-from omeroweb.testlib import _get_response_json
+from omeroweb.testlib import get_json
 
 
 class TestMaprViews(object):
@@ -83,7 +83,7 @@ class TestMaprViews(object):
             cs = False
         data['case_sensitive'] = cs
         ac['res_value']['case_sensitive'] = cs
-        response = _get_response_json(
+        response = get_json(
             imaprtest.django_client, request_url, data)
 
         assert response == _expected(
@@ -125,7 +125,7 @@ class TestMaprViews(object):
         except KeyError:
             pass
 
-        response = _get_response_json(
+        response = get_json(
             imaprtest.django_client, request_url, data)
 
         try:

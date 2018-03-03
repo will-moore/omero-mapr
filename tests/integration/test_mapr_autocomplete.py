@@ -27,7 +27,7 @@ import pytest
 
 from django.core.urlresolvers import reverse
 
-from omeroweb.testlib import _get_response_json
+from omeroweb.testlib import get_json
 
 
 class TestAutocomplete(object):
@@ -45,7 +45,7 @@ class TestAutocomplete(object):
             'value': ac['search_value'],
             'query': 'true',
         }
-        response = _get_response_json(
+        response = get_json(
             imaprtest.django_client, request_url, data)
 
         res = []
@@ -69,7 +69,7 @@ class TestAutocomplete(object):
             'case_sensitive': ac['case_sensitive'],
             'query': 'true',
         }
-        response = _get_response_json(
+        response = get_json(
             imaprtest.django_client, request_url, data)
 
         assert response == [{'value': ac['value']}]
@@ -86,7 +86,7 @@ class TestAutocomplete(object):
             'case_sensitive': ac['case_sensitive'],
             'query': 'true',
         }
-        response = _get_response_json(
+        response = get_json(
             imaprtest.django_client, request_url, data)
         res = [r['value'] for r in response]
 
