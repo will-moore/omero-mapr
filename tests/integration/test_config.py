@@ -28,7 +28,7 @@ import json
 
 from django.core.urlresolvers import reverse, NoReverseMatch
 
-from omeroweb.testlib import IWebTest, _get_response, _get_response_json
+from omeroweb.testlib import IWebTest, get, get_json
 from omero_mapr.utils import config_list_to_dict
 
 
@@ -43,7 +43,7 @@ class TestMaprConfig(IWebTest):
         assert len(settings.MAPR_CONFIG.keys()) > 0
         for menu in settings.MAPR_CONFIG.keys():
             request_url = reverse("maprindex_%s" % menu)
-            _get_response(self.django_client, request_url, {}, status_code=200)
+            get(self.django_client, request_url, {}, status_code=200)
 
     @pytest.mark.xfail(raises=StopIteration)
     def test_empty_settings(self, empty_settings):
@@ -55,7 +55,7 @@ class TestMaprConfig(IWebTest):
         assert menu not in settings.MAPR_CONFIG.keys()
         with pytest.raises(NoReverseMatch) as excinfo:
             request_url = reverse("maprindex_%s" % menu)
-            _get_response(self.django_client, request_url, {}, status_code=200)
+            get(self.django_client, request_url, {}, status_code=200)
         regx = r"Reverse for 'maprindex_%s'.*" % menu
         assert excinfo.match(regx)
 
@@ -114,7 +114,7 @@ class TestMaprViewsConfig(IWebTest):
                                             wildcard_settings, params):
         request_url = reverse("mapannotations_api_experimenters",
                               args=[params['menu']])
-        response = _get_response_json(
+        response = get_json(
             imaprtest.django_client, request_url, {})
         if params['childCount'] is not None:
             assert response['experimenter']['childCount'] == \
@@ -133,7 +133,7 @@ class TestMaprViewsConfig(IWebTest):
                                          wildcard_settings, params):
         request_url = reverse("mapannotations_api_mapannotations",
                               args=[params['menu']])
-        response = _get_response_json(
+        response = get_json(
             imaprtest.django_client, request_url, {})
         if params['count'] is not None:
             assert len(response['screens']) == params['count']
