@@ -28,6 +28,11 @@ ul.ui-autocomplete{
     width: 135px;
 }
 
+#autocompletesearch {
+    /* override .filtersearch width from webclient */
+    width: 180px;
+}
+
 .autocompletesearch label{
     top: 5px;
 }
