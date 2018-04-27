@@ -359,7 +359,7 @@ def marshal_screens(conn, mapann_value, query=False,
     service_opts.setOmeroGroup(group_id)
 
     # TODO: Joining wellsample should be enough since wells are annotated
-    # with the same annotaitons as images. In the future if that change,
+    # with the same annotations as images. In the future if that changes,
     # query has to be restored to:
     # -     count(distinct i.id) as imgCount)
     # - from ImageAnnotationLink ial join ial.child a join a.mapValue mv
@@ -637,7 +637,7 @@ def marshal_plates(conn, screen_id,
     qs = conn.getQueryService()
 
     # TODO: Joining wellsample should be enough since wells are annotated
-    # with the same annotaitons as images. In the future if that change,
+    # with the same annotations as images. In the future if that changes,
     # query has to be restored to:
     # -     count(distinct i.id) as childCount)
     # - from ImageAnnotationLink ial join ial.child a join a.mapValue mv
