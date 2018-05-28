@@ -106,14 +106,14 @@ For example, to search for "Primary Antibody" or "Secondary Antibody" values, we
 
     $ bin/omero config append omero.web.mapr.config '{"menu": "antibody", "config":{"default":["Primary Antibody"], "all":["Primary Antibody", "Secondary Antibody"], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Antibody"}}'
 
-And to search for "siRNAi" targets we can add:
+We can also specify an empty list of keys to search for *any* value.
 
 ::
 
-    $ bin/omero config append omero.web.mapr.config '{"menu": "sirnai", "config":{"default":["siRNAi"], "all":["siRNAi"], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"siRNAi"}}'
+    $ bin/omero config append omero.web.mapr.config '{"menu": "anyvalue", "config":{"default":["Any Value"], "all":[], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Any"}}'
 
 After configuring appropriate ``top_links`` for each of these and restarting web, we
-can now search for Antibodies or siRNAi Key-Value pairs added by users:
+can now search for Antibodies or *all* Values in Key-Value pairs added by users:
 
 
 .. image:: https://user-images.githubusercontent.com/900055/36311352-f11be692-1322-11e8-990b-076e1e208f86.png
