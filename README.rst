@@ -116,9 +116,10 @@ After configuring appropriate ``top_links`` for each of these and restarting web
 can now search for Antibodies or *all* Values in Key-Value pairs added by users:
 
 
-.. image:: https://user-images.githubusercontent.com/900055/36311352-f11be692-1322-11e8-990b-076e1e208f86.png
+.. image:: https://user-images.githubusercontent.com/900055/40605069-063ff29a-6259-11e8-9295-3887dde0441f.png
 
-.. image:: https://user-images.githubusercontent.com/900055/36311363-f3ce8660-1322-11e8-92a5-a79b842eb133.png
+.. image:: https://user-images.githubusercontent.com/900055/40605101-1cd1925c-6259-11e8-93a8-e72af2e570d3.png
+
 
 Testing
 =======
