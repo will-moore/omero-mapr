@@ -110,6 +110,11 @@ For example, to search for "Primary Antibody" or "Secondary Antibody" values, we
     # Top link (without experimenter: -1)
     $ bin/omero config append omero.web.ui.top_links '["Antibodies", {"viewname": "maprindex_antibody"}, {"title": "Find Antibody values"}]'
 
+After restarting web, we can now search for Antibodies:
+
+.. image:: https://user-images.githubusercontent.com/900055/40605069-063ff29a-6259-11e8-9295-3887dde0441f.png
+
+
 We can also specify an empty list of keys to search for *any* value.
 
 ::
@@ -119,11 +124,7 @@ We can also specify an empty list of keys to search for *any* value.
     # Top link
     omero config append omero.web.ui.top_links '["Any Value", {"viewname": "maprindex_anyvalue"}, {"title": "Find Any value"}]'
 
-After restarting web, we
-can now search for Antibodies or *all* Values in Key-Value pairs added by users:
-
-
-.. image:: https://user-images.githubusercontent.com/900055/40605069-063ff29a-6259-11e8-9295-3887dde0441f.png
+After restarting web, we can now search for any Value, such as "INCENP":
 
 .. image:: https://user-images.githubusercontent.com/900055/40605101-1cd1925c-6259-11e8-93a8-e72af2e570d3.png
 
