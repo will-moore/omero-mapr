@@ -64,7 +64,8 @@ attributes under the ``Gene Symbol`` and ``Gene Identifier`` keys.
 
 We can add a link to the top of the webclient page to take us to the mapr Genes search page.
 The ``viewname`` should be in the form ``maprindex_{menu}`` where ``{menu}`` is the the ``menu`` value in the previous config.
-In this example a link of ``Genes`` with tooltip ``Find Gene annotations`` will take us to the ``gene`` search page.
+In this example a link of ``Genes`` with tooltip ``Find Gene annotations`` will take us to the ``gene`` search page. The ``query_string`` parameters are added to the URL, with ``"experimenter": -1``
+specifying that we want to search across all users.
 
 ::
 
@@ -106,13 +107,19 @@ For example, to search for "Primary Antibody" or "Secondary Antibody" values, we
 
     $ bin/omero config append omero.web.mapr.config '{"menu": "antibody", "config":{"default":["Primary Antibody"], "all":["Primary Antibody", "Secondary Antibody"], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Antibody"}}'
 
+    # Top link (without experimenter: -1)
+    $ bin/omero config append omero.web.ui.top_links '["Antibodies", {"viewname": "maprindex_antibody"}, {"title": "Find Antibody values"}]'
+
 We can also specify an empty list of keys to search for *any* value.
 
 ::
 
     $ bin/omero config append omero.web.mapr.config '{"menu": "anyvalue", "config":{"default":["Any Value"], "all":[], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Any"}}'
 
-After configuring appropriate ``top_links`` for each of these and restarting web, we
+    # Top link
+    omero config append omero.web.ui.top_links '["Any Value", {"viewname": "maprindex_anyvalue"}, {"title": "Find Any value"}]'
+
+After restarting web, we
 can now search for Antibodies or *all* Values in Key-Value pairs added by users:
 
 
