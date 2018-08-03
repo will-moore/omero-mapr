@@ -153,7 +153,7 @@ for i in session.get(url).json()['images']:
     print 'Thumbnail URL:', THUMBNAIL_URL.format(**{'image_id': image_id})
     url = ATTRIBUTES_URL.format(**{'image_id': image_id})
     for a in session.get(_url).json()['annotations']:
-        print 'Annotaitons:'
+        print 'Annotations:'
         print a['values']
 ```
 
