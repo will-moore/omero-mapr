@@ -122,7 +122,7 @@ We can also specify an empty list of keys to search for *any* value.
     $ bin/omero config append omero.web.mapr.config '{"menu": "anyvalue", "config":{"default":["Any Value"], "all":[], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Any"}}'
 
     # Top link
-    omero config append omero.web.ui.top_links '["Any Value", {"viewname": "maprindex_anyvalue"}, {"title": "Find Any value"}]'
+    omero config append omero.web.ui.top_links '["Any Value", {"viewname": "maprindex_anyvalue"}, {"title": "Find Any Value"}]'
 
 After restarting web, we can now search for any Value, such as "INCENP":
 
