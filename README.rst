@@ -20,7 +20,7 @@ to indicate the origin and purpose of the annotation.
 
 Map Annotations created by users via the Insight client or webclient all have the
 namespace ``openmicroscopy.org/omero/client/mapAnnotation``, whereas other
-Map Annotations created via the OMERO API by other tools should have a distinct
+Map Annotations created via the OMERO API by other tools should have their own distinct
 namespace.
 
 We can configure OMERO.mapr to search for Map Annotations of specified ``namespace``,
@@ -73,7 +73,7 @@ For example, to search for "Primary Antibody" or "Secondary Antibody" values, we
 
     $ bin/omero config append omero.web.mapr.config '{"menu": "antibody", "config":{"default":["Primary Antibody"], "all":["Primary Antibody", "Secondary Antibody"], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Antibody"}}'
 
-We can add an "Antibodies" link with to the top of the webclient page to take us to the Antibodies search page.
+We can add an "Antibodies" link to the top of the webclient page to take us to the Antibodies search page.
 The link tooltip is "Find Antibody values".
 The ``viewname`` should be in the form ``maprindex_{menu}`` where ``{menu}`` is the the ``menu`` value in the previous config.
 
@@ -93,7 +93,7 @@ We can also specify an empty list of keys to search for *any* value.
     $ bin/omero config append omero.web.mapr.config '{"menu": "anyvalue", "config":{"default":["Any Value"], "all":[], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Any"}}'
 
     # Top link
-    omero config append omero.web.ui.top_links '["Any Value", {"viewname": "maprindex_anyvalue"}, {"title": "Find Any Value"}]'
+    $ bin/omero config append omero.web.ui.top_links '["Any Value", {"viewname": "maprindex_anyvalue"}, {"title": "Find Any Value"}]'
 
 After restarting web, we can now search for any Value, such as "INCENP":
 
@@ -133,8 +133,8 @@ add a map annotation corresponding to the configuration above:
     map_ann.setValue(key_value_data)
     map_ann.setNs("openmicroscopy.org/mapr/gene")
     map_ann.save()
-    i = conn.getObject('Image', 2917)
-    i.linkAnnotation(map_ann)
+    image = conn.getObject('Image', 2917)
+    image.linkAnnotation(map_ann)
 
 
 Now restart OMERO.web as normal for the configuration above to take effect.
