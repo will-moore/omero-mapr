@@ -233,7 +233,7 @@ $(function () {
                             url = prefix+'metadata_details/'+orel+'/'+oid.split("-")[1]+'/';
                         }
                     } else if(orel=="well"){
-                        var well_index = selected[0]["index"];
+                        var well_index = selected[0]["index"] || 0;
                         url = '{% url "load_metadata_details" %}well/'+oid.split('-')[1]+'/';
                         data = {'index': well_index};
                     } else {
