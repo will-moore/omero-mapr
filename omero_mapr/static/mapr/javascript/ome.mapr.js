@@ -104,4 +104,34 @@ $(function () {
         return sortingStrategy(node1, node2);
     };
 
+
+    // ----- Show -----
+    // e.g. /mapr/gene/?value=CDC5&show=screen-51
+    $('#dataTree').on('load_node.jstree', function(e, data) {
+        // If we're not ROOT node, ignore
+        if (data.node.id !== 'j1_1') return;
+        // Check for e.g. ?show=screen-51
+        var show = OME.getURLParameter("show");
+        if (show) {
+            // Find node that contains study:
+            var rootNode = jstreeInst.get_node(data.node.id);
+            rootNode.children.forEach(id => {
+                // Open each child of root node...
+                jstreeInst.open_node(id,
+                    function(node) {
+                        // Check children (studies) for match with show, e.g. 'screen-51'
+                        jstreeInst.get_node(node.id).children.forEach(node_id => {
+                            var node = jstreeInst.get_node(node_id);
+                            // Open and Select matching node
+                            if (node.type + '-' + node.data.id == show) {
+                                jstreeInst.open_node(node_id);
+                                jstreeInst.select_node(node_id);
+                            }
+                        });
+                    }
+                );
+            })
+        }
+    });
+
 });
