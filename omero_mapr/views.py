@@ -197,6 +197,11 @@ def index(request, menu, conn=None, url=None, **kwargs):
     return context
 
 
+def api_mapr_config(request):
+    """Return mapr_settings.CONFIG as JSON."""
+    return JsonResponse(mapr_settings.CONFIG)
+
+
 @login_required()
 def api_paths_to_object(request, menu=None, conn=None, **kwargs):
     """
