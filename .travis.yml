@@ -15,7 +15,6 @@ before_install:
 script:
   - .omero/docker app
 
-before_deploy: cd plugin
 deploy:
   provider: pypi
   user: $PYPI_USER
