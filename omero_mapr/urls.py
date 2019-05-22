@@ -55,6 +55,8 @@ urlpatterns += (
             query_string=True)),
         name="maprindex"),
 
+    url(r'^api/config/$', views.api_mapr_config),
+
     url(r'^api/(?P<menu>%s)/count/$' % (CONFIG_REGEX),
         views.api_experimenter_list,
         name='mapannotations_api_experimenters'),
