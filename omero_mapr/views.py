@@ -183,7 +183,7 @@ def index(request, menu, conn=None, url=None, **kwargs):
     kwargs['template'] = "mapr/base_mapr.html"
     context = _webclient_load_template(request, menu,
                                        conn=conn, url=url, **kwargs)
-    context['active_user'] = context['active_user'] or {'id': -1}
+    context['active_user'] = context.get('active_user', {'id': -1})
     context['mapr_conf'] = {
         'menu': menu,
         'menu_all': mapr_settings.CONFIG[menu]['all'],
