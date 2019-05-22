@@ -107,30 +107,35 @@ $(function () {
 
     // ----- Show -----
     // e.g. /mapr/gene/?value=CDC5&show=screen-51
+    // $('#dataTree').on('loaded.jstree', function(e, data) {
     $('#dataTree').on('load_node.jstree', function(e, data) {
         // If we're not ROOT node, ignore
         if (data.node.id !== 'j1_1') return;
+        var inst = data.instance;
         // Check for e.g. ?show=screen-51
         var show = OME.getURLParameter("show");
-        if (show) {
+        var value = OME.getURLParameter("value");
+        if (show && value) {
             // Find node that contains study:
-            var rootNode = jstreeInst.get_node(data.node.id);
-            rootNode.children.forEach(id => {
-                // Open each child of root node...
-                jstreeInst.open_node(id,
-                    function(node) {
-                        // Check children (studies) for match with show, e.g. 'screen-51'
-                        jstreeInst.get_node(node.id).children.forEach(node_id => {
-                            var node = jstreeInst.get_node(node_id);
-                            // Open and Select matching node
-                            if (node.type + '-' + node.data.id == show) {
-                                jstreeInst.open_node(node_id);
-                                jstreeInst.select_node(node_id);
-                            }
-                        });
+            // /mapr/api/gene/paths_to_object/?map.value=CEP120&project=18328
+            var url = MAPANNOTATIONS.URLS.paths_to_object + '?' + show.replace('-', '=');
+            $.getJSON(url, {'map.value': value}, function(data) {
+                if (data.paths && data.paths.length > 0) {
+                    // Just traverse the first path
+                    let pathToObj = data.paths[0];
+                    // start at root node
+                    let node = jstreeInst.get_node('ul > li:first');
+                    // first look for 2nd node in path (first node is root)...
+                    // NB: Seems we don't need a callback on open_node for children to load before we
+                    // traverse down to the next level?!
+                    for (var p=1; p<pathToObj.length; p++) {
+                        let nodeData = pathToObj[p];
+                        node = inst.locate_node(nodeData.type + '-' + nodeData.id, node)[0];
+                        if (!node) break;
+                        inst.open_node(node);
                     }
-                );
-            })
+                }
+            });
         }
     });
 
