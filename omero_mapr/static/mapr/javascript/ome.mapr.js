@@ -127,13 +127,17 @@ $(function () {
                     let rootNode = jstreeInst.get_node('ul > li:first');
 
                     function traverse(node, path) {
-                        if (path.length == 0) return;
+                        if (path.length == 0) {
+                            inst.select_node(node);
+                            return;
+                        }
                         let nodeData = path[0];
                         node = inst.locate_node(nodeData.type + '-' + nodeData.id, node)[0];
                         if (!node) {
+                            return;
                         }
+                        path = path.slice(1);
                         inst.open_node(node, function(){
-                            path = path.slice(1);
                             traverse(node, path);
                         });
                     }
