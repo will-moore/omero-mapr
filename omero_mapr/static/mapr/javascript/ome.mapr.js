@@ -121,19 +121,24 @@ $(function () {
             var url = MAPANNOTATIONS.URLS.paths_to_object + '?' + show.replace('-', '=');
             $.getJSON(url, {'map.value': value}, function(data) {
                 if (data.paths && data.paths.length > 0) {
-                    // Just traverse the first path
-                    let pathToObj = data.paths[0];
+                    // Just traverse the first path, start looking at child of root
+                    let pathToObj = data.paths[0].slice(1);
                     // start at root node
-                    let node = jstreeInst.get_node('ul > li:first');
-                    // first look for 2nd node in path (first node is root)...
-                    // NB: Seems we don't need a callback on open_node for children to load before we
-                    // traverse down to the next level?!
-                    for (var p=1; p<pathToObj.length; p++) {
-                        let nodeData = pathToObj[p];
+                    let rootNode = jstreeInst.get_node('ul > li:first');
+
+                    function traverse(node, path) {
+                        if (path.length == 0) return;
+                        let nodeData = path[0];
                         node = inst.locate_node(nodeData.type + '-' + nodeData.id, node)[0];
-                        if (!node) break;
-                        inst.open_node(node);
+                        if (!node) {
+                        }
+                        inst.open_node(node, function(){
+                            path = path.slice(1);
+                            traverse(node, path);
+                        });
                     }
+                    // start recursive traversing...
+                    traverse(rootNode, pathToObj);
                 }
             });
         }
