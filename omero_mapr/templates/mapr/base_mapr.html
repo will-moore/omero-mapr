@@ -102,6 +102,8 @@
 
         var MAPANNOTATIONS = {}
         MAPANNOTATIONS.URLS = {'static_webclient': "{% static 'mapr' %}/"};
+        MAPANNOTATIONS.URLS.maprindex = "{% url 'maprindex' %}";
+        MAPANNOTATIONS.URLS.paths_to_object = "{% url 'mapannotations_api_paths_to_object' menu %}";
         MAPANNOTATIONS.URLS.autocomplete = "{% url 'mapannotations_autocomplete' menu %}";
         MAPANNOTATIONS.URLS.autocomplete_default = "{% url 'mapannotations_api_experimenters' menu %}";
 

@@ -104,4 +104,48 @@ $(function () {
         return sortingStrategy(node1, node2);
     };
 
+
+    // ----- Show -----
+    // e.g. /mapr/gene/?value=CDC5&show=screen-51
+    // $('#dataTree').on('loaded.jstree', function(e, data) {
+    $('#dataTree').on('load_node.jstree', function(e, data) {
+        // If we're not ROOT node, ignore
+        if (data.node.id !== 'j1_1') return;
+        var inst = data.instance;
+        // Check for e.g. ?show=screen-51
+        var show = OME.getURLParameter("show");
+        var value = OME.getURLParameter("value");
+        if (show && value) {
+            // Find node that contains study:
+            // /mapr/api/gene/paths_to_object/?map.value=CEP120&project=18328
+            var url = MAPANNOTATIONS.URLS.paths_to_object + '?' + show.replace('-', '=');
+            $.getJSON(url, {'map.value': value}, function(data) {
+                if (data.paths && data.paths.length > 0) {
+                    // Just traverse the first path, start looking at child of root
+                    let pathToObj = data.paths[0].slice(1);
+                    // start at root node
+                    let rootNode = jstreeInst.get_node('ul > li:first');
+
+                    function traverse(node, path) {
+                        if (path.length == 0) {
+                            inst.select_node(node);
+                            return;
+                        }
+                        let nodeData = path[0];
+                        node = inst.locate_node(nodeData.type + '-' + nodeData.id, node)[0];
+                        if (!node) {
+                            return;
+                        }
+                        path = path.slice(1);
+                        inst.open_node(node, function(){
+                            traverse(node, path);
+                        });
+                    }
+                    // start recursive traversing...
+                    traverse(rootNode, pathToObj);
+                }
+            });
+        }
+    });
+
 });
