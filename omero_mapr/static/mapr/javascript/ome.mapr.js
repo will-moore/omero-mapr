@@ -115,6 +115,8 @@ $(function () {
         // Check for e.g. ?show=screen-51
         var show = OME.getURLParameter("show");
         var value = OME.getURLParameter("value");
+        // Handle whitespace in the value ('%20')
+        value = value.replace(/%20/g, ' ');
         if (show && value) {
             // Find node that contains study:
             // /mapr/api/gene/paths_to_object/?map.value=CEP120&project=18328
