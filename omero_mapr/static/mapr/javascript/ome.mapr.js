@@ -115,6 +115,8 @@ $(function () {
         // Check for e.g. ?show=screen-51
         var show = OME.getURLParameter("show");
         var value = OME.getURLParameter("value");
+        // Handle whitespace or other characters
+        value = decodeURI(value);
         if (show && value) {
             // Find node that contains study:
             // /mapr/api/gene/paths_to_object/?map.value=CEP120&project=18328
