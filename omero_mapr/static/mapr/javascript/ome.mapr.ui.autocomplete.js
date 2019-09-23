@@ -40,7 +40,7 @@ $(function () {
                     value: $('#id_case_sensitive').is(":checked") ? request.term : request.term.toLowerCase(),
                     query: true,
                     case_sensitive: $('#id_case_sensitive').is(":checked"),
-                    experimenter_id: WEBCLIENT.active_user,
+                    experimenter_id: WEBCLIENT.active_user.id,
                     group: WEBCLIENT.active_group_id,
                 },
                 success: function(data) {
