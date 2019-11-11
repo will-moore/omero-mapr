@@ -120,7 +120,7 @@ def get_unicode_or_default(request, name, default):
     val = None
     val_raw = request.GET.get(name, default)
     if val_raw is not None:
-        val = unicode(strip_tags(val_raw))
+        val = strip_tags(val_raw)
     return val
 
 
