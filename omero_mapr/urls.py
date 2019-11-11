@@ -45,7 +45,7 @@ for m in mapr_settings.CONFIG:
             name="maprindex_%s" % m)
         )
 
-urlpatterns.extend([
+urlpatterns += [
 
     # core
     url(r'^$', never_cache(
@@ -97,4 +97,4 @@ urlpatterns.extend([
         views.mapannotations_favicon,
         name='mapannotations_favicon'),
 
-])
+]
