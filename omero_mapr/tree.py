@@ -27,6 +27,7 @@ import copy
 from omero.rtypes import rstring, rlist, unwrap, wrap
 from django.conf import settings
 from copy import deepcopy
+from past.builtins import long
 
 from omeroweb.webclient.tree import build_clause
 from omeroweb.webclient.tree import parse_permissions_css
@@ -914,7 +915,7 @@ def load_mapannotation(conn, mapann_value,
         experimenters[exp['id']] = exp
         annotations.append(d)
 
-    experimenters = experimenters.values()
+    experimenters = list(experimenters.values())
 
     return annotations, experimenters
 
