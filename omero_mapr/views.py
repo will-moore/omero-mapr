@@ -23,14 +23,18 @@
 import logging
 import traceback
 import requests
-import cStringIO
-from urlparse import urlparse
+from io import BytesIO
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 from Ice import Exception as IceException
+import omero.clients        # needed for following omero imports
 from omero import ApiUsageException, ServerError
 
 from django.conf import settings
-from mapr_settings import mapr_settings
+from .mapr_settings import mapr_settings
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseServerError, HttpResponseBadRequest
@@ -661,7 +665,7 @@ def mapannotations_favicon(request, conn=None, **kwargs):
 
     with Image.open(mapr_settings.DEFAULT_FAVICON) as img:
         img.thumbnail((16, 16), Image.ANTIALIAS)
-        f = cStringIO.StringIO()
+        f = BytesIO()
         img.save(f, "PNG")
         f.seek(0)
         return HttpJPEGResponse(f.read())
