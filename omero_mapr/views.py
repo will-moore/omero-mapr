@@ -50,9 +50,17 @@ from django_redis import get_redis_connection
 
 from omero.gateway.utils import toBoolean
 
-from show import mapr_paths_to_object
-from show import MapShow as Show
-import tree as mapr_tree
+from .show import mapr_paths_to_object
+from .show import MapShow as Show
+from .tree import count_mapannotations, \
+                  marshal_mapannotations, \
+                  marshal_screens, \
+                  marshal_projects, \
+                  marshal_datasets, \
+                  marshal_plates, \
+                  marshal_images, \
+                  load_mapannotation, \
+                  marshal_autocomplete
 
 from omeroweb.webclient.decorators import login_required, render_response
 from omeroweb.webclient.views import get_long_or_default, get_bool_or_default
@@ -63,7 +71,12 @@ from omeroweb.webclient.views import _load_template as _webclient_load_template
 from omeroweb.webclient.views import api_paths_to_object \
     as webclient_api_paths_to_object
 
-from omeroweb.http import HttpJPEGResponse
+try:
+    # renamed for Django 1.11
+    from omeroweb.httprsp import HttpJPEGResponse
+except:
+    # old name for backwards compatibili
+    from omeroweb.http import HttpJPEGResponse
 
 import omeroweb
 
@@ -290,7 +303,7 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
                 experimenter['extra']['query'] = query
 
             # count children
-            experimenter['childCount'] = mapr_tree.count_mapannotations(
+            experimenter['childCount'] = count_mapannotations(
                 conn=conn,
                 mapann_value=mapann_value,
                 query=query,
@@ -346,7 +359,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
             # Get attributes from map annotation
             if orphaned:
                 # offset = _get_wildcard_limit(mapr_settings, menu)
-                mapannotations = mapr_tree.marshal_mapannotations(
+                mapannotations = marshal_mapannotations(
                     conn=conn,
                     mapann_value=mapann_value,
                     query=query,
@@ -358,7 +371,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
                     page=page,
                     limit=limit)
             else:
-                screens = mapr_tree.marshal_screens(
+                screens = marshal_screens(
                     conn=conn,
                     mapann_value=mapann_value,
                     query=query,
@@ -368,7 +381,7 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
                     experimenter_id=experimenter_id,
                     page=page,
                     limit=limit)
-                projects = mapr_tree.marshal_projects(
+                projects = marshal_projects(
                     conn=conn,
                     mapann_value=mapann_value,
                     query=query,
@@ -413,7 +426,7 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
     try:
         if _get_wildcard(mapr_settings, menu) or mapann_value:
             # Get the images
-            datasets = mapr_tree.marshal_datasets(
+            datasets = marshal_datasets(
                 conn=conn,
                 project_id=project_id,
                 mapann_value=mapann_value,
@@ -457,7 +470,7 @@ def api_plate_list(request, menu, conn=None, **kwargs):
     try:
         if _get_wildcard(mapr_settings, menu) or mapann_value:
             # Get the images
-            plates = mapr_tree.marshal_plates(
+            plates = marshal_plates(
                 conn=conn,
                 screen_id=screen_id,
                 mapann_value=mapann_value,
@@ -505,7 +518,7 @@ def api_image_list(request, menu, conn=None, **kwargs):
     try:
         if _get_wildcard(mapr_settings, menu) or mapann_value:
             # Get the images
-            images = mapr_tree.marshal_images(
+            images = marshal_images(
                 conn=conn,
                 parent=parent,
                 parent_id=parent_id,
@@ -573,7 +586,7 @@ def api_annotations(request, menu, conn=None, **kwargs):
     anns = []
     exps = []
     try:
-        anns, exps = mapr_tree.load_mapannotation(
+        anns, exps = load_mapannotation(
             conn=conn,
             mapann_ns=mapann_ns,
             mapann_names=mapann_names,
@@ -613,7 +626,7 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
     autocomplete = []
     try:
         if mapann_value:
-            autocomplete = mapr_tree.marshal_autocomplete(
+            autocomplete = marshal_autocomplete(
                 conn=conn,
                 mapann_value=mapann_value,
                 query=query,

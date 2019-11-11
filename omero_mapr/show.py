@@ -26,12 +26,12 @@ import omero
 from copy import deepcopy
 
 from django.conf import settings
-from mapr_settings import mapr_settings
+from .mapr_settings import mapr_settings
 
 from omero.rtypes import rint, rlong, unwrap
 
 import omeroweb.webclient.show as omeroweb_show
-import tree as mapr_tree
+from .tree import _set_parameters
 
 from omeroweb.utils import reverse_with_params
 
@@ -152,7 +152,7 @@ def mapr_paths_to_object(conn, mapann_value,
                          page_size=None, limit=settings.PAGE):
 
     qs = conn.getQueryService()
-    params, where_clause = mapr_tree._set_parameters(
+    params, where_clause = _set_parameters(
         mapann_ns=mapann_ns, mapann_names=mapann_names,
         query=False, mapann_value=mapann_value,
         params=None, experimenter_id=experimenter_id,

@@ -27,13 +27,13 @@ from django.utils.functional import lazy
 from django.views.generic import RedirectView
 from django.views.decorators.cache import never_cache
 
-from mapr_settings import mapr_settings
+from .mapr_settings import mapr_settings
 
 reverse_lazy = lazy(reverse, str)
 
 # concatenate aliases to use in url regex
 CONFIG_REGEX = "(%s)" % ("|".join(mapr_settings.CONFIG))
-DEFAULT_CONFIG = mapr_settings.CONFIG.iterkeys().next()
+DEFAULT_CONFIG = list(mapr_settings.CONFIG.keys())[0]
 
 urlpatterns = []
 
