@@ -30,7 +30,6 @@ except ImportError:
     from urlparse import urlparse
 
 from Ice import Exception as IceException
-import omero.clients        # needed for following omero imports
 from omero import ApiUsageException, ServerError
 
 from django.conf import settings
@@ -74,8 +73,8 @@ from omeroweb.webclient.views import api_paths_to_object \
 try:
     # renamed for Django 1.11
     from omeroweb.httprsp import HttpJPEGResponse
-except:
-    # old name for backwards compatibili
+except ImportError:
+    # old name for backwards compatibility
     from omeroweb.http import HttpJPEGResponse
 
 import omeroweb
