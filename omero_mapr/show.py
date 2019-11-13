@@ -82,7 +82,7 @@ class MapShow(omeroweb_show.Show):
                 key = m.group('key')
                 value = m.group('value')
                 if key == 'id':
-                    value = long(value)
+                    value = int(value)
                 attributes = {key: value}
                 # Set context to 'cross-group'
                 self.conn.SERVICE_OPTS.setOmeroGroup('-1')
