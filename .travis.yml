@@ -12,8 +12,9 @@ services:
 # before_install:
 #   - git clone git://github.com/ome/omero-test-infra .omero
 
-# script:
-#   - .omero/docker app
+script:
+  # - .omero/docker app
+  true
 
 deploy:
   provider: pypi
