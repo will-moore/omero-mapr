@@ -9,12 +9,11 @@ python:
 services:
   - docker
 
-# before_install:
-#   - git clone git://github.com/ome/omero-test-infra .omero
+before_install:
+  - git clone git://github.com/ome/omero-test-infra .omero
 
 script:
-  # - .omero/docker app
-  true
+  - .omero/docker app
 
 deploy:
   provider: pypi
