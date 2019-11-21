@@ -27,6 +27,7 @@ import copy
 from omero.rtypes import rstring, rlist, unwrap, wrap
 from django.conf import settings
 from copy import deepcopy
+from past.builtins import long
 
 from omeroweb.webclient.tree import build_clause
 from omeroweb.webclient.tree import parse_permissions_css
@@ -88,12 +89,12 @@ def _set_parameters(mapann_ns=[], mapann_names=[],
     where_clause = []
 
     if mapann_names is not None and len(mapann_names) > 0:
-        manlist = [rstring(unicode(n)) for n in mapann_names]
+        manlist = [rstring(n) for n in mapann_names]
         params.add('filter', rlist(manlist))
         where_clause.append("mv.name in (:filter)")
 
     if mapann_ns is not None and len(mapann_ns) > 0:
-        mnslist = [rstring(unicode(n)) for n in mapann_ns]
+        mnslist = [rstring(n) for n in mapann_ns]
         params.add("ns", rlist(mnslist))
         where_clause.append("a.ns in (:ns)")
 
@@ -914,7 +915,7 @@ def load_mapannotation(conn, mapann_value,
         experimenters[exp['id']] = exp
         annotations.append(d)
 
-    experimenters = experimenters.values()
+    experimenters = list(experimenters.values())
 
     return annotations, experimenters
 

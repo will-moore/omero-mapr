@@ -21,31 +21,31 @@
 # Version: 1.0
 
 from . import views
-from django.conf.urls import url, patterns
+from django.conf.urls import url
 from django.core.urlresolvers import reverse
 from django.utils.functional import lazy
 from django.views.generic import RedirectView
 from django.views.decorators.cache import never_cache
 
-from mapr_settings import mapr_settings
+from .mapr_settings import mapr_settings
 
 reverse_lazy = lazy(reverse, str)
 
 # concatenate aliases to use in url regex
 CONFIG_REGEX = "(%s)" % ("|".join(mapr_settings.CONFIG))
-DEFAULT_CONFIG = mapr_settings.CONFIG.iterkeys().next()
+DEFAULT_CONFIG = list(mapr_settings.CONFIG.keys())[0]
 
-urlpatterns = patterns('',)
+urlpatterns = []
 
 # alias
 for m in mapr_settings.CONFIG:
-    urlpatterns += (
+    urlpatterns.append(
         url(r'^(?i)%s/$' % m,
             views.index, {'menu': m},
-            name="maprindex_%s" % m),
+            name="maprindex_%s" % m)
         )
 
-urlpatterns += (
+urlpatterns += [
 
     # core
     url(r'^$', never_cache(
@@ -55,7 +55,7 @@ urlpatterns += (
             query_string=True)),
         name="maprindex"),
 
-    url(r'^api/config/$', views.api_mapr_config),
+    url(r'^api/config/$', views.api_mapr_config, name='mapr_config'),
 
     url(r'^api/(?P<menu>%s)/count/$' % (CONFIG_REGEX),
         views.api_experimenter_list,
@@ -97,4 +97,4 @@ urlpatterns += (
         views.mapannotations_favicon,
         name='mapannotations_favicon'),
 
-)
+]

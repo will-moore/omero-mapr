@@ -39,8 +39,13 @@ def empty_settings(settings):
 
 class TestMaprConfig(IWebTest):
 
+    def test_config_json(self, settings):
+        request_url = reverse("mapr_config")
+        json = get_json(self.django_client, request_url)
+        assert json == settings
+
     def test_settings(self, settings):
-        assert len(settings.MAPR_CONFIG.keys()) > 0
+        assert len(list(settings.MAPR_CONFIG.keys())) > 0
         for menu in settings.MAPR_CONFIG.keys():
             request_url = reverse("maprindex_%s" % menu)
             get(self.django_client, request_url, {}, status_code=200)
@@ -52,7 +57,7 @@ class TestMaprConfig(IWebTest):
 
     @pytest.mark.parametrize('menu', ['foo', '', 'mygenes'])
     def test_bad_settings(self, settings, menu):
-        assert menu not in settings.MAPR_CONFIG.keys()
+        assert menu not in list(settings.MAPR_CONFIG.keys())
         with pytest.raises(NoReverseMatch) as excinfo:
             request_url = reverse("maprindex_%s" % menu)
             get(self.django_client, request_url, {}, status_code=200)
