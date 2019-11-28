@@ -30,6 +30,8 @@ except ImportError:
     from urlparse import urlparse
 
 from Ice import Exception as IceException
+# needed to import ApiUsageException
+import omero.clients        # noqa
 from omero import ApiUsageException, ServerError
 
 from django.conf import settings
