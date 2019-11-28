@@ -25,6 +25,8 @@ import sys
 from setuptools import setup, find_packages
 
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "omeroweb.settings")
+
 def get_requirements(filename='requirements.txt'):
     with open(filename) as f:
         rv = f.read().splitlines()
