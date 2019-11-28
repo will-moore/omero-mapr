@@ -30,7 +30,6 @@ except ImportError:
     from urlparse import urlparse
 
 from Ice import Exception as IceException
-from omero import ServerError
 
 from django.conf import settings
 from .mapr_settings import mapr_settings
@@ -315,8 +314,6 @@ def api_experimenter_list(request, menu, conn=None, **kwargs):
             if experimenter['childCount'] > 0 and mapann_value:
                 experimenter['extra']['value'] = mapann_value
 
-    except ServerError as e:
-        return HttpResponseServerError(e.serverStackTrace)
     except IceException as e:
         return HttpResponseServerError(e.message)
 
@@ -389,8 +386,6 @@ def api_mapannotation_list(request, menu, conn=None, **kwargs):
                     page=page,
                     limit=limit)
 
-    except ServerError as e:
-        return HttpResponseServerError(e.serverStackTrace)
     except IceException as e:
         return HttpResponseServerError(e.message)
 
@@ -432,8 +427,6 @@ def api_datasets_list(request, menu, conn=None, **kwargs):
                 experimenter_id=experimenter_id,
                 page=page,
                 limit=limit)
-    except ServerError as e:
-        return HttpResponseServerError(e.serverStackTrace)
     except IceException as e:
         return HttpResponseServerError(e.message)
 
@@ -474,8 +467,6 @@ def api_plate_list(request, menu, conn=None, **kwargs):
                 experimenter_id=experimenter_id,
                 page=page,
                 limit=limit)
-    except ServerError as e:
-        return HttpResponseServerError(e.serverStackTrace)
     except IceException as e:
         return HttpResponseServerError(e.message)
 
@@ -524,8 +515,6 @@ def api_image_list(request, menu, conn=None, **kwargs):
                 date=date,
                 thumb_version=thumb_version,
                 limit=limit)
-    except ServerError as e:
-        return HttpResponseServerError(e.serverStackTrace)
     except IceException as e:
         return HttpResponseServerError(e.message)
 
@@ -580,8 +569,6 @@ def api_annotations(request, menu, conn=None, **kwargs):
             mapann_ns=mapann_ns,
             mapann_names=mapann_names,
             mapann_value=mapann_value)
-    except ServerError as e:
-        return HttpResponseServerError(e.serverStackTrace)
     except IceException as e:
         return HttpResponseServerError(e.message)
 
@@ -624,8 +611,6 @@ def mapannotations_autocomplete(request, menu, conn=None, **kwargs):
                 experimenter_id=experimenter_id,
                 page=page,
                 limit=limit)
-    except ServerError as e:
-        return HttpResponseServerError(e.serverStackTrace)
     except IceException as e:
         return HttpResponseServerError(e.message)
 
