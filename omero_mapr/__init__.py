@@ -24,10 +24,12 @@
 
 
 from omero_mapr.utils.version import get_version
-
+from . import urls
 
 VERSION = (0, 4, 0, "dev2")
 
 __version__ = get_version(VERSION)
 
 default_app_config = 'omero_mapr.apps.MaprAppConfig'
+
+print(urls.__file__)
