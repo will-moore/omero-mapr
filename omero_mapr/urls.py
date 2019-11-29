@@ -34,11 +34,13 @@ reverse_lazy = lazy(reverse, str)
 # concatenate aliases to use in url regex
 CONFIG_REGEX = "(%s)" % ("|".join(mapr_settings.CONFIG))
 DEFAULT_CONFIG = list(mapr_settings.CONFIG.keys())[0]
+print('DEFAULT_CONFIG', DEFAULT_CONFIG)
 
 urlpatterns = []
 
 # alias
 for m in mapr_settings.CONFIG:
+    print('m in mapr_settings.CONFIG', m)
     urlpatterns.append(
         url(r'^(?i)%s/$' % m,
             views.index, {'menu': m},
