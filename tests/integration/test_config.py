@@ -42,7 +42,7 @@ class TestMaprConfig(IWebTest):
     def test_config_json(self, settings):
         request_url = reverse("mapr_config")
         json = get_json(self.django_client, request_url)
-        assert json == settings
+        assert json == settings.MAPR_CONFIG
 
     def test_settings(self, settings):
         assert len(list(settings.MAPR_CONFIG.keys())) > 0
