@@ -28,7 +28,7 @@ import traceback
 try:
     print('testimport urls.py...')
     from . import urls
-except ImportError:
+except (ImportError, IndexError):
     print("ImportError")
     traceback.print_exc()
 else:
