@@ -76,6 +76,7 @@ setup(
     download_url='https://github.com/ome/omero-mapr/tarball/%s' % version,  # NOQA
     install_requires=install_requires,
     tests_require=tests_require,
+    install_requires=['omero-web>=5.6.dev7'],
     include_package_data=True,
     zip_safe=False,
     test_suite="tests",
