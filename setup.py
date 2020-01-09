@@ -60,7 +60,7 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: JavaScript',
-        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Internet :: WWW/HTTP :: WSGI',
@@ -76,6 +76,7 @@ setup(
     download_url='https://github.com/ome/omero-mapr/tarball/%s' % version,  # NOQA
     install_requires=install_requires,
     tests_require=tests_require,
+    python_requires='>=3',
     include_package_data=True,
     zip_safe=False,
     test_suite="tests",

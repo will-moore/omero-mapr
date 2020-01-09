@@ -34,7 +34,7 @@ and namespace ``openmicroscopy.org/mapr/gene``.
 Requirements
 ============
 
-* OMERO 5.3 or newer.
+* OMERO.web 5.6 or newer.
 
 Installing from Pypi
 ====================
@@ -160,4 +160,4 @@ MAPR is released under the AGPL.
 Copyright
 ---------
 
-2016, The Open Microscopy Environment
+2016-2020, The Open Microscopy Environment

@@ -4,7 +4,7 @@ sudo: required
 language: python
 
 python:
-  - "2.7"
+  - "3.6"
 
 services:
   - docker
@@ -19,5 +19,6 @@ deploy:
   provider: pypi
   user: $PYPI_USER
   password: $PYPI_PASSWORD
+  distributions: sdist bdist_wheel
   on:
     tags: true
