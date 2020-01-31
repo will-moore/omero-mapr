@@ -31,6 +31,8 @@ except ImportError:
 
 from Ice import Exception as IceException
 from omero import ApiUsageException, ServerError
+from omero.sys import ParametersI
+from omero.rtypes import rlong, rstring
 
 from django.conf import settings
 from .mapr_settings import mapr_settings
@@ -682,3 +684,54 @@ def mapannotations_favicon(request, conn=None, **kwargs):
         f.seek(0)
         return HttpJPEGResponse(f.read())
     raise Http404
+
+
+@login_required()
+@render_response()
+def api_nb_chromosome(request, chr, start, end, conn=None, **kwargs):
+    """
+    Find Images with Long Annotations of chromosome regions
+
+    Uses Long annotations with namespaces chromosome.region.chr,
+    chromosome.region.start and chromosome.region.end
+    to find Images that are within the queried region.
+    Returns JSON {'data': [id, id, id]}
+    """
+
+    params = ParametersI()
+    params.addLong('chr', rlong(chr))
+    params.addString('ns_chr', rstring('chromosome.region.chr'))
+    params.addLong('start', rlong(start))
+    params.addString('ns_start', rstring('chromosome.region.start'))
+    params.addLong('end', rlong(end))
+    params.addString('ns_end', rstring('chromosome.region.end'))
+
+    # Find Images annotated with these long annotations
+    # where chr is matching AND
+    # the region overlaps (long annotation with END is within region OR
+    # long annotation with START is within region)
+    # NB: IF the query region is entirely *within* the chromosome region, this
+    # won't find the chromosome.
+    query = """select img from Image as img
+                left outer join fetch img.annotationLinks as ial
+                left outer join fetch ial.child as ann where
+                ann.longValue=:chr
+                and ann.ns=:ns_chr
+                and (
+                    img.id in (
+                        select distinct(link.parent.id) from ImageAnnotationLink as link
+                        join link.child as a where a.ns=:ns_start
+                        and (a.longValue>=:start and a.longValue<=:end)
+                    )
+                    or img.id in (
+                        select distinct(link.parent.id) from ImageAnnotationLink as link
+                        join link.child as a where a.ns=:ns_end
+                        and (a.longValue>=:start and a.longValue<=:end)
+                    )
+                )
+                """
+
+    result = conn.getQueryService().findAllByQuery(query, params, conn.SERVICE_OPTS)
+    ids = [r.id.val for r in result]
+
+    return {"data": ids}

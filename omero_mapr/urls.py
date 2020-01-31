@@ -97,4 +97,9 @@ urlpatterns += [
         views.mapannotations_favicon,
         name='mapannotations_favicon'),
 
+    # Nucleome Browser - Find images with intersecting chromosome region
+    # chr: "chr19", start: 11519359, end: 11879359, genome: "hg38"
+    url(r'^api/chr/(?P<chr>[0-9]+)/(?P<start>[0-9]+)/(?P<end>[0-9]+)/$',
+        views.api_nb_chromosome,
+        name='mapannotations_api_nb_chromosome'),
 ]
