@@ -719,19 +719,22 @@ def api_nb_chromosome(request, chr, start, end, conn=None, **kwargs):
                 and ann.ns=:ns_chr
                 and (
                     img.id in (
-                        select distinct(link.parent.id) from ImageAnnotationLink as link
+                        select distinct(link.parent.id)
+                        from ImageAnnotationLink as link
                         join link.child as a where a.ns=:ns_start
                         and (a.longValue>=:start and a.longValue<=:end)
                     )
                     or img.id in (
-                        select distinct(link.parent.id) from ImageAnnotationLink as link
+                        select distinct(link.parent.id)
+                        from ImageAnnotationLink as link
                         join link.child as a where a.ns=:ns_end
                         and (a.longValue>=:start and a.longValue<=:end)
                     )
                 )
                 """
 
-    result = conn.getQueryService().findAllByQuery(query, params, conn.SERVICE_OPTS)
+    result = conn.getQueryService().findAllByQuery(
+        query, params, conn.SERVICE_OPTS)
     ids = [r.id.val for r in result]
 
     return {"data": ids}
