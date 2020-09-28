@@ -137,10 +137,10 @@ OME.linkify_element = function(elements) {
                             );
                         }).closest("tr");
                         // Fall back to using the previous row
-                        if ( !$target ) {
+                        if ( !$target.length ) {
                             $target = $row.prev('tr');
                         }
-                        if ( $target ) {
+                        if ( $target.length ) {
                             var $targetchlabel = $target.children("td:nth-child(1)");
                             var $targetchvalue = $target.children("td:nth-child(2)");
                             // add icon to the target and hide
