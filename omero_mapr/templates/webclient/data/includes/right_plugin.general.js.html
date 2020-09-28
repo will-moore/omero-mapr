@@ -102,46 +102,28 @@ OME.linkify_element = function(elements) {
             if (!$row.parent().parent().hasClass("editableKeyValueTable")) {
                 var $chlabel = $row.children("td:nth-child(1)");
                 var $chvalue = $row.children("td:nth-child(2)");
-                // if label matchs mapr PK
                 var _key = $chlabel.text().trim();
                 var _val = $chvalue.text().trim();
                 var _tkey = _key.replace(/url/i, "").trim();
+                // Look for K-V pairs where the label is
+                // '<mapr-PK>' or '<mapr-PK> URL'
                 if ( $.inArray(_tkey, menu2keys) > -1  ) {
+                    // Create a linked favicon for the external resource
                     $chvalue.html(iconify($chvalue.text()));
                     if ( $.inArray(_key, menu2keys) > -1 ) {
                         if ( _key in keys2menu && keys2menu[_key] !== undefined ) {
-                            // create mapr url
+                            // Internal mapr URL for the value
                             var _url = location.protocol + "//" + location.host + "{% url 'maprindex' %}" + keys2menu[_key] +"/?value=" + encodeURIComponent(_val);
                             $chvalue.html($chvalue.html().replace(_val, '<a href="' + _url + '">' + _val + '</a>'));
                         }
                     }
                     if ( _key.match(new RegExp("url", "i"))  ) {
-                        // Find nearest URL containing the mapr value
-                        var $target = $row.parent().find("tr").filter(function() {
-                            var $chl = $(this).children("td:nth-child(1)");
-                            var $chv = $(this).children("td:nth-child(2)");
-                            var $chs = $row.children("td:nth-child(2)").find("span a img").attr('src');
-                            return (
-                                $chl.text() === _tkey &&
-                                (
-                                    (
-                                        $chv.find("a").text().length > 0 &&
-                                        (
-                                            $chs.indexOf(encodeURIComponent($chv.find("a").text())) >= 0 ||
-                                            $chs.indexOf($chv.find("a").text()) >= 0
-                                        )
-                                    ) || ($chv.text().length > 0 &&
-                                        ($chs.indexOf(encodeURIComponent($chv.text())) >= 0 || $chs.indexOf($chv.text()) >= 0)
-                                    )
-                                )
-                            );
-                        }).closest("tr");
-                        // Fall back to using the previous row
-                        if ( !$target.length ) {
-                            $target = $row.prev('tr');
-                        }
-                        if ( $target.length ) {
-                            var $targetchlabel = $target.children("td:nth-child(1)");
+                        // Associate with the previous row as long as
+                        // row[N-1].key == row[N].key + ' URL'
+                        var $target = $row.prev('tr');
+                        if ( $target.length &&
+                             $target.children("td:nth-child(1)").text() === _tkey
+                        ) {
                             var $targetchvalue = $target.children("td:nth-child(2)");
                             // add icon to the target and hide
                             $targetchvalue.append($chvalue.html());
