@@ -116,8 +116,7 @@ OME.linkify_element = function(elements) {
                         }
                     }
                     if ( _key.match(new RegExp("url", "i"))  ) {
-                        // Find nearest URL
-                        //var $target1 = $row.prev('tr');
+                        // Find nearest URL containing the mapr value
                         var $target = $row.parent().find("tr").filter(function() {
                             var $chl = $(this).children("td:nth-child(1)");
                             var $chv = $(this).children("td:nth-child(2)");
@@ -136,7 +135,11 @@ OME.linkify_element = function(elements) {
                                     )
                                 );
                         }).closest("tr");
-                        if ( $target.length ) {
+                        // Fall back to using the previous row
+                        if ( !$target ) {
+                            $target = $row.prev('tr');
+                        }
+                        if ( $target ) {
                             var $targetchlabel = $target.children("td:nth-child(1)");
                             var $targetchvalue = $target.children("td:nth-child(2)");
                             // add icon to the target and hide
