@@ -122,7 +122,19 @@ OME.linkify_element = function(elements) {
                             var $chl = $(this).children("td:nth-child(1)");
                             var $chv = $(this).children("td:nth-child(2)");
                             var $chs = $row.children("td:nth-child(2)").find("span a img").attr('src');
-                            return $chl.text() === _tkey && (($chv.find("a").text().lenght > 0 && ($chs.indexOf(encodeURIComponent($chv.find("a").text())) >= 0 || $chs.indexOf($chv.find("a").text()) >= 0)) || ($chv.text().length > 0 && ($chs.indexOf(encodeURIComponent($chv.text())) >= 0 || $chs.indexOf($chv.text()) >= 0)));
+                            return
+                                $chl.text() === _tkey &&
+                                (
+                                    (
+                                        $chv.find("a").text().lenght > 0 &&
+                                        (
+                                            $chs.indexOf(encodeURIComponent($chv.find("a").text())) >= 0 ||
+                                            $chs.indexOf($chv.find("a").text()) >= 0
+                                        )
+                                    ) || ($chv.text().length > 0 &&
+                                        ($chs.indexOf(encodeURIComponent($chv.text())) >= 0 || $chs.indexOf($chv.text()) >= 0)
+                                    )
+                                );
                         }).closest("tr");
                         if ( $target.length ) {
                             var $targetchlabel = $target.children("td:nth-child(1)");
