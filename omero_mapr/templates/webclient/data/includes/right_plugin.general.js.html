@@ -121,7 +121,7 @@ OME.linkify_element = function(elements) {
                             var $chl = $(this).children("td:nth-child(1)");
                             var $chv = $(this).children("td:nth-child(2)");
                             var $chs = $row.children("td:nth-child(2)").find("span a img").attr('src');
-                            return
+                            return (
                                 $chl.text() === _tkey &&
                                 (
                                     (
@@ -133,7 +133,8 @@ OME.linkify_element = function(elements) {
                                     ) || ($chv.text().length > 0 &&
                                         ($chs.indexOf(encodeURIComponent($chv.text())) >= 0 || $chs.indexOf($chv.text()) >= 0)
                                     )
-                                );
+                                )
+                            );
                         }).closest("tr");
                         // Fall back to using the previous row
                         if ( !$target ) {
