@@ -40,7 +40,12 @@ MAPR_SETTINGS_MAPPING = {
          str, None],
     "omero.web.mapr.favicon_webservice":
         ["MAPR_FAVICON_WEBSERVICE",
-            "http://www.google.com/s2/favicons?domain=", str, None],
+            "http://www.google.com/s2/favicons?domain=", str,
+            (
+                "Service to load favicons for use in external links."
+                " Icons are cached in redis which must be available."
+            )
+        ],
     }
 
 
