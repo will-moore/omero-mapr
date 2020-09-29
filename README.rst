@@ -145,11 +145,15 @@ You should now be able to browse to a ``Genes`` page and search for
 External URL Favicons
 ^^^^^^^^^^^^^^^^^^^^^
 
-Mapr can automatically convert external URLs in mapr categories to clickable favicons.
-OMERO.web must be configured with the Django redis cache https://docs.openmicroscopy.org/omero/5/sysadmins/unix/install-web/walkthrough/omeroweb-install-centos7-ice3.6.html?highlight=redis#configuring-omero-web which is used to cached the favicons that are obtained using a Google service.
-
-To use this feature the mapr category key-value pair such as `Gene Identifier` must be followed by a key called `Gene Identifier URL`.
-A favicon linked to the external URL will be appended to the `Gene Identifier` row, and the `Gene Identifier URL` key-value pair will be hidden.
+Mapr can automatically convert URLs into favicon links.
+To use this feature the key such as `Gene Identifier` must be in the "all" list of a config
+as shown above and the `Gene Identifier` key-value pair must be followed by a key-value pair
+called `Gene Identifier URL`.
+A favicon linked to the external URL will be appended to the `Gene Identifier` row, and the
+`Gene Identifier URL` key-value pair will be hidden.
+OMERO.web must be configured with the Django redis cache
+https://docs.openmicroscopy.org/omero/5/sysadmins/unix/install-web/walkthrough/omeroweb-install-centos7-ice3.6.html?highlight=redis#configuring-omero-web
+which is used to cache the favicons that are obtained using a Google service.
 
 
 Testing
