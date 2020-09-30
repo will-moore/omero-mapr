@@ -54,7 +54,7 @@ var iconify = function(input, imgsrc) {
     if (typeof imgsrc === 'undefined') {
         // e.g. https://www.google.com/s2/favicons?domain=https://www.ensembl.org/index.html
         // mapr can store icon in redis and serve at
-        // e.g http://idr.openmicroscopy.org/mapr/favicon/?u=https://www.ensembl.org/index.html
+        // e.g https://idr.openmicroscopy.org/mapr/favicon/?u=https://www.ensembl.org/index.html
         imgsrc = "{% url "mapannotations_favicon" %}?u=";
     }
     function replacer(match){
