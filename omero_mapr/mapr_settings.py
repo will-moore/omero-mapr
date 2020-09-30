@@ -45,7 +45,7 @@ MAPR_SETTINGS_MAPPING = {
                 "Service to load favicons for use in external links."
                 " Icons are cached in redis which must be available."
             )
-        ],
+         ],
     }
 
 
