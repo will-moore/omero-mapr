@@ -126,12 +126,13 @@ OME.linkify_element = function(elements) {
                     }
                     // If we're on e.g. "Gene Identifier URL" row...
                     if ( _key.match(new RegExp("url", "i"))  ) {
-                        // Associate with the previous row as long as
+                        // Find the next previous row where
                         // row[N-1].key == row[N].key + ' URL'
                         var $target = $row.prev('tr');
-                        if ( $target.length &&
-                             $target.children("td:nth-child(1)").text() === _tkey
-                        ) {
+                        while ($target.length > 0 && $target.children("td:nth-child(1)").text() !== _tkey) {
+                            $target = $target.prev('tr');
+                        }
+                        if ($target.children("td:nth-child(1)").text() === _tkey) {
                             var $targetchvalue = $target.children("td:nth-child(2)");
                             // Take the Favicon html we created with iconify() above
                             // and add it to the previous Value. Then hide this row.
