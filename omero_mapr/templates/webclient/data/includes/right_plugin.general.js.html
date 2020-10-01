@@ -111,7 +111,7 @@ OME.linkify_element = function(elements) {
                 var _tkey = _key.replace(/url/i, "").trim();
                 // Look for K-V pairs where the label is
                 // '<mapr-PK>' or '<mapr-PK> URL'
-                // Will be true for 'Gene Indentifier' and 'Gene Indentifier URL'
+                // Will be true for 'Gene Identifier' and 'Gene Identifier URL'
                 if ( $.inArray(_tkey, menu2keys) > -1  ) {
                     // IF the value is a URL, create a favicon
                     $chvalue.html(iconify($chvalue.text()));
