@@ -42,8 +42,8 @@ logger = logging.getLogger(__name__)
 
 def _escape_chars_like(query):
     escape_chars = {
-        "%": "\%",
-        "_": "\_",
+        "%": r"\%",
+        "_": r"\_",
     }
 
     for k, v in escape_chars.items():
