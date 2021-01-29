@@ -53,7 +53,7 @@ Add the app to the list of installed apps:
 
 ::
 
-    $ bin/omero config append omero.web.apps '"omero_mapr"'
+    $ omero config append omero.web.apps '"omero_mapr"'
 
 
 Config Settings
@@ -71,7 +71,7 @@ For example, to search for "Primary Antibody" or "Secondary Antibody" values, we
 
 ::
 
-    $ bin/omero config append omero.web.mapr.config '{"menu": "antibody", "config":{"default":["Primary Antibody"], "all":["Primary Antibody", "Secondary Antibody"], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Antibody"}}'
+    $ omero config append omero.web.mapr.config '{"menu": "antibody", "config":{"default":["Primary Antibody"], "all":["Primary Antibody", "Secondary Antibody"], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Antibody"}}'
 
 We can add an "Antibodies" link to the top of the webclient page to take us to the Antibodies search page.
 The link tooltip is "Find Antibody values".
@@ -79,7 +79,7 @@ The ``viewname`` should be in the form ``maprindex_{menu}`` where ``{menu}`` is 
 
 ::
 
-    $ bin/omero config append omero.web.ui.top_links '["Antibodies", {"viewname": "maprindex_antibody"}, {"title": "Find Antibody values"}]'
+    $ omero config append omero.web.ui.top_links '["Antibodies", {"viewname": "maprindex_antibody"}, {"title": "Find Antibody values"}]'
 
 After restarting web, we can now search for Antibodies:
 
@@ -90,10 +90,10 @@ We can also specify an empty list of keys to search for *any* value.
 
 ::
 
-    $ bin/omero config append omero.web.mapr.config '{"menu": "anyvalue", "config":{"default":["Any Value"], "all":[], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Any"}}'
+    $ omero config append omero.web.mapr.config '{"menu": "anyvalue", "config":{"default":["Any Value"], "all":[], "ns":["openmicroscopy.org/omero/client/mapAnnotation"], "label":"Any"}}'
 
     # Top link
-    $ bin/omero config append omero.web.ui.top_links '["Any Value", {"viewname": "maprindex_anyvalue"}, {"title": "Find Any Value"}]'
+    $ omero config append omero.web.ui.top_links '["Any Value", {"viewname": "maprindex_anyvalue"}, {"title": "Find Any Value"}]'
 
 After restarting web, we can now search for any Value, such as "INCENP":
 
@@ -109,14 +109,14 @@ attributes under the ``Gene Symbol`` and ``Gene Identifier`` keys.
 
 ::
 
-    $ bin/omero config append omero.web.mapr.config '{"menu": "gene","config": {"default": ["Gene Symbol"],"all": ["Gene Symbol", "Gene Identifier"],"ns": ["openmicroscopy.org/mapr/gene"],"label": "Gene"}}'
+    $ omero config append omero.web.mapr.config '{"menu": "gene","config": {"default": ["Gene Symbol"],"all": ["Gene Symbol", "Gene Identifier"],"ns": ["openmicroscopy.org/mapr/gene"],"label": "Gene"}}'
 
 Now add a top link of ``Genes`` with tooltip ``Find Gene annotations`` that will take us to the ``gene`` search page. The ``query_string`` parameters are added to the URL, with ``"experimenter": -1``
 specifying that we want to search across all users.
 
 ::
 
-    $ bin/omero config append omero.web.ui.top_links '["Genes", {"viewname": "maprindex_gene", "query_string": {"experimenter": -1}}, {"title": "Find Gene annotations"}]'
+    $ omero config append omero.web.ui.top_links '["Genes", {"viewname": "maprindex_gene", "query_string": {"experimenter": -1}}, {"title": "Find Gene annotations"}]'
 
 
 Finally, we can add a map annotation to an Image that is in a Screen -> Plate -> Well
@@ -174,4 +174,4 @@ MAPR is released under the AGPL.
 Copyright
 ---------
 
-2016-2020, The Open Microscopy Environment
+2016-2021, The Open Microscopy Environment
