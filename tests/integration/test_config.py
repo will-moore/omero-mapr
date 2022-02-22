@@ -26,7 +26,7 @@
 import pytest
 import json
 
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.urls import reverse, NoReverseMatch
 
 from omeroweb.testlib import IWebTest, get, get_json
 from omero_mapr.utils import config_list_to_dict

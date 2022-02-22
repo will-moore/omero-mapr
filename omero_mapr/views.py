@@ -35,7 +35,7 @@ from omero import ApiUsageException, ServerError
 from django.conf import settings
 from .mapr_settings import mapr_settings
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseServerError, HttpResponseBadRequest
 from django.http import JsonResponse
 from django.http import Http404

@@ -25,7 +25,7 @@
 
 import pytest
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from omeroweb.testlib import get_json
 
