@@ -40,7 +40,7 @@ urlpatterns = []
 # alias
 for m in mapr_settings.CONFIG:
     urlpatterns.append(
-        url(r'^(?i)%s/$' % m,
+        url(r'^%s/$' % m,
             views.index, {'menu': m},
             name="maprindex_%s" % m)
         )
