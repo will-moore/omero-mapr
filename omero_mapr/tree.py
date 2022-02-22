@@ -745,7 +745,8 @@ def marshal_images(conn, parent, parent_id,
             ,
             pix.sizeX as sizeX,
             pix.sizeY as sizeY,
-            pix.sizeZ as sizeZ
+            pix.sizeZ as sizeZ,
+            pix.sizeT as sizeT
         """)
 
     if date:
@@ -809,7 +810,7 @@ def marshal_images(conn, parent, parent_id,
              e["filesetId"]]
         kwargs = {'conn': conn, 'row': d[0:5]}
         if load_pixels:
-            d = [e["sizeX"], e["sizeY"], e["sizeZ"]]
+            d = [e["sizeX"], e["sizeY"], e["sizeZ"], e["sizeT"]]
             kwargs['row_pixels'] = d
         if date:
             kwargs['acqDate'] = e['acqDate']
