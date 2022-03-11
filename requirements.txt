@@ -1,3 +1,2 @@
 requests
-django-redis>4.4,<4.9
-omero-web>=5.13.0,<5.14.0
+omero-web[redis]==5.14.0rc1
