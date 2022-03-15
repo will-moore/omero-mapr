@@ -22,7 +22,7 @@
 
 from . import views
 from django.conf.urls import url
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.functional import lazy
 from django.views.generic import RedirectView
 from django.views.decorators.cache import never_cache
@@ -40,7 +40,7 @@ urlpatterns = []
 # alias
 for m in mapr_settings.CONFIG:
     urlpatterns.append(
-        url(r'^(?i)%s/$' % m,
+        url(r'^%s/$' % m,
             views.index, {'menu': m},
             name="maprindex_%s" % m)
         )
