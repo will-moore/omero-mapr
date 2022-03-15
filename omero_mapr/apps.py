@@ -25,8 +25,8 @@
 from django.apps import AppConfig
 from django.utils.version import get_complete_version
 
-if get_complete_version() < (1, 8):
-    raise RuntimeError('MAPR requires Django 1.8+')
+if get_complete_version() < (3, 2):
+    raise RuntimeError('MAPR requires Django 3.2+')
 
 
 class MaprAppConfig(AppConfig):
