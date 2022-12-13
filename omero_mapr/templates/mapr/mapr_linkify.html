@@ -43,6 +43,18 @@
 
 <script type="text/javascript">
 
+if (OME && OME.getCustomRightPanelUrl) {
+    // overwrite global function
+    OME.getCustomRightPanelUrl = function getCustomRightPanelUrl(oid) {
+        var orel = oid.split("-")[0];
+        if (orel.indexOf("map")>=0) {
+            var map_prefix = '{% url "maprindex" %}';
+            let params = new URLSearchParams({value: oid.split(/-(.+)/)[1]})
+            return map_prefix + 'metadata_details/{{ menu }}/?' + params;
+        }
+    }
+}
+
 var urlRegex = new RegExp("(https?|ftp|file):\/\/[!-~]*", "igm");
 
 var iconify = function(input, imgsrc) {
