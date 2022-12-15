@@ -44,13 +44,18 @@
 <script type="text/javascript">
 
 if (OME && OME.getCustomRightPanelUrl) {
+    console.log("mapr overwriting OME.getCustomRightPanelUrl()");
     // overwrite global function
     OME.getCustomRightPanelUrl = function getCustomRightPanelUrl(oid) {
+        console.log("OMERO.mapr getCustomRightPanelUrl()", oid)
         var orel = oid.split("-")[0];
+        console.log("orel", orel, orel.indexOf("map")>=0);
         if (orel.indexOf("map")>=0) {
             var map_prefix = '{% url "maprindex" %}';
-            let params = new URLSearchParams({value: oid.split(/-(.+)/)[1]})
-            return map_prefix + 'metadata_details/{{ menu }}/?' + params;
+            let params = new URLSearchParams({value: oid.split(/-(.+)/)[1]});
+            let map_url = map_prefix + 'metadata_details/{{ menu }}/?' + params;
+            console.log("map_url", map_url);
+            return map_url;
         }
     }
 }
