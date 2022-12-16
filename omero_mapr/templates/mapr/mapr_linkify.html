@@ -60,6 +60,11 @@ if (OME && OME.getCustomRightPanelUrl) {
     }
 }
 
+// make sure details are ALWAYS opened
+OME.setPaneExpanded('details', true);
+// make sure maps are ALWAYS opened
+OME.setPaneExpanded('maps', true);
+
 var urlRegex = new RegExp("(https?|ftp|file):\/\/[!-~]*", "igm");
 
 var iconify = function(input, imgsrc) {
