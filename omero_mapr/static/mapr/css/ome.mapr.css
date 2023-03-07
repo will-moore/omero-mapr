@@ -30,6 +30,12 @@ ul.ui-autocomplete{
     display: block;
 }
 
+/* removed in jquery-ui 1.13.2, but we still want this */
+.ui-menu-item a.ui-state-active {
+    background: #D4D6D8;
+    margin: 0;
+}
+
 #autocompletesearch {
     /* override .filtersearch width from webclient */
     width: 180px;
