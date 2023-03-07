@@ -26,6 +26,8 @@ ul.ui-autocomplete{
     background:#ffffff;
     font-size: 10px;
     width: 135px;
+    /* https://github.com/ome/omero-web/pull/433#issuecomment-1396774881 */
+    display: block;
 }
 
 #autocompletesearch {
