@@ -1,3 +1,9 @@
+0.5.1 (March 2023)
+------------------
+
+- Fix auto-complete css for omero-web 5.18.0 jquery-ui 1.13.2 ([#76](https://github.com/ome/omero-mapr/pull/76))
+
+
 0.5.0 (March 2022)
 ------------------
 
