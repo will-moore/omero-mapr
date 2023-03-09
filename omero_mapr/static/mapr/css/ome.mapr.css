@@ -26,6 +26,14 @@ ul.ui-autocomplete{
     background:#ffffff;
     font-size: 10px;
     width: 135px;
+    /* https://github.com/ome/omero-web/pull/433#issuecomment-1396774881 */
+    display: block;
+}
+
+/* removed in jquery-ui 1.13.2, but we still want this */
+.ui-menu-item a.ui-state-active {
+    background: #D4D6D8;
+    margin: 0;
 }
 
 #autocompletesearch {
