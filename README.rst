@@ -55,12 +55,6 @@ Add the app to the list of installed apps:
 
     $ omero config append omero.web.apps '"omero_mapr"'
 
-Include JavaScript and CSS for custom "linkify" behaviour:
-
-::
-
-    $ omero config append omero.web.html_head_includes '"mapr/mapr_linkify.html"'
-
 
 Config Settings
 ===============
