@@ -1,0 +1,35 @@
+
+
+<!-- 
+    This file is included in the <head> of the right panel since it
+    complies with the naming convention "/[app_label]/includes/right_panel.html"
+    See https://github.com/ome/omero-web/pull/425
+ -->
+
+<script>
+    $(function(){
+        // e.g. "image-1"
+        let objId = $("#object-id").text();
+        let data = objId.replace("-", "=");
+
+        // load map annotations...
+        let url = WEBCLIENT.URLS.webindex + "api/annotations/?type=map&" + data;
+
+        $.getJSON(url, function(data){
+            // Look for "Publication Title" Key-Value pair...
+            let title;
+            data.annotations.forEach(function(ann){
+                ann.values.forEach(function(kvp) {
+                    if (kvp[0] == "Publication Title") {
+                        title = kvp[1];
+                    }
+                });
+            });
+            // If we have a title, insert it into the first ".data_heading" (above Name)
+            if (title != undefined) {
+                $(".data_heading").first().prepend(`<h1>${title}</h1>`);
+            }
+        })
+        
+    });
+</script>
