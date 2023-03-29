@@ -2,6 +2,7 @@
 # The webclient looks in app/includes module for "right_panel_title"
 # to add custom html to the right panel
 
+
 def right_panel_title(**kwargs):
 
     conn = kwargs.get("conn")
