@@ -1,0 +1,30 @@
+
+{% extends "webclient/base/base_container.html" %}
+
+{% block script %}
+
+    {{ block.super }}
+
+    <script>
+
+        if (OME && OME.getCustomRightPanelUrl) {
+            // overwrite global function
+            OME.getCustomRightPanelUrl = function getCustomRightPanelUrl(oid) {
+                var orel = oid.split("-")[0];
+                if (orel.indexOf("map")>=0) {
+                    var map_prefix = '{% url "maprindex" %}';
+                    let params = new URLSearchParams({value: oid.split(/-(.+)/)[1]});
+                    let map_url = map_prefix + 'metadata_details/{{ menu }}/?' + params;
+                    return map_url;
+                }
+            }
+        }
+
+        // make sure details are ALWAYS opened
+        OME.setPaneExpanded('details', true);
+        // make sure maps are ALWAYS opened
+        OME.setPaneExpanded('maps', true);
+
+    </script>
+
+{% endblock %}
