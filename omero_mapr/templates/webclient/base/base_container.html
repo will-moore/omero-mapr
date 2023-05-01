@@ -95,6 +95,7 @@
     
     var old_linkify_element = OME.linkify_element;
     OME.linkify_element = function(elements) {
+        console.log("custom linkify_element")
         if ($("table.keyValueTable").is(elements) ) {
             var mapr_menu = {% mapr_menu_config %};
     
