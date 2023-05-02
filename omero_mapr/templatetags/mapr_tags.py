@@ -41,14 +41,16 @@ def mapr_menu_config():
     return mark_safe(json.dumps(mapr_settings.CONFIG))
 
 
-@register.inclusion_tag("mapr/includes/right_panel_title.html", takes_context=True)
+@register.inclusion_tag("mapr/includes/right_panel_title.html",
+                        takes_context=True)
 def publication_title_from_kvp(context):
     """
     We try to load Key-Value pairs on an object in the 'manager' and show the
     'Publication Title' value
     """
 
-    if "manager" not in context or not hasattr(context["manager"], "_get_object"):
+    manager = context.get("manager", None)
+    if not hasattr(manager, "_get_object"):
         return {}
 
     obj = context["manager"]._get_object()
