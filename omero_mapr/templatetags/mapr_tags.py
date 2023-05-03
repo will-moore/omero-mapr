@@ -54,7 +54,8 @@ def publication_title_from_kvp(context):
         return {}
 
     obj = context["manager"]._get_object()
-    if obj is None:
+    # We only try to show Publication Title for Projects/Screens
+    if obj is None or obj.OMERO_CLASS not in ("Project", "Screen"):
         return {}
 
     title = ""
