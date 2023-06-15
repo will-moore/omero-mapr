@@ -1,3 +1,8 @@
+0.5.2 (June 2023)
+-----------------
+
+- Make app compatible with Django 4.0.x ([#78](https://github.com/ome/omero-mapr/pull/78))
+
 0.5.1 (March 2023)
 ------------------
 
