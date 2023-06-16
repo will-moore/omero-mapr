@@ -72,10 +72,14 @@ With the following meanings:
     Gives a name to this OMERO.mapr entry by which it can be referenced in other config settings, e.g. ``omero.web.ui.top_links``.
 * "default":
     Sets the name of the Key that is used as default in the search field if you have it configured in ``omero.web.ui.top_links``.
+    
 .. image:: https://user-images.githubusercontent.com/92271654/246146982-97aef32b-6732-4caa-bbe0-260c73bf3576.PNG
+
 * "all":
     Lists all keys for which you can utilize the additional OMERO.mapr functionalities, namely searching for their values and adding URL links to them. One can create other keys with the Namespace set in "ns" which will appear under the same label, but other than being immutabel have no additional functionalities.
+    
 .. image:: https://user-images.githubusercontent.com/92271654/246147020-a72d44cd-84a1-4a11-a1b8-a06fb038bcf5.PNG
+
 * "ns":
     The Namespace that must be used when creating new Map Annotations associated with this OMERO.mapr entry. The prefix "openmicroscopy.org/mapr" is optional, just simply "gene" would also be acceptable.
 * "wildcard":
