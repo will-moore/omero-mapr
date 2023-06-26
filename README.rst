@@ -83,11 +83,13 @@ With the following meanings:
 * "ns":
     The Namespace that must be used when creating new Map Annotations associated with this OMERO.mapr entry. The prefix "openmicroscopy.org/mapr" is optional, just simply "gene" would also be acceptable.
 * "wildcard":
-    Makes all possible values visible in the search function, without needing to type anything in the search field.
+    If true, all the values for this key will be automatically loaded in the left panel of the webclient, without the user needing to type anything in the search field. This is useful if the number of possible values is not too high, such as in the mid to low hundreds, so that the user can easily browse the list. The IDR `Phenotype search <https://idr.openmicroscopy.org/mapr/phenotype/?experimenter=-1>`_ serves as an example for this behaviour.
 * "case_sensitive":
     Enables you to check the box for "Match case" in the search function.
 * "label":
     Sets the label for a set of Map Annotations with the same Namespace.
+
+In general, the IDR config (`here <https://github.com/IDR/deployment/blob/master/ansible/group_vars/omero-hosts.yml>`_ as a yaml representation) serves as a great example containing an extensive ``omero.web.mapr.config``.
 
 
 
@@ -199,6 +201,8 @@ If your IT structure utilizes a proxy and you are unwilling to set the proxy on 
 Map Annotations on Wells/Images
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 For Plates the same Map Annotation that is on an Image has to also be on its corresponding Well for the Values to be correctly findable in the search function.
+The reasons for this rather unintuitive behaviour are partly historical, as in the past no Annotations were shown for Images when browsing Screen-Plate-Well data, and partly performance related, as the query runs quicker by saving a JOIN when you're trying to find matching Plates if you only need to query Wells instead of Images.
+
 
 
 Testing
