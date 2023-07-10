@@ -76,7 +76,7 @@ With the following meanings:
 .. image:: https://user-images.githubusercontent.com/92271654/246146982-97aef32b-6732-4caa-bbe0-260c73bf3576.PNG
 
 * "all":
-    Lists all keys for which you can utilize the additional OMERO.mapr functionalities, namely searching for their values and adding URL links to them. One can create other keys with the Namespace set in "ns" which will appear under the same label, but other than being immutabel have no additional functionalities.
+    Lists all keys for which you can utilize the additional OMERO.mapr functionalities, namely searching for their values and adding URL links to them. One can create other keys with the Namespace set in "ns" which will appear under the same label, but other than being immutable have no additional functionalities.
     
 .. image:: https://user-images.githubusercontent.com/92271654/246147020-a72d44cd-84a1-4a11-a1b8-a06fb038bcf5.PNG
 
