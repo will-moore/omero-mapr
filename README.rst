@@ -173,7 +173,8 @@ add a map annotation corresponding to the configuration above:
 Now restart OMERO.web as normal for the configuration above to take effect.
 You should now be able to browse to a ``Genes`` page and search for
 ``CDC20`` or ``ENSG00000117399``.
-Note that if you add another set of Map Annotations with the same Namespace they will not be added to the existing set but will get a new "paragraph" with the label again. It is therefore advisable for the sake of visible clarity to copy the Key-Value pairs, remove the old set, add the KV-pairs to the new set and then create a new Map Annotation with the combined KV-pairs.
+
+Note that if you create multiple Map Annotations with the same Namespace, this will result in a more verbose layout in the webclient UI. It is preferable to combine all Key-Value pairs for a particular Namespace into a single Map Annotation.
 
 
 External URL Favicons
