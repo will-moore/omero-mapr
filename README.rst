@@ -60,6 +60,39 @@ Config Settings
 ===============
 
 You need to configure the namespaces and keys that you want users to be able to search for.
+A general config is structured like this:
+
+::
+
+$ omero config append omero.web.mapr.config '{"menu": "gene", "config": {"default": ["Gene Symbol"], "all": ["Gene Symbol", "Gene Identifier"], "ns": ["openmicroscopy.org/mapr/gene"], "wildcard": {"enabled": true}, "case_sensitive": "true", "label": "Gene"}}'
+
+With the following meanings:
+
+* "menu":
+    Gives a name to this OMERO.mapr entry by which it can be referenced in other config settings, e.g. ``omero.web.ui.top_links``.
+* "default":
+    Sets the name of the Key that is used as default in the search field if you have it configured in ``omero.web.ui.top_links``.
+    
+.. image:: https://user-images.githubusercontent.com/92271654/246146982-97aef32b-6732-4caa-bbe0-260c73bf3576.PNG
+
+* "all":
+    Lists all keys for which you can utilize the additional OMERO.mapr functionalities, namely searching for their values and adding URL links to them. One can create other keys with the Namespace set in "ns" which will appear under the same label, but other than being immutable have no additional functionalities.
+    
+.. image:: https://user-images.githubusercontent.com/92271654/246147020-a72d44cd-84a1-4a11-a1b8-a06fb038bcf5.PNG
+
+* "ns":
+    The Namespace that must be used when creating new Map Annotations associated with this OMERO.mapr entry. The prefix "openmicroscopy.org/mapr" is optional, just simply "gene" would also be acceptable.
+* "wildcard":
+    If true, all the values for this key will be automatically loaded in the left panel of the webclient, without the user needing to type anything in the search field. This is useful if the number of possible values is not too high, such as in the mid to low hundreds, so that the user can easily browse the list. The IDR `Phenotype search <https://idr.openmicroscopy.org/mapr/phenotype/?experimenter=-1>`_ serves as an example for this behaviour.
+* "case_sensitive":
+    Enables you to check the box for "Match case" in the search function.
+* "label":
+    Sets the label for a set of Map Annotations with the same Namespace.
+
+In general, the IDR config (`here <https://github.com/IDR/deployment/blob/master/ansible/group_vars/omero-hosts.yml>`_ as a yaml representation) serves as a great example containing an extensive ``omero.web.mapr.config``.
+
+
+
 
 User-edited Map Annotations
 ---------------------------
@@ -141,6 +174,8 @@ Now restart OMERO.web as normal for the configuration above to take effect.
 You should now be able to browse to a ``Genes`` page and search for
 ``CDC20`` or ``ENSG00000117399``.
 
+Note that if you create multiple Map Annotations with the same Namespace, this will result in a more verbose layout in the webclient UI. It is preferable to combine all Key-Value pairs for a particular Namespace into a single Map Annotation.
+
 
 External URL Favicons
 ^^^^^^^^^^^^^^^^^^^^^
@@ -154,6 +189,21 @@ A favicon linked to the external URL will be appended to the `Gene Identifier` r
 OMERO.web must be configured with the Django redis cache
 https://docs.openmicroscopy.org/omero/5/sysadmins/unix/install-web/walkthrough/omeroweb-install-centos7-ice3.6.html?highlight=redis#configuring-omero-web
 which is used to cache the favicons that are obtained using a Google service.
+If your IT structure utilizes a proxy and you are unwilling to set the proxy on a system level for the OMERO(.web) server you can set one directly in the ``requests.get()`` `method <https://github.com/ome/omero-mapr/blob/99dfb1a17418dbc996b9cb402e35db9d8e4b79f8/omero_mapr/views.py#L669>`_ like this
+
+::
+
+    proxies = {'http':'http://wwwproxy.<youproxy>.de:80','https':'http://wwwproxy.<yourproxy>.de:80'}
+        r = requests.get(
+            "%s%s" % (mapr_settings.FAVICON_WEBSERVICE, favdomain),
+            stream=True, proxies = proxies)
+
+
+Map Annotations on Wells/Images
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For Plates the same Map Annotation that is on an Image has to also be on its corresponding Well for the Values to be correctly findable in the search function.
+The reasons for this rather unintuitive behaviour are partly historical, as in the past no Annotations were shown for Images when browsing Screen-Plate-Well data, and partly performance related, as the query runs quicker by saving a JOIN when you're trying to find matching Plates if you only need to query Wells instead of Images.
+
 
 
 Testing
