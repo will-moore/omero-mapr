@@ -27,7 +27,7 @@ from omero.model import ScreenI
 from omero.rtypes import rstring, unwrap
 from omero.constants.namespaces import NSBULKANNOTATIONS
 from omero.util.populate_metadata import BulkToMapAnnotationContext
-from omero.util.populate_metadata import ParsingContext
+from omero_metadata.populate import ParsingContext
 
 from omeroweb.testlib import IWebTest
 
